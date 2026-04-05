@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { useCartStore } from "@/stores/cartStore";
 import { SearchModal } from "./SearchModal";
 
@@ -15,7 +16,9 @@ const navLinks = [
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const totalItems = useCartStore((s) => s.totalItems());
+  const { data: session } = useSession();
 
   // Cmd/Ctrl+K shortcut
   useEffect(() => {
@@ -98,6 +101,46 @@ export function Navbar() {
                   </span>
                 )}
               </Link>
+
+              {/* User account */}
+              {session ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="w-8 h-8 rounded-full bg-[#00ff66]/10 border border-[#00ff66]/30 flex items-center justify-center text-xs font-black text-[#00ff66] hover:bg-[#00ff66]/20 transition-all"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {session.user.name?.[0]?.toUpperCase() ?? "U"}
+                  </button>
+                  {userMenuOpen && (
+                    <div className="absolute right-0 top-10 w-44 bg-[#111] border border-[#222] rounded-xl shadow-2xl overflow-hidden z-50">
+                      <div className="px-3 py-2.5 border-b border-[#1a1a1a]">
+                        <p className="text-xs text-white font-medium truncate">{session.user.name}</p>
+                        <p className="text-xs text-[#555] truncate">{session.user.email}</p>
+                      </div>
+                      <Link href="/cuenta" onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs text-[#888] hover:text-[#00ff66] hover:bg-[#0d0d0d] transition-colors">
+                        Mi cuenta
+                      </Link>
+                      {session.user.role === "ADMIN" && (
+                        <Link href="/admin" onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 text-xs text-[#888] hover:text-[#00ff66] hover:bg-[#0d0d0d] transition-colors">
+                          Admin
+                        </Link>
+                      )}
+                      <button onClick={() => { signOut({ callbackUrl: "/" }); setUserMenuOpen(false); }}
+                        className="w-full text-left flex items-center gap-2 px-3 py-2 text-xs text-[#888] hover:text-[#ff3333] hover:bg-[#0d0d0d] transition-colors border-t border-[#1a1a1a]">
+                        Cerrar sesión
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link href="/login"
+                  className="hidden sm:block text-xs text-[#555] hover:text-[#888] transition-colors border border-[#1a1a1a] px-3 py-1.5 rounded">
+                  Entrar
+                </Link>
+              )}
 
               {/* Mobile menu toggle */}
               <button

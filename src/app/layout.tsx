@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Orbitron, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { TRPCProvider } from "@/lib/trpc/provider";
+import { AuthSessionProvider } from "@/lib/session-provider";
 
 const orbitron = Orbitron({
   variable: "--font-display",
@@ -59,7 +60,9 @@ export default function RootLayout({
       className={`${orbitron.variable} ${outfit.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#0a0a0a] text-white">
-        <TRPCProvider>{children}</TRPCProvider>
+        <AuthSessionProvider>
+          <TRPCProvider>{children}</TRPCProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

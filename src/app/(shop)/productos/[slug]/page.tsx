@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { api } from "@/lib/trpc/server";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { WishlistButton } from "@/components/shop/WishlistButton";
+import { ProductReviews } from "@/components/shop/ProductReviews";
+import { RelatedProducts } from "@/components/shop/RelatedProducts";
 
 function formatCLP(n: number | string | { toNumber?: () => number }) {
   const val = typeof n === "object" && n?.toNumber ? n.toNumber() : Number(n);
@@ -166,15 +169,20 @@ export default async function ProductPage({
               </div>
 
               {/* Add to cart */}
-              <AddToCartButton product={{
-                id: product.id,
-                name: product.name,
-                brand: product.brand,
-                price: product.price,
-                sku: product.sku,
-                stock: product.stock,
-                images: product.images,
-              }} />
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <AddToCartButton product={{
+                    id: product.id,
+                    name: product.name,
+                    brand: product.brand,
+                    price: product.price,
+                    sku: product.sku,
+                    stock: product.stock,
+                    images: product.images,
+                  }} />
+                </div>
+                <WishlistButton productId={product.id} />
+              </div>
 
               {/* Trust badges */}
               <div className="grid grid-cols-3 gap-3 mt-8">
@@ -220,6 +228,15 @@ export default async function ProductPage({
             </div>
           )}
         </div>
+
+        {/* Reviews */}
+        <ProductReviews productId={product.id} />
+
+        {/* Related products */}
+        <RelatedProducts
+          categoryId={product.categoryId ?? ""}
+          currentId={product.id}
+        />
       </main>
     </>
   );

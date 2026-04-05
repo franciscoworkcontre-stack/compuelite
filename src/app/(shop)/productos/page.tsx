@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { CatalogFilters } from "@/components/shop/CatalogFilters";
 import { CatalogGrid } from "@/components/shop/CatalogGrid";
+import { MobileFiltersDrawer } from "@/components/shop/MobileFiltersDrawer";
 import { api } from "@/lib/trpc/server";
 
 export const metadata: Metadata = {
@@ -30,14 +31,17 @@ export default async function ProductosPage({
         <div className="border-b border-[#222] bg-[#0a0a0a]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <p className="text-xs text-[#00ff66] uppercase tracking-widest mb-2">Catálogo</p>
-            <h1
-              className="text-3xl font-black uppercase text-white"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {categorySlug
-                ? (categories.find((c) => c.slug === categorySlug)?.name ?? "Productos")
-                : "Todos los Productos"}
-            </h1>
+            <div className="flex items-end justify-between gap-4">
+              <h1
+                className="text-3xl font-black uppercase text-white"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                {categorySlug
+                  ? (categories.find((c) => c.slug === categorySlug)?.name ?? "Productos")
+                  : "Todos los Productos"}
+              </h1>
+              <MobileFiltersDrawer categories={categories} brands={brands} priceRange={priceRange} />
+            </div>
           </div>
         </div>
 

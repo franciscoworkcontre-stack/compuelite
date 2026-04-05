@@ -19,6 +19,7 @@ interface Props {
   categories: Category[];
   brands: Brand[];
   priceRange: { min: number; max: number };
+  onFilterChange?: () => void;
 }
 
 function formatCLP(n: number) {
@@ -30,7 +31,7 @@ function formatCLP(n: number) {
   }).format(n);
 }
 
-export function CatalogFilters({ categories, brands, priceRange }: Props) {
+export function CatalogFilters({ categories, brands, priceRange, onFilterChange }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -45,8 +46,9 @@ export function CatalogFilters({ categories, brands, priceRange }: Props) {
       }
       next.delete("cursor"); // reset pagination
       router.push(`${pathname}?${next.toString()}`);
+      onFilterChange?.();
     },
-    [params, pathname, router]
+    [params, pathname, router, onFilterChange]
   );
 
   const activeCategory = params.get("categoria");
