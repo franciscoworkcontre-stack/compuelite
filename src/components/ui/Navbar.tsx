@@ -8,7 +8,7 @@ import { SearchModal } from "./SearchModal";
 
 const navLinks = [
   { href: "/productos", label: "Productos" },
-  { href: "/builder", label: "PC Builder 3D" },
+  { href: "/builder", label: "Configurador" },
   { href: "/builds", label: "Builds" },
   { href: "/marcas", label: "Marcas" },
 ];

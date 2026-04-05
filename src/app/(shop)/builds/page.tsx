@@ -221,15 +221,14 @@ export default async function BuildsPage() {
             Arma tu PC personalizado
           </h2>
           <p className="text-sm text-[#555] mb-8 leading-relaxed">
-            Usa nuestro PC Builder 3D para elegir cada componente y ver tu equipo
-            ensamblado en tiempo real.
+            Usa nuestro Configurador para elegir cada componente a tu medida.
           </p>
           <Link
             href="/builder"
             className="inline-flex items-center gap-2 px-8 py-3 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded hover:bg-[#00cc52] transition-all"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Abrir PC Builder 3D →
+            Abrir Configurador →
           </Link>
         </div>
       </div>

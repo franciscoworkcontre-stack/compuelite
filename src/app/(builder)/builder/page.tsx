@@ -3,8 +3,8 @@ import { BuilderPage } from "@/components/builder/BuilderPage";
 import { ContentZone } from "@/components/content/ContentZone";
 
 export const metadata: Metadata = {
-  title: "PC Builder 3D — Compuelite",
-  description: "Arma tu PC gamer ideal. Selecciona componentes compatibles y visualízalos en 3D en tiempo real.",
+  title: "Configurador de PC — Compuelite",
+  description: "Arma tu PC gamer ideal. Selecciona componentes compatibles y obtén el precio total de tu equipo.",
 };
 
 export default function Page() {
