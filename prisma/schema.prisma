@@ -1,0 +1,563 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================
+// ENUMS
+// ============================
+
+enum ProductType {
+  STANDALONE
+  COMPONENT
+  PREBUILT
+  PERIPHERAL
+  ACCESSORY
+}
+
+enum ComponentType {
+  CASE
+  CPU
+  MOTHERBOARD
+  GPU
+  RAM
+  STORAGE_SSD
+  STORAGE_HDD
+  PSU
+  CPU_COOLER
+  CASE_FAN
+  AIO_COOLER
+  CUSTOM_LOOP
+  THERMAL_PASTE
+  CABLE_MGMT
+  RGB_CONTROLLER
+  OS
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  OUT_OF_STOCK
+  DISCONTINUED
+  ARCHIVED
+}
+
+enum RuleType {
+  EXACT_MATCH
+  INCLUDES
+  RANGE
+  DIMENSION
+  POWER
+  SLOT_COUNT
+  CUSTOM
+}
+
+enum RuleSeverity {
+  ERROR
+  WARNING
+  INFO
+}
+
+enum CompatStatus {
+  UNCHECKED
+  COMPATIBLE
+  HAS_WARNINGS
+  INCOMPATIBLE
+}
+
+enum PaymentMethod {
+  WEBPAY
+  MERCADOPAGO
+  FLOW
+  TRANSFER
+  CASH_ON_DELIVERY
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum ShippingStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+  FAILED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum InvoiceType {
+  BOLETA
+  FACTURA
+}
+
+enum Marketplace {
+  MERCADOLIBRE
+  FALABELLA
+  PARIS
+  RIPLEY
+  LINIO
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ERROR
+  REMOVED
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  WAREHOUSE
+  SUPPORT
+}
+
+enum MovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+  CSV_IMPORT
+  TRANSFER
+  RESERVED
+  RELEASED
+}
+
+enum ImportStatus {
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+}
+
+// ============================
+// CATEGORÍAS
+// ============================
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  imageUrl    String?
+  parentId    String?
+  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryChildren")
+  products    Product[]
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// ============================
+// PRODUCTOS
+// ============================
+
+model Product {
+  id               String        @id @default(cuid())
+  sku              String        @unique
+  name             String
+  slug             String        @unique
+  description      String?
+  shortDescription String?
+  brand            String
+  price            Decimal       @db.Decimal(10, 2)
+  compareAtPrice   Decimal?      @db.Decimal(10, 2)
+  costPrice        Decimal?      @db.Decimal(10, 2)
+  currency         String        @default("CLP")
+
+  categoryId       String
+  category         Category      @relation(fields: [categoryId], references: [id])
+  tags             String[]
+
+  productType      ProductType   @default(STANDALONE)
+  componentType    ComponentType?
+
+  model3dUrl       String?
+  model3dThumbnail String?
+  images           ProductImage[]
+
+  stock            Int           @default(0)
+  lowStockThreshold Int          @default(5)
+  trackInventory   Boolean       @default(true)
+
+  weight           Decimal?      @db.Decimal(8, 2)
+  width            Decimal?      @db.Decimal(8, 2)
+  height           Decimal?      @db.Decimal(8, 2)
+  depth            Decimal?      @db.Decimal(8, 2)
+
+  metaTitle        String?
+  metaDescription  String?
+
+  status           ProductStatus @default(DRAFT)
+  featured         Boolean       @default(false)
+  publishedAt      DateTime?
+
+  specs            Json?
+  compatibilityRules Json?
+
+  bomItems         BomItem[]     @relation("ParentProduct")
+  usedInBom        BomItem[]     @relation("ComponentProduct")
+  orderItems       OrderItem[]
+  cartItems        CartItem[]
+  reviews          Review[]
+  marketplaceListings MarketplaceListing[]
+  stockMovements   StockMovement[]
+  buildComponents  BuildComponent[]
+
+  variants         ProductVariant[]
+  parentVariantId  String?
+  parentVariant    Product?      @relation("ProductVariants", fields: [parentVariantId], references: [id])
+  childVariants    Product[]     @relation("ProductVariants")
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([categoryId])
+  @@index([componentType])
+  @@index([status, publishedAt])
+  @@index([sku])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+}
+
+model ProductVariant {
+  id            String  @id @default(cuid())
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name          String
+  value         String
+  priceModifier Decimal @db.Decimal(10, 2) @default(0)
+}
+
+// ============================
+// BILL OF MATERIALS (BOM)
+// ============================
+
+model BomItem {
+  id              String  @id @default(cuid())
+  parentProductId String
+  parentProduct   Product @relation("ParentProduct", fields: [parentProductId], references: [id])
+  componentId     String
+  component       Product @relation("ComponentProduct", fields: [componentId], references: [id])
+  quantity        Int     @default(1)
+  isOptional      Boolean @default(false)
+  slotName        String?
+  sortOrder       Int     @default(0)
+
+  @@unique([parentProductId, componentId, slotName])
+}
+
+// ============================
+// COMPATIBILIDAD
+// ============================
+
+model CompatibilityRule {
+  id             String        @id @default(cuid())
+  name           String
+  description    String?
+  ruleType       RuleType
+  sourceType     ComponentType
+  targetType     ComponentType
+  ruleDefinition Json
+  isActive       Boolean       @default(true)
+  priority       Int           @default(0)
+  severity       RuleSeverity  @default(ERROR)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+// ============================
+// BUILDS
+// ============================
+
+model Build {
+  id                  String         @id @default(cuid())
+  userId              String?
+  user                User?          @relation(fields: [userId], references: [id])
+  sessionId           String?
+  name                String?
+  isPublic            Boolean        @default(false)
+  shareSlug           String?        @unique
+
+  components          BuildComponent[]
+  totalPrice          Decimal        @db.Decimal(10, 2) @default(0)
+  compatibilityStatus CompatStatus   @default(UNCHECKED)
+  compatibilityIssues Json?
+
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([sessionId])
+}
+
+model BuildComponent {
+  id            String        @id @default(cuid())
+  buildId       String
+  build         Build         @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product       @relation(fields: [productId], references: [id])
+  componentType ComponentType
+  slotIndex     Int           @default(0)
+  quantity      Int           @default(1)
+
+  @@unique([buildId, componentType, slotIndex])
+}
+
+// ============================
+// USUARIOS
+// ============================
+
+model User {
+  id        String         @id @default(cuid())
+  email     String         @unique
+  name      String?
+  phone     String?
+  rut       String?
+  role      UserRole       @default(CUSTOMER)
+  avatarUrl String?
+
+  addresses Address[]
+  orders    Order[]
+  builds    Build[]
+  reviews   Review[]
+  wishlist  WishlistItem[]
+  cart      Cart?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  label     String?
+  fullName  String
+  phone     String?
+  address   String
+  number    String?
+  apartment String?
+  commune   String
+  region    String
+  city      String
+  isDefault Boolean @default(false)
+}
+
+// ============================
+// CARRITO
+// ============================
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String?    @unique
+  user      User?      @relation(fields: [userId], references: [id])
+  sessionId String?    @unique
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id            String         @id @default(cuid())
+  cartId        String
+  cart          Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product        @relation(fields: [productId], references: [id])
+  quantity      Int            @default(1)
+  buildId       String?
+  isPartOfBuild Boolean        @default(false)
+  componentType ComponentType?
+  addedAt       DateTime       @default(now())
+
+  @@unique([cartId, productId, buildId])
+}
+
+// ============================
+// PEDIDOS
+// ============================
+
+model Order {
+  id              String         @id @default(cuid())
+  orderNumber     String         @unique
+  userId          String?
+  user            User?          @relation(fields: [userId], references: [id])
+
+  guestEmail      String?
+  guestPhone      String?
+
+  items           OrderItem[]
+  subtotal        Decimal        @db.Decimal(10, 2)
+  shippingCost    Decimal        @db.Decimal(10, 2) @default(0)
+  discount        Decimal        @db.Decimal(10, 2) @default(0)
+  tax             Decimal        @db.Decimal(10, 2) @default(0)
+  total           Decimal        @db.Decimal(10, 2)
+
+  shippingAddress Json
+  billingAddress  Json?
+
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus  @default(PENDING)
+  paymentId       String?
+  paymentGateway  String?
+  paymentMeta     Json?
+
+  shippingMethod  String?
+  shippingStatus  ShippingStatus @default(PENDING)
+  trackingNumber  String?
+  trackingUrl     String?
+  estimatedDelivery DateTime?
+
+  status          OrderStatus    @default(PENDING)
+  notes           String?
+  internalNotes   String?
+
+  invoiceType     InvoiceType    @default(BOLETA)
+  rutCliente      String?
+
+  couponCode      String?
+  couponDiscount  Decimal?       @db.Decimal(10, 2)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id            String         @id @default(cuid())
+  orderId       String
+  order         Order          @relation(fields: [orderId], references: [id])
+  productId     String
+  product       Product        @relation(fields: [productId], references: [id])
+  quantity      Int
+  unitPrice     Decimal        @db.Decimal(10, 2)
+  totalPrice    Decimal        @db.Decimal(10, 2)
+  buildId       String?
+  isPartOfBuild Boolean        @default(false)
+  componentType ComponentType?
+
+  @@index([orderId])
+}
+
+// ============================
+// REVIEWS
+// ============================
+
+model Review {
+  id            String   @id @default(cuid())
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  rating        Int
+  title         String?
+  body          String?
+  benchmarkData Json?
+  verified      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([productId, userId])
+  @@index([productId])
+}
+
+// ============================
+// WISHLIST
+// ============================
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  addedAt   DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+// ============================
+// MARKETPLACES
+// ============================
+
+model MarketplaceListing {
+  id             String        @id @default(cuid())
+  productId      String
+  product        Product       @relation(fields: [productId], references: [id])
+  marketplace    Marketplace
+  externalId     String?
+  externalUrl    String?
+  status         ListingStatus @default(DRAFT)
+  syncedAt       DateTime?
+  syncErrors     Json?
+  priceOverride  Decimal?      @db.Decimal(10, 2)
+  commissionRate Decimal?      @db.Decimal(5, 2)
+
+  @@unique([productId, marketplace])
+}
+
+// ============================
+// INVENTARIO
+// ============================
+
+model StockMovement {
+  id            String       @id @default(cuid())
+  productId     String
+  product       Product      @relation(fields: [productId], references: [id])
+  type          MovementType
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  reference     String?
+  batchId       String?
+  createdBy     String?
+  createdAt     DateTime     @default(now())
+
+  @@index([productId, createdAt])
+  @@index([batchId])
+}
+
+model CsvImportLog {
+  id          String       @id @default(cuid())
+  fileName    String
+  totalRows   Int
+  successRows Int
+  errorRows   Int
+  errors      Json?
+  status      ImportStatus
+  importedBy  String
+  batchId     String       @unique
+  createdAt   DateTime     @default(now())
+}
