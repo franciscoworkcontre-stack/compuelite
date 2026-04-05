@@ -178,4 +178,19 @@ export const builderRouter = createTRPCRouter({
         orderBy: { price: "asc" },
       });
     }),
+
+  peripheralRecommendations: publicProcedure
+    .input(z.object({ limit: z.number().default(8) }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.product.findMany({
+        take: input.limit,
+        where: {
+          status: ProductStatus.ACTIVE,
+          componentType: null,
+          stock: { gt: 0 },
+        },
+        include: { images: { take: 1 } },
+        orderBy: { price: "asc" },
+      });
+    }),
 });

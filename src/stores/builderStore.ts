@@ -49,6 +49,66 @@ export interface SelectedComponent {
   price: number;
   sku: string;
   imageUrl?: string;
+  specs?: Record<string, unknown>;
+}
+
+export interface CompatibilityIssue {
+  type: "error" | "warning";
+  message: string;
+}
+
+export function checkCompatibility(
+  components: Partial<Record<BuildStep, SelectedComponent>>
+): CompatibilityIssue[] {
+  const issues: CompatibilityIssue[] = [];
+  const cpu = components.CPU;
+  const mb = components.MOTHERBOARD;
+  const gpu = components.GPU;
+  const psu = components.PSU;
+  const cooler = components.CPU_COOLER;
+  const pcCase = components.CASE;
+
+  // Socket compatibility: CPU ↔ Motherboard
+  if (cpu && mb) {
+    const cpuSocket = cpu.specs?.socket as string | undefined;
+    const mbSocket = mb.specs?.socket as string | undefined;
+    if (cpuSocket && mbSocket && cpuSocket !== mbSocket) {
+      issues.push({
+        type: "error",
+        message: `Socket incompatible: CPU requiere ${cpuSocket}, placa soporta ${mbSocket}`,
+      });
+    }
+  }
+
+  // PSU wattage vs GPU + CPU TDP
+  if (psu && (gpu || cpu)) {
+    const gpuTdp = (gpu?.specs?.tdp as number) ?? 0;
+    const cpuTdp = (cpu?.specs?.tdp as number) ?? 0;
+    const psuWatts = (psu.specs?.wattage as number) ?? 0;
+    const required = gpuTdp + cpuTdp + 100;
+    if (psuWatts > 0 && psuWatts < required) {
+      issues.push({
+        type: "warning",
+        message: `Fuente insuficiente: necesitas ~${required}W, tienes ${psuWatts}W`,
+      });
+    }
+  }
+
+  // Cooler height vs case clearance
+  if (cooler && pcCase) {
+    const coolerH = (cooler.specs?.height as string | undefined)
+      ?.replace("mm", "").trim();
+    const caseMax = (pcCase.specs?.max_cooler_height as string | undefined)
+      ?.replace("mm", "").trim();
+    if (coolerH && caseMax && Number(coolerH) > Number(caseMax)) {
+      issues.push({
+        type: "error",
+        message: `Cooler muy alto: ${coolerH}mm no cabe en gabinete (máx ${caseMax}mm)`,
+      });
+    }
+  }
+
+  return issues;
 }
 
 export interface BuilderState {
