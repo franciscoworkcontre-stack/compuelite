@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, Zap, Shield, Truck, Clock } from "lucide-react";
+import { motion, type Variants } from "framer-motion";
+import { ArrowRight, Zap, Cpu, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -137,9 +137,15 @@ const DEALS = [
     badge: "Serie START · Más vendido",
     name: "PC Gamer Ryzen 5\n+ RTX 3050",
     specs: "6-Core · 16GB DDR4 · 1TB NVMe · WiFi",
+    features: [
+      { icon: Cpu,  text: "Ryzen 5 5500 6-Core" },
+      { icon: Zap,  text: "RTX 3050 6GB GDDR6" },
+      { icon: Cpu,  text: "16GB DDR4 · 1TB NVMe" },
+    ],
     price: 863446,
     was: 937000,
     pct: 8,
+    stock: 7,
     href: "/productos/pc-gamer-amd-ryzen-5-5500-6-core-16gb-ddr4-rtx-3050-6gb-pcb4",
     img: "https://cdnx.jumpseller.com/compuelite/image/71549613/thumb/1000/1000?1767716671",
   },
@@ -147,9 +153,15 @@ const DEALS = [
     badge: "Mayor descuento · -12%",
     name: "PC Gamer Intel i5\n+ RTX 3050",
     specs: "6-Core · 16GB DDR4 · H610 WiFi · 1TB",
+    features: [
+      { icon: Cpu,  text: "Intel i5-12400F 6-Core" },
+      { icon: Zap,  text: "RTX 3050 6GB GDDR6" },
+      { icon: Cpu,  text: "16GB DDR4 · H610 WiFi" },
+    ],
     price: 876432,
     was: 992000,
     pct: 12,
+    stock: 4,
     href: "/productos/pc-gamer-intel-i5-12400f-6-core-h610-wifi-16gb-ddr4-ssd-1tb-",
     img: "https://cdnx.jumpseller.com/compuelite/image/62387794/thumb/1000/1000?1744327929",
   },
@@ -157,9 +169,15 @@ const DEALS = [
     badge: "Serie START · Desde",
     name: "PC Gamer Ryzen 7\n5700G",
     specs: "8-Core · 16GB DDR4 · Radeon integrada",
+    features: [
+      { icon: Cpu,  text: "Ryzen 7 5700G 8-Core" },
+      { icon: Zap,  text: "Radeon Graphics integrada" },
+      { icon: Cpu,  text: "16GB DDR4 · 1TB NVMe" },
+    ],
     price: 667166,
     was: 724000,
     pct: 8,
+    stock: 12,
     href: "/productos/pc-gamer-amd-ryzen-7-5700g-8-core-radeon-16gb-ddr4-pcb307",
     img: "https://cdnx.jumpseller.com/compuelite/image/67991777/thumb/1000/1000?1759162173",
   },
@@ -169,13 +187,23 @@ function formatCLP(n: number) {
   return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(n);
 }
 
-const stagger = {
+// ─── Animation variants (App.tsx pattern) ────────────────────────────────────
+
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.2, delayChildren: 0.1 },
+  },
 };
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55 } },
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 100, damping: 15 },
+  },
 };
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
@@ -191,7 +219,7 @@ export function HeroSection() {
   const deal = DEALS[active];
 
   return (
-    <section className="relative w-full min-h-[92vh] flex flex-col bg-[#080808] overflow-hidden">
+    <section className="relative w-full min-h-[92vh] flex flex-col bg-[#0a0a0a] overflow-hidden">
 
       {/* Particles background */}
       <div className="absolute inset-0 z-0">
@@ -199,151 +227,175 @@ export function HeroSection() {
       </div>
 
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#080808]/90 via-[#080808]/80 to-[#080808]/90 z-[1] pointer-events-none" />
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,255,102,0.15), transparent)" }}
+      />
 
-      {/* Grid texture */}
-      <div className="absolute inset-0 z-[1] pointer-events-none opacity-[0.03]"
-        style={{ backgroundImage: "linear-gradient(#00ff66 1px, transparent 1px), linear-gradient(90deg, #00ff66 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+      {/* Dot grid texture */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none opacity-30"
+        style={{
+          backgroundImage: "radial-gradient(circle at 2px 2px, rgba(0,255,102,0.15) 1px, transparent 0)",
+          backgroundSize: "40px 40px",
+        }}
+      />
 
       {/* Main content */}
       <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-4 sm:px-8 lg:px-12 pt-10 pb-10 lg:pt-14 lg:pb-14 flex flex-col gap-8">
 
-        {/* Full-width promo banner */}
+        {/* ── Full-width promo banner (GREEN) ── */}
         <motion.div
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full rounded-xl border border-[#1e1e1e] bg-[#0b0b0b]/90 backdrop-blur-sm px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-5"
+          className="w-full rounded-xl border border-[#00ff66]/20 bg-[#00ff66]/5 backdrop-blur-sm px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-5"
         >
           <div className="flex-1 min-w-0">
-            <p className="flex items-center gap-1.5 text-[#ff4400] text-[11px] font-bold uppercase tracking-widest mb-1.5">
+            <p className="flex items-center gap-1.5 text-[#00ff66] text-[11px] font-bold uppercase tracking-widest mb-1.5">
               <Zap className="w-3 h-3" />
               BLACK SALE — Solo por tiempo limitado
             </p>
             <h2 className="text-2xl sm:text-3xl font-black text-white uppercase leading-tight mb-1.5" style={{ fontFamily: "var(--font-display)" }}>
               PCs Gamer con hasta 13% OFF
             </h2>
-            <p className="text-[#444] text-xs leading-relaxed">
+            <p className="text-[#555] text-xs leading-relaxed">
               Desde $667.166 · Intel i5 + RTX 3050 desde $876.432 · Ryzen 7 9800X3D + RTX 5070 Ti disponible · Garantía incluida · Despacho a todo Chile
             </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <Link
               href="/productos"
-              className="px-5 py-2.5 bg-[#ff4400] text-white text-sm font-black uppercase tracking-wider rounded-lg hover:bg-[#e03a00] transition-all whitespace-nowrap"
+              className="px-5 py-2.5 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded-lg hover:bg-[#00e55c] transition-all whitespace-nowrap"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Ver todas las ofertas
             </Link>
             <Link
               href="/builds"
-              className="px-4 py-2.5 border border-[#2a2a2a] text-[#888] text-xs font-semibold uppercase tracking-wider rounded-lg hover:border-[#444] hover:text-white transition-all whitespace-nowrap"
+              className="px-4 py-2.5 border border-[#00ff66]/30 text-[#00ff66] text-xs font-semibold uppercase tracking-wider rounded-lg hover:border-[#00ff66] hover:bg-[#00ff66]/10 transition-all whitespace-nowrap"
             >
               Serie START desde $667K
             </Link>
           </div>
         </motion.div>
 
-        {/* 2-col grid below */}
+        {/* ── 2-col grid ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center w-full flex-1">
 
-          {/* LEFT — Copy */}
+          {/* LEFT — Copy (App.tsx pattern) */}
           <motion.div
+            variants={containerVariants}
             initial="hidden"
             animate="visible"
-            variants={stagger}
-            className="space-y-7 order-2 lg:order-1"
+            className="space-y-8 order-2 lg:order-1"
           >
-            {/* BLACK SALE banner */}
-            <motion.div variants={fadeUp}>
-              <div className="inline-flex items-center justify-between gap-6 px-6 py-3 rounded-xl bg-[#00ff66]/10 border border-[#00ff66]/30 w-full max-w-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#00ff66]/20 border border-[#00ff66]/40 flex items-center justify-center flex-shrink-0">
-                    <Zap className="w-4 h-4 text-[#00ff66]" />
-                  </div>
-                  <div>
-                    <p className="text-[#00ff66] text-sm font-black uppercase tracking-widest leading-tight" style={{ fontFamily: "var(--font-display)" }}>
-                      BLACK SALE
-                    </p>
-                    <p className="text-[#00ff66]/70 text-[11px] uppercase tracking-wider leading-tight">
-                      25 Marzo — 5 Abril
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-white text-xl font-black leading-none" style={{ fontFamily: "var(--font-display)" }}>13% OFF</p>
-                  <p className="text-[#00ff66]/60 text-[10px] uppercase tracking-wider">en PCs Gamer</p>
-                </div>
+            {/* Badge */}
+            <motion.div variants={itemVariants}>
+              <div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full border"
+                style={{ backgroundColor: "rgba(0,255,102,0.1)", borderColor: "#00ff66" }}
+              >
+                <Zap className="w-4 h-4" style={{ color: "#00ff66" }} />
+                <span className="text-sm font-semibold" style={{ color: "#00ff66" }}>
+                  {deal.badge}
+                </span>
               </div>
             </motion.div>
 
-            {/* Category */}
-            <motion.p variants={fadeUp} className="text-[#00ff66] text-xs font-bold uppercase tracking-widest transition-all duration-500">
-              {deal.badge}
-            </motion.p>
-
             {/* Headline */}
-            <motion.h1
-              variants={fadeUp}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight uppercase transition-all duration-500"
-              style={{ fontFamily: "var(--font-display)", whiteSpace: "pre-line" }}
-            >
-              {deal.name}
-            </motion.h1>
+            <motion.div variants={itemVariants}>
+              <h1
+                className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight uppercase"
+                style={{ fontFamily: "var(--font-display)", whiteSpace: "pre-line" }}
+              >
+                {deal.name.split("\n")[0]}
+                <br />
+                <span className="relative inline-block" style={{ color: "#00ff66" }}>
+                  {deal.name.split("\n")[1]}
+                  <svg viewBox="0 0 300 8" className="absolute left-0 bottom-0 w-full" style={{ marginBottom: "-8px" }}>
+                    <path d="M2 6C80 2 220 2 298 6" stroke="#00ff66" strokeWidth="3" strokeLinecap="round" fill="none" />
+                  </svg>
+                </span>
+              </h1>
+            </motion.div>
 
             {/* Specs */}
-            <motion.p variants={fadeUp} className="text-[#555] text-sm transition-all duration-500">
+            <motion.p variants={itemVariants} className="text-lg text-gray-400 max-w-xl">
               {deal.specs}
             </motion.p>
 
-            {/* Price */}
-            <motion.div variants={fadeUp} className="flex items-end gap-4">
-              <span className="text-4xl sm:text-5xl font-black text-white" style={{ fontFamily: "var(--font-display)" }}>
-                {formatCLP(deal.price)}
-              </span>
-              <div className="mb-1 flex flex-col">
-                <span className="text-[#333] text-sm line-through">{formatCLP(deal.was)}</span>
-                <span className="text-[#00ff66] text-xs font-bold">Ahorrás {formatCLP(deal.was - deal.price)}</span>
-              </div>
-              <span className="mb-1 px-2.5 py-1 rounded bg-[#00ff66]/15 text-[#00ff66] text-xs font-black border border-[#00ff66]/30">
-                -{deal.pct}% OFF
-              </span>
-            </motion.div>
-
-            {/* Trust pills */}
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-4">
-              {[
-                { icon: Shield, text: "Garantía incluida" },
-                { icon: Truck, text: "Despacho a todo Chile" },
-                { icon: Clock, text: "Lista para usar" },
-              ].map(({ icon: Icon, text }) => (
-                <span key={text} className="flex items-center gap-1.5 text-xs text-[#555]">
-                  <Icon className="w-3.5 h-3.5 text-[#00ff66]" />
-                  {text}
-                </span>
+            {/* Features */}
+            <motion.div variants={itemVariants} className="flex flex-wrap gap-6">
+              {deal.features.map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-2">
+                  <Icon className="w-5 h-5" style={{ color: "#00ff66" }} />
+                  <span className="text-white font-medium">{text}</span>
+                </div>
               ))}
             </motion.div>
 
+            {/* Price card */}
+            <motion.div
+              variants={itemVariants}
+              className="p-6 rounded-2xl border"
+              style={{ backgroundColor: "rgba(0,255,102,0.05)", borderColor: "rgba(0,255,102,0.2)" }}
+            >
+              <div className="flex items-baseline gap-3 mb-2">
+                <span className="text-gray-500 line-through text-2xl">{formatCLP(deal.was)}</span>
+                <span className="text-5xl font-bold" style={{ color: "#00ff66", fontFamily: "var(--font-display)" }}>
+                  {formatCLP(deal.price)}
+                </span>
+              </div>
+              <p className="text-gray-400 mb-4">
+                Ahorrás {formatCLP(deal.was - deal.price)} — BLACK SALE hasta el 5 de Abril
+              </p>
+              <div
+                className="inline-block px-3 py-1 rounded-full text-sm font-semibold"
+                style={{ backgroundColor: "rgba(0,255,102,0.2)", color: "#00ff66" }}
+              >
+                🔥 Solo {deal.stock} unidades a este precio
+              </div>
+            </motion.div>
+
             {/* CTAs */}
-            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 pt-1">
+            <motion.div variants={itemVariants} className="flex flex-wrap gap-4">
               <Link
                 href={deal.href}
-                className="group inline-flex items-center justify-center gap-2 px-7 py-4 bg-[#00ff66] text-black font-black text-sm uppercase tracking-widest rounded hover:bg-[#00e55c] transition-all active:scale-95"
-                style={{ fontFamily: "var(--font-display)" }}
+                className="inline-flex items-center gap-2 px-8 py-3 text-base font-semibold rounded-md shadow-lg transition-all hover:opacity-90 active:scale-95"
+                style={{ backgroundColor: "#00ff66", color: "#0a0a0a" }}
               >
-                Ver esta oferta
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ShoppingCart className="w-5 h-5" />
+                Comprar ahora
               </Link>
               <Link
                 href="/productos"
-                className="inline-flex items-center justify-center px-7 py-4 border border-[#222] text-[#666] font-semibold text-sm uppercase tracking-wider rounded hover:border-[#444] hover:text-white transition-all"
+                className="inline-flex items-center gap-2 px-8 py-3 text-base font-semibold rounded-md border transition-all hover:bg-[#00ff66]/10"
+                style={{ borderColor: "#00ff66", color: "#00ff66", backgroundColor: "transparent" }}
               >
-                Ver todas las PCs
+                Ver especificaciones
+                <ArrowRight className="w-5 h-5" />
               </Link>
             </motion.div>
 
+            {/* Trust indicators */}
+            <motion.div variants={itemVariants} className="flex flex-wrap items-center gap-6 pt-2 text-sm text-gray-500">
+              {[
+                "Despacho a todo Chile",
+                "Garantía incluida",
+                "24/7 Soporte técnico",
+              ].map((text) => (
+                <div key={text} className="flex items-center gap-2">
+                  <svg className="w-5 h-5" style={{ color: "#00ff66" }} fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>{text}</span>
+                </div>
+              ))}
+            </motion.div>
+
             {/* Carousel dots */}
-            <motion.div variants={fadeUp} className="flex items-center gap-2 pt-2">
+            <motion.div variants={itemVariants} className="flex items-center gap-2">
               {DEALS.map((_, i) => (
                 <button
                   key={i}
@@ -356,67 +408,88 @@ export function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* RIGHT — Product image */}
+          {/* RIGHT — Product image (unchanged) */}
           <motion.div
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative order-1 lg:order-2 flex items-center justify-center"
+            className="relative order-1 lg:order-2 flex items-center justify-center lg:h-[600px]"
           >
-            {/* Glow */}
-            <div className="absolute inset-0 bg-[#00ff66]/10 blur-[80px] rounded-full pointer-events-none" />
+            <div className="relative w-full h-full">
+              {/* Glow */}
+              <div
+                className="absolute inset-0 blur-3xl opacity-30"
+                style={{ background: "radial-gradient(circle, #00ff66 0%, transparent 70%)" }}
+              />
 
-            {/* Image container */}
-            <div className="relative w-full max-w-md aspect-square">
-              {/* Sale badge floating */}
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", delay: 0.6 }}
-                className="absolute top-4 right-4 z-20 flex flex-col items-center justify-center w-16 h-16 rounded-full bg-[#00ff66] shadow-lg shadow-[#00ff66]/30"
-              >
-                <span className="text-black font-black text-lg leading-none" style={{ fontFamily: "var(--font-display)" }}>
-                  -{deal.pct}%
-                </span>
-                <span className="text-black/70 text-[9px] uppercase tracking-wider">OFF</span>
-              </motion.div>
+              {/* Image container */}
+              <div className="relative z-10 w-full h-full flex items-center justify-center">
+                <div className="relative w-full max-w-md aspect-square">
+                  {/* Sale badge */}
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", delay: 0.6 }}
+                    className="absolute top-4 right-4 z-20 flex flex-col items-center justify-center w-16 h-16 rounded-full bg-[#00ff66] shadow-lg shadow-[#00ff66]/30"
+                  >
+                    <span className="text-black font-black text-lg leading-none" style={{ fontFamily: "var(--font-display)" }}>
+                      -{deal.pct}%
+                    </span>
+                    <span className="text-black/70 text-[9px] uppercase tracking-wider">OFF</span>
+                  </motion.div>
 
-              {/* Rotating images */}
-              {DEALS.map((d, i) => (
-                <div
-                  key={d.href}
-                  className={`absolute inset-0 transition-all duration-700 ${i === active ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
-                >
-                  <Image
-                    src={d.img}
-                    alt={d.name.replace("\n", " ")}
-                    fill
-                    className="object-contain drop-shadow-2xl"
-                    priority={i === 0}
-                    sizes="(max-width: 1024px) 80vw, 42vw"
-                  />
+                  {/* Rotating images */}
+                  {DEALS.map((d, i) => (
+                    <div
+                      key={d.href}
+                      className={`absolute inset-0 transition-all duration-700 ${i === active ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+                    >
+                      <Image
+                        src={d.img}
+                        alt={d.name.replace("\n", " ")}
+                        fill
+                        className="object-contain drop-shadow-2xl"
+                        priority={i === 0}
+                        sizes="(max-width: 1024px) 80vw, 42vw"
+                      />
+                    </div>
+                  ))}
+
+                  {/* Floating stat cards */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1 }}
+                    className="absolute -bottom-4 -left-4 px-4 py-3 rounded-xl border border-[#00ff66]/20 bg-[#0a0a0a]/90 backdrop-blur-sm"
+                  >
+                    <p className="text-[#00ff66] text-[10px] font-bold uppercase tracking-wider">Ensamblado en</p>
+                    <p className="text-white text-lg font-black" style={{ fontFamily: "var(--font-display)" }}>Chile 🇨🇱</p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.1 }}
+                    className="absolute -top-4 -left-4 px-4 py-3 rounded-xl border border-[#00ff66]/20 bg-[#0a0a0a]/90 backdrop-blur-sm"
+                  >
+                    <p className="text-[#00ff66] text-[10px] font-bold uppercase tracking-wider">Cuotas sin interés</p>
+                    <p className="text-white text-lg font-black" style={{ fontFamily: "var(--font-display)" }}>6x Webpay</p>
+                  </motion.div>
                 </div>
-              ))}
+              </div>
 
-              {/* Floating stat cards */}
+              {/* Floating FPS stat (from App.tsx) */}
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 }}
-                className="absolute -bottom-4 -left-4 px-4 py-3 rounded-xl border border-[#00ff66]/20 bg-[#080808]/90 backdrop-blur-sm"
+                className="absolute top-10 right-0 p-4 rounded-xl border backdrop-blur-sm"
+                style={{ backgroundColor: "rgba(10,10,10,0.8)", borderColor: "rgba(0,255,102,0.3)" }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.2, duration: 0.5 }}
               >
-                <p className="text-[#00ff66] text-[10px] font-bold uppercase tracking-wider">Ensamblado en</p>
-                <p className="text-white text-lg font-black" style={{ fontFamily: "var(--font-display)" }}>Chile 🇨🇱</p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.1 }}
-                className="absolute -top-4 -left-4 px-4 py-3 rounded-xl border border-[#00ff66]/20 bg-[#080808]/90 backdrop-blur-sm"
-              >
-                <p className="text-[#00ff66] text-[10px] font-bold uppercase tracking-wider">Cuotas sin interés</p>
-                <p className="text-white text-lg font-black" style={{ fontFamily: "var(--font-display)" }}>6x Webpay</p>
+                <div className="text-sm text-gray-400 mb-1">Ahorro</div>
+                <div className="text-3xl font-bold" style={{ color: "#00ff66", fontFamily: "var(--font-display)" }}>
+                  -{deal.pct}%
+                </div>
               </motion.div>
             </div>
           </motion.div>
