@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { ReturnReason, ReturnStatus } from "@prisma/client";
@@ -21,7 +21,7 @@ const STATUS_LABELS: Record<ReturnStatus, string> = {
   REFUND_ISSUED: "Reembolso emitido",
 };
 
-export default function DevolucionesPage() {
+function DevolucionesContent() {
   const searchParams = useSearchParams();
   const prefilledOrderId = searchParams.get("pedido") ?? "";
 
@@ -104,5 +104,13 @@ export default function DevolucionesPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function DevolucionesPage() {
+  return (
+    <Suspense fallback={<main className="min-h-screen pt-24 pb-16"><div className="max-w-2xl mx-auto px-4"><p className="text-[#555] text-sm">Cargando...</p></div></main>}>
+      <DevolucionesContent />
+    </Suspense>
   );
 }
