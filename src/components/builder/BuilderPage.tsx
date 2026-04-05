@@ -2,10 +2,21 @@
 
 import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { ComponentType } from "@prisma/client";
+import { motion, AnimatePresence, useSpring, useTransform, useMotionValue } from "framer-motion";
+import {
+  Check,
+  Search,
+  ShoppingCart,
+  Share2,
+  RotateCcw,
+  AlertTriangle,
+  Zap,
+  ChevronLeft,
+  Package,
+} from "lucide-react";
 import {
   useBuilderStore,
   BUILD_STEPS,
@@ -63,7 +74,6 @@ function getIncompatibilityReason(
   components: ReturnType<typeof useBuilderStore.getState>["components"]
 ): string | null {
   if (!specs) return null;
-
   if (step === "MOTHERBOARD" && components.CPU) {
     const cpuSocket = components.CPU.specs?.socket as string;
     const mbSocket = specs.socket as string;
@@ -93,7 +103,7 @@ function getIncompatibilityReason(
   return null;
 }
 
-// ─── ICONS ───────────────────────────────────────────────────────────────────
+// ─── STEP ICONS (SVG) ────────────────────────────────────────────────────────
 
 const STEP_SVG: Record<BuildStep, React.ReactNode> = {
   GPU:         <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1H3zm0 2h14v8H3V6zm2 2v4h4V8H5zm6 0v4h4V8h-4z"/></svg>,
@@ -106,15 +116,147 @@ const STEP_SVG: Record<BuildStep, React.ReactNode> = {
   CASE:        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M4 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4zm1 2h10v10H5V5zm2 2v6h2V7H7zm4 0v2h2V7h-2z"/></svg>,
 };
 
-// ─── PRODUCT ROW ─────────────────────────────────────────────────────────────
+// ─── ANIMATED PRICE ───────────────────────────────────────────────────────────
 
-function ProductRow({
+function AnimatedPrice({ value }: { value: number }) {
+  const motionValue = useMotionValue(value);
+  const spring = useSpring(motionValue, { stiffness: 80, damping: 18 });
+  const display = useTransform(spring, (v) =>
+    new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(v)
+  );
+
+  useEffect(() => {
+    motionValue.set(value);
+  }, [value, motionValue]);
+
+  return <motion.span>{display}</motion.span>;
+}
+
+// ─── LEFT NAV ─────────────────────────────────────────────────────────────────
+
+function BuilderNav({
+  activeStep,
+  onSelect,
+}: {
+  activeStep: BuildStep;
+  onSelect: (step: BuildStep) => void;
+}) {
+  const { components } = useBuilderStore();
+
+  return (
+    <nav className="py-4 px-3">
+      <p className="px-2 mb-4 text-[9px] text-[#2a2a2a] uppercase tracking-widest font-bold">Componentes</p>
+      <div className="relative">
+        {/* Vertical connector line */}
+        <div className="absolute left-[22px] top-4 bottom-4 w-px bg-[#1a1a1a]" />
+
+        {BUILD_STEPS.map((step, index) => {
+          const meta = STEP_META[step];
+          const sel = components[step];
+          const isActive = activeStep === step;
+          const isDone = !!sel;
+          const stepNumber = index + 1;
+
+          return (
+            <motion.button
+              key={step}
+              onClick={() => onSelect(step)}
+              className={`relative w-full flex items-center gap-3 px-2 py-2.5 text-left rounded-lg transition-colors mb-0.5 ${
+                isActive ? "bg-[#00ff66]/[0.06]" : "hover:bg-white/[0.025]"
+              }`}
+              whileHover={{ x: 2 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
+              {/* Step indicator circle */}
+              <div className="relative z-10 flex-shrink-0">
+                <motion.div
+                  className={`w-[30px] h-[30px] rounded-full border-2 flex items-center justify-center transition-all ${
+                    isDone
+                      ? "border-[#00ff66] bg-[#00ff66]/10"
+                      : isActive
+                      ? "border-[#333] bg-[#111]"
+                      : "border-[#1a1a1a] bg-[#080808]"
+                  }`}
+                  animate={isDone ? { scale: [1, 1.15, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <AnimatePresence mode="wait">
+                    {isDone ? (
+                      <motion.div
+                        key="check"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                      >
+                        <Check className="w-3 h-3 text-[#00ff66]" />
+                      </motion.div>
+                    ) : (
+                      <motion.span
+                        key="num"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        className={`text-[9px] font-bold ${isActive ? "text-white" : "text-[#2a2a2a]"}`}
+                      >
+                        {stepNumber}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </div>
+
+              {/* Step info */}
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold truncate transition-colors ${
+                  isActive ? "text-white" : isDone ? "text-[#888]" : "text-[#444]"
+                }`}>
+                  {meta.label}
+                </p>
+                <AnimatePresence>
+                  {sel ? (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="text-[10px] text-[#00ff66]/70 truncate"
+                    >
+                      {sel.brand}
+                    </motion.p>
+                  ) : (
+                    <p className="text-[10px] text-[#252525]">
+                      {meta.optional ? "Opcional" : "Por elegir"}
+                    </p>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Active indicator */}
+              {isActive && (
+                <motion.div
+                  layoutId="nav-active-bar"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-[#00ff66] rounded-full"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
+// ─── PRODUCT CARD ─────────────────────────────────────────────────────────────
+
+function ProductCard({
   product,
   step,
   selected,
   incompatibleReason,
   onSelect,
   onHover,
+  index,
 }: {
   product: Product;
   step: BuildStep;
@@ -122,6 +264,7 @@ function ProductRow({
   incompatibleReason: string | null;
   onSelect: () => void;
   onHover: (p: Product | null) => void;
+  index: number;
 }) {
   const price = getPrice(product);
   const inStock = product.stock > 0;
@@ -129,78 +272,105 @@ function ProductRow({
   const isIncompat = !!incompatibleReason && !selected;
 
   return (
-    <button
+    <motion.button
       onClick={onSelect}
       onMouseEnter={() => onHover(product)}
       onMouseLeave={() => onHover(null)}
       disabled={isIncompat}
       title={incompatibleReason ?? undefined}
-      className={`w-full flex items-start gap-3 px-4 py-3.5 text-left transition-all border-l-2 group/row ${
+      initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+      transition={{ delay: index * 0.04, type: "spring", stiffness: 120, damping: 18 }}
+      whileHover={isIncompat ? {} : { y: -1, scale: 1.005 }}
+      whileTap={isIncompat ? {} : { scale: 0.998 }}
+      className={`w-full flex items-center gap-4 p-4 text-left rounded-xl border transition-all group ${
         selected
-          ? "border-[#00ff66] bg-[#00ff66]/[0.04]"
+          ? "border-[#00ff66]/40 bg-[#00ff66]/[0.04] shadow-lg shadow-[#00ff66]/5"
           : isIncompat
-          ? "border-transparent opacity-35 cursor-not-allowed"
-          : "border-transparent hover:border-[#252525] hover:bg-white/[0.015]"
+          ? "border-[#1a1a1a] opacity-30 cursor-not-allowed"
+          : "border-[#161616] hover:border-[#2a2a2a] hover:bg-white/[0.02]"
       }`}
     >
-      {/* Radio */}
-      <div className={`flex-shrink-0 mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
-        selected ? "border-[#00ff66]" : "border-[#2a2a2a]"
-      }`}>
-        {selected && <div className="w-2 h-2 rounded-full bg-[#00ff66]" />}
-      </div>
-
       {/* Image */}
-      <div className={`flex-shrink-0 w-12 h-12 rounded-lg border overflow-hidden bg-[#080808] transition-colors ${
-        selected ? "border-[#00ff66]/20" : "border-[#1a1a1a]"
+      <div className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border transition-all ${
+        selected ? "border-[#00ff66]/20 bg-[#001a09]" : "border-[#1a1a1a] bg-[#0d0d0d]"
       }`}>
         {product.images[0]?.url ? (
-          <img src={product.images[0].url} alt={product.name} className="w-full h-full object-contain p-1.5" />
+          <img
+            src={product.images[0].url}
+            alt={product.name}
+            className="w-full h-full object-contain p-1.5 group-hover:scale-105 transition-transform duration-300"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-4 h-4 text-[#2a2a2a]" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
-            </svg>
+            <Package className="w-5 h-5 text-[#1a1a1a]" />
           </div>
         )}
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium leading-snug truncate ${selected ? "text-white" : "text-[#aaa]"}`}>
-          {product.name}
-        </p>
-        <p className="text-[11px] text-[#444] mt-0.5">{product.brand}</p>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className={`text-sm font-medium leading-snug truncate ${selected ? "text-white" : "text-[#aaa]"}`}>
+              {product.name}
+            </p>
+            <p className="text-[11px] text-[#3a3a3a] mt-0.5">{product.brand}</p>
+          </div>
+          {/* Selected check */}
+          <AnimatePresence>
+            {selected && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                className="flex-shrink-0 w-5 h-5 rounded-full bg-[#00ff66] flex items-center justify-center"
+              >
+                <Check className="w-3 h-3 text-black" strokeWidth={3} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Spec badges */}
         {pills.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {pills.slice(0, 3).map((pill) => (
-              <span key={pill} className="text-[10px] font-mono text-[#444] bg-[#111] border border-[#1a1a1a] px-1.5 py-0.5 rounded">
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {pills.slice(0, 4).map((pill) => (
+              <span
+                key={pill}
+                className="text-[10px] font-mono text-[#444] bg-[#111] border border-[#1d1d1d] px-2 py-0.5 rounded-full"
+              >
                 {pill}
               </span>
             ))}
           </div>
         )}
+
+        {/* Incompatibility warning */}
         {incompatibleReason && (
-          <p className="text-[10px] text-[#ff4545]/70 mt-1 flex items-center gap-1">
-            <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            {incompatibleReason}
-          </p>
+          <div className="flex items-center gap-1.5 mt-2">
+            <AlertTriangle className="w-3 h-3 text-[#ff4545]/70 flex-shrink-0" />
+            <p className="text-[10px] text-[#ff4545]/70">{incompatibleReason}</p>
+          </div>
         )}
       </div>
 
-      {/* Stock only — no individual component prices shown */}
-      <div className="flex-shrink-0 text-right">
-        <span className={`text-[10px] ${inStock ? "text-[#444]" : "text-[#ff4545]/50"}`}>
-          {inStock ? `${product.stock} en stock` : "Sin stock"}
+      {/* Stock badge */}
+      <div className="flex-shrink-0">
+        <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
+          inStock
+            ? "text-[#00ff66]/60 border-[#00ff66]/15 bg-[#00ff66]/5"
+            : "text-[#ff4545]/50 border-[#ff4545]/15"
+        }`}>
+          {inStock ? `${product.stock}u` : "Sin stock"}
         </span>
       </div>
-    </button>
+    </motion.button>
   );
 }
 
-// ─── SECTION ─────────────────────────────────────────────────────────────────
+// ─── BUILDER SECTION ─────────────────────────────────────────────────────────
 
 function BuilderSection({
   step,
@@ -213,6 +383,7 @@ function BuilderSection({
 }) {
   const meta = STEP_META[step];
   const [onlyInStock, setOnlyInStock] = useState(false);
+  const [search, setSearch] = useState("");
   const { components, selectComponent, removeComponent } = useBuilderStore();
   const selected = components[step];
 
@@ -221,6 +392,10 @@ function BuilderSection({
     onlyInStock,
     limit: 50,
   });
+
+  const filtered = products?.filter((p) =>
+    !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.brand.toLowerCase().includes(search.toLowerCase())
+  );
 
   const handleSelect = useCallback(
     (p: Product) => {
@@ -243,26 +418,39 @@ function BuilderSection({
   );
 
   return (
-    <section ref={sectionRef} id={`section-${step}`} className="border-b border-[#141414]">
+    <section ref={sectionRef} id={`section-${step}`} className="border-b border-[#0f0f0f]">
       {/* Header */}
-      <div className="px-5 py-3.5 flex items-center justify-between sticky top-0 bg-[#080808]/95 backdrop-blur-sm z-10 border-b border-[#111]">
-        <div className="flex items-center gap-2.5">
-          <span className="text-[#00ff66]">{STEP_SVG[step]}</span>
+      <div className="px-5 py-4 flex items-center justify-between sticky top-0 bg-[#080808]/98 backdrop-blur-sm z-10 border-b border-[#111]">
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-colors ${
+            selected ? "border-[#00ff66]/30 bg-[#00ff66]/10 text-[#00ff66]" : "border-[#1a1a1a] bg-[#111] text-[#333]"
+          }`}>
+            {STEP_SVG[step]}
+          </div>
           <div>
             <h2 className="text-xs font-black text-white uppercase tracking-widest" style={{ fontFamily: "var(--font-display)" }}>
               {meta.label}
             </h2>
-            <p className="text-[10px] text-[#383838]">{meta.description}</p>
+            <p className="text-[10px] text-[#333]">{meta.description}</p>
           </div>
           {meta.optional && (
-            <span className="text-[9px] text-[#383838] border border-[#1a1a1a] rounded px-1.5 py-0.5 uppercase tracking-wider ml-1">
+            <span className="text-[9px] text-[#2a2a2a] border border-[#1a1a1a] rounded px-1.5 py-0.5 uppercase tracking-wider">
               opcional
             </span>
           )}
+          {selected && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="text-[9px] text-[#00ff66] border border-[#00ff66]/20 bg-[#00ff66]/5 rounded px-1.5 py-0.5 uppercase tracking-wider"
+            >
+              ✓ seleccionado
+            </motion.span>
+          )}
         </div>
-        {/* Solo en stock toggle */}
+        {/* En stock toggle */}
         <label className="flex items-center gap-2 cursor-pointer">
-          <span className="text-[10px] text-[#383838]">En stock</span>
+          <span className="text-[10px] text-[#333]">En stock</span>
           <div
             className={`w-7 h-3.5 rounded-full transition-colors relative cursor-pointer ${onlyInStock ? "bg-[#00ff66]/20" : "bg-[#1a1a1a]"}`}
             onClick={() => setOnlyInStock((v) => !v)}
@@ -272,46 +460,71 @@ function BuilderSection({
         </label>
       </div>
 
-      {/* Products */}
-      <div className="divide-y divide-[#0d0d0d]">
+      {/* Search */}
+      <div className="px-5 py-3 border-b border-[#0f0f0f]">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2a2a2a]" />
+          <input
+            type="text"
+            placeholder={`Buscar ${meta.label.toLowerCase()}...`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-8 pr-4 py-2 text-xs bg-[#0d0d0d] border border-[#161616] rounded-lg text-[#888] placeholder-[#2a2a2a] focus:outline-none focus:border-[#2a2a2a] transition-colors"
+          />
+        </div>
+      </div>
+
+      {/* Product list */}
+      <div className="px-5 py-3 space-y-2">
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3.5">
-                <div className="w-4 h-4 rounded-full bg-[#1a1a1a] animate-pulse" />
-                <div className="w-12 h-12 rounded-lg bg-[#1a1a1a] animate-pulse" />
+              <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-[#111] animate-pulse">
+                <div className="w-14 h-14 rounded-lg bg-[#111]" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 w-48 bg-[#1a1a1a] rounded animate-pulse" />
-                  <div className="h-2 w-24 bg-[#141414] rounded animate-pulse" />
+                  <div className="h-3 w-48 bg-[#111] rounded-full" />
+                  <div className="h-2 w-24 bg-[#0d0d0d] rounded-full" />
+                  <div className="flex gap-1.5">
+                    <div className="h-4 w-14 bg-[#0d0d0d] rounded-full" />
+                    <div className="h-4 w-14 bg-[#0d0d0d] rounded-full" />
+                  </div>
                 </div>
-                <div className="h-3 w-16 bg-[#1a1a1a] rounded animate-pulse" />
               </div>
             ))
-          : products?.length === 0
+          : filtered?.length === 0
           ? (
-            <div className="px-5 py-8 text-center text-xs text-[#333]">
-              Sin productos disponibles
+            <div className="py-12 text-center">
+              <Package className="w-8 h-8 text-[#1a1a1a] mx-auto mb-3" />
+              <p className="text-xs text-[#2a2a2a]">
+                {search ? "Sin resultados para tu búsqueda" : "Sin productos disponibles"}
+              </p>
             </div>
           )
-          : products?.map((p) => {
-              const incompatReason = getIncompatibilityReason(step, p.specs as Record<string, unknown> | null, components);
-              return (
-                <ProductRow
-                  key={p.id}
-                  product={p as Product}
-                  step={step}
-                  selected={selected?.productId === p.id}
-                  incompatibleReason={incompatReason}
-                  onSelect={() => handleSelect(p as Product)}
-                  onHover={onHoverProduct}
-                />
-              );
-            })}
+          : (
+            <AnimatePresence mode="popLayout">
+              {filtered?.map((p, i) => {
+                const incompatReason = getIncompatibilityReason(step, p.specs as Record<string, unknown> | null, components);
+                return (
+                  <ProductCard
+                    key={p.id}
+                    product={p as Product}
+                    step={step}
+                    selected={selected?.productId === p.id}
+                    incompatibleReason={incompatReason}
+                    onSelect={() => handleSelect(p as Product)}
+                    onHover={onHoverProduct}
+                    index={i}
+                  />
+                );
+              })}
+            </AnimatePresence>
+          )}
       </div>
+      <div className="h-2" />
     </section>
   );
 }
 
-// ─── RIGHT PANEL ─────────────────────────────────────────────────────────────
+// ─── RIGHT PANEL — SUMMARY ────────────────────────────────────────────────────
 
 function BuilderSummary({
   hoveredProduct,
@@ -356,9 +569,11 @@ function BuilderSummary({
   };
 
   const issues = checkCompatibility(components);
+  const hasErrors = issues.filter((i) => i.type === "error").length > 0;
   const selectedCount = Object.keys(components).length;
   const requiredSteps = BUILD_STEPS.filter((s) => !STEP_META[s].optional);
   const requiredDone = requiredSteps.filter((s) => components[s]).length;
+  const progressPct = requiredSteps.length > 0 ? (requiredDone / requiredSteps.length) * 100 : 0;
 
   const handleAddToCart = () => {
     Object.values(components).forEach((c) => {
@@ -369,92 +584,106 @@ function BuilderSummary({
     setTimeout(() => router.push("/carrito"), 600);
   };
 
-  // If hovering a product, show preview
+  // Product hover preview
   if (hoveredProduct && hoveredStep) {
     const price = getPrice(hoveredProduct);
     const pills = getSpecPills(hoveredStep, hoveredProduct.specs);
     const img = hoveredProduct.images[0]?.url;
     return (
-      <div className="flex flex-col h-full">
-        {/* Preview image */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col h-full"
+      >
         <div className="aspect-square bg-[#060606] overflow-hidden flex-shrink-0 border-b border-[#111]">
           {img ? (
             <img src={img} alt={hoveredProduct.name} className="w-full h-full object-contain p-8" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[#1a1a1a]">
-              <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
-              </svg>
+            <div className="w-full h-full flex items-center justify-center">
+              <Package className="w-12 h-12 text-[#1a1a1a]" />
             </div>
           )}
         </div>
-        {/* Product info */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-          <p className="text-[10px] text-[#383838] uppercase tracking-widest">{hoveredProduct.brand}</p>
+          <p className="text-[10px] text-[#00ff66]/60 uppercase tracking-widest">{hoveredProduct.brand}</p>
           <p className="text-sm font-medium text-white leading-snug">{hoveredProduct.name}</p>
-          {/* Spec pills */}
           <div className="flex flex-wrap gap-1.5">
             {pills.map((pill) => (
-              <span key={pill} className="text-[10px] font-mono text-[#555] bg-[#111] border border-[#1a1a1a] px-2 py-1 rounded">
+              <span key={pill} className="text-[10px] font-mono text-[#444] bg-[#111] border border-[#1a1a1a] px-2 py-0.5 rounded-full">
                 {pill}
               </span>
             ))}
           </div>
-          <div className="pt-2 border-t border-[#111]">
-            <p className="text-lg font-bold font-mono text-white">{formatCLP(price)}</p>
-            <p className="text-[10px] text-[#383838]">
+          <div className="pt-3 border-t border-[#111]">
+            <p className="text-xl font-black font-mono text-white">{formatCLP(price)}</p>
+            <p className="text-[10px] text-[#333] mt-0.5">
               {hoveredProduct.stock > 0 ? `${hoveredProduct.stock} en stock` : "Sin stock"}
             </p>
           </div>
         </div>
-        {/* Footer - show total */}
         <div className="border-t border-[#111] px-5 py-3">
-          <p className="text-[10px] text-[#383838]">Total actual</p>
+          <p className="text-[9px] text-[#333] uppercase tracking-widest">Total actual</p>
           <p className="text-sm font-bold font-mono text-white">{formatCLP(totalPrice)}</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
-  // Default: build summary
   return (
     <div className="flex flex-col h-full">
-      {/* Total */}
-      <div className="px-5 py-4 border-b border-[#111]">
-        <p className="text-[10px] text-[#383838] uppercase tracking-widest mb-1">Tu configuración</p>
-        <div className="flex items-end justify-between">
-          <p className="text-xl font-black text-white font-mono">{formatCLP(totalPrice)}</p>
-          <p className="text-[10px] text-[#333]">{requiredDone}/{requiredSteps.length} req.</p>
+      {/* Progress + total */}
+      <div className="px-5 pt-5 pb-4 border-b border-[#111] space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[9px] text-[#333] uppercase tracking-widest">Tu PC</p>
+          <p className="text-[10px] text-[#333]">{requiredDone}/{requiredSteps.length} pasos</p>
         </div>
+
         {/* Progress bar */}
-        {totalPrice > 0 && (
-          <div className="mt-2.5 h-px bg-[#141414] overflow-hidden">
-            <div
-              className="h-full bg-[#00ff66] transition-all duration-500"
-              style={{ width: `${(requiredDone / requiredSteps.length) * 100}%` }}
-            />
-          </div>
-        )}
+        <div className="h-1 bg-[#111] rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-[#00ff66] rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPct}%` }}
+            transition={{ type: "spring", stiffness: 60, damping: 20 }}
+          />
+        </div>
+
+        {/* Animated price */}
+        <div>
+          <p className="text-3xl font-black font-mono text-white leading-none">
+            <AnimatedPrice value={totalPrice} />
+          </p>
+          {totalPrice > 0 && (
+            <p className="text-[10px] text-[#333] mt-1">
+              6 cuotas de{" "}
+              <span className="text-[#888] font-mono">{formatCLP(totalPrice / 6)}</span>
+            </p>
+          )}
+        </div>
+
         {/* Compatibility issues */}
-        {issues.map((issue, i) => (
-          <div
-            key={i}
-            className={`mt-2 text-[10px] flex items-start gap-1.5 px-2.5 py-2 rounded ${
-              issue.type === "error"
-                ? "bg-[#1a0a0a] border border-[#ff4545]/20 text-[#ff4545]"
-                : "bg-[#1a1200] border border-[#f5a623]/20 text-[#f5a623]"
-            }`}
-          >
-            <svg className="w-3 h-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            {issue.message}
-          </div>
-        ))}
+        <AnimatePresence>
+          {issues.map((issue, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className={`text-[10px] flex items-start gap-2 px-3 py-2 rounded-lg border ${
+                issue.type === "error"
+                  ? "bg-[#1a0808] border-[#ff4545]/20 text-[#ff4545]"
+                  : "bg-[#1a1200] border-[#f5a623]/20 text-[#f5a623]"
+              }`}
+            >
+              <AlertTriangle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+              {issue.message}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       {/* Component list */}
-      <div className="flex-1 overflow-y-auto divide-y divide-[#0d0d0d]">
+      <div className="flex-1 overflow-y-auto py-2">
         {BUILD_STEPS.map((step) => {
           const meta = STEP_META[step];
           const sel = components[step];
@@ -462,116 +691,79 @@ function BuilderSummary({
             <button
               key={step}
               onClick={() => onScrollTo(step)}
-              className="w-full px-5 py-2.5 flex items-center gap-3 hover:bg-white/[0.015] transition-colors text-left"
+              className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-white/[0.02] transition-colors text-left group"
             >
               {sel?.imageUrl ? (
-                <img src={sel.imageUrl} alt="" className="w-7 h-7 object-contain flex-shrink-0 opacity-80" />
+                <img src={sel.imageUrl} alt="" className="w-7 h-7 object-contain flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
               ) : (
-                <span className={sel ? "text-[#00ff66]" : "text-[#252525]"}>{STEP_SVG[step]}</span>
+                <span className={sel ? "text-[#00ff66]/60" : "text-[#1a1a1a]"}>{STEP_SVG[step]}</span>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-[#333] uppercase tracking-wider">{meta.label}</p>
+                <p className="text-[9px] text-[#2a2a2a] uppercase tracking-wider">{meta.label}</p>
                 {sel ? (
-                  <p className="text-[11px] text-[#777] truncate">{sel.name}</p>
+                  <p className="text-[11px] text-[#666] truncate group-hover:text-[#888] transition-colors">{sel.name}</p>
                 ) : (
-                  <p className="text-[11px] text-[#252525] italic">{meta.optional ? "Opcional" : "Sin elegir"}</p>
+                  <p className="text-[11px] text-[#1e1e1e] italic">{meta.optional ? "Opcional" : "Sin elegir"}</p>
                 )}
               </div>
-              {/* Individual component prices hidden — total shown at footer */}
+              {sel && (
+                <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66]/60 flex-shrink-0" />
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* CTA */}
-      <div className="px-5 py-4 border-t border-[#111] space-y-2">
-        <button
+      {/* CTAs */}
+      <div className="px-4 py-4 border-t border-[#111] space-y-2">
+        {/* Add to cart — pulsing glow */}
+        <motion.button
           onClick={handleAddToCart}
-          disabled={selectedCount === 0 || added || issues.filter((i) => i.type === "error").length > 0}
-          className="w-full py-3 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded-lg hover:bg-[#00e85c] active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          disabled={selectedCount === 0 || added || hasErrors}
+          animate={selectedCount > 0 && !hasErrors && !added ? {
+            boxShadow: [
+              "0 0 0px rgba(0,255,102,0)",
+              "0 0 20px rgba(0,255,102,0.35)",
+              "0 0 0px rgba(0,255,102,0)",
+            ],
+          } : {}}
+          transition={{ duration: 2.5, repeat: Infinity }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full py-3 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 hover:bg-[#00e85c] transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {added ? "Agregado ✓" : `Armar PC (${selectedCount} piezas)`}
-        </button>
-        {issues.filter((i) => i.type === "error").length > 0 && (
-          <p className="text-[10px] text-[#ff4545]/60 text-center">Resuelve incompatibilidades antes de continuar</p>
+          <ShoppingCart className="w-4 h-4" />
+          {added ? "Agregado ✓" : selectedCount > 0 ? `Armar PC (${selectedCount})` : "Elige componentes"}
+        </motion.button>
+
+        {hasErrors && (
+          <p className="text-[10px] text-[#ff4545]/50 text-center">Resuelve incompatibilidades primero</p>
         )}
 
         {/* Share */}
         {selectedCount > 0 && (
-          <button
+          <motion.button
             onClick={handleShare}
             disabled={shareBuild.isPending}
-            className="w-full py-2 border border-[#1a1a1a] rounded-lg text-[10px] text-[#444] hover:text-[#888] hover:border-[#252525] transition-all uppercase tracking-widest flex items-center justify-center gap-1.5 disabled:opacity-40"
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className="w-full py-2.5 border border-[#1a1a1a] rounded-xl text-[10px] text-[#3a3a3a] hover:text-[#666] hover:border-[#252525] transition-all uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-40"
           >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
+            <Share2 className="w-3 h-3" />
             {shareBuild.isPending ? "Generando..." : copied ? "¡Link copiado!" : shareUrl ? "Copiar link" : "Compartir build"}
-          </button>
+          </motion.button>
         )}
 
-        <button onClick={reset} className="w-full py-1.5 text-[10px] text-[#2a2a2a] hover:text-[#444] transition-colors uppercase tracking-widest">
+        <button
+          onClick={reset}
+          className="w-full py-1.5 text-[10px] text-[#1e1e1e] hover:text-[#333] transition-colors uppercase tracking-widest flex items-center justify-center gap-1.5"
+        >
+          <RotateCcw className="w-3 h-3" />
           Reiniciar
         </button>
       </div>
     </div>
-  );
-}
-
-// ─── NAV ITEM ─────────────────────────────────────────────────────────────────
-
-function NavItem({ step, isActive, onClick }: { step: BuildStep; isActive: boolean; onClick: () => void }) {
-  const { components } = useBuilderStore();
-  const meta = STEP_META[step];
-  const sel = components[step];
-  const isSelected = !!sel;
-
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-all border-l-2 ${
-        isActive
-          ? "border-[#00ff66] bg-[#00ff66]/[0.03] text-white"
-          : "border-transparent text-[#444] hover:text-[#666] hover:bg-white/[0.02]"
-      }`}
-    >
-      <span className={isSelected ? "text-[#00ff66]" : isActive ? "text-[#555]" : "text-[#252525]"}>
-        {STEP_SVG[step]}
-      </span>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-medium truncate">{meta.label}</p>
-        {sel && <p className="text-[9px] text-[#383838] truncate">{sel.brand}</p>}
-      </div>
-      {isSelected && <div className="w-1 h-1 rounded-full bg-[#00ff66] flex-shrink-0" />}
-    </button>
-  );
-}
-
-// ─── PERIPHERAL CARD ──────────────────────────────────────────────────────────
-
-function PeripheralCard({ product }: { product: { id: string; name: string; brand: string; price: unknown; slug: string; images: { url: string }[] } }) {
-  const price = typeof product.price === "object" && product.price !== null && "toNumber" in product.price
-    ? (product.price as { toNumber: () => number }).toNumber()
-    : Number(product.price);
-
-  return (
-    <Link href={`/productos/${product.slug}`} className="group flex-shrink-0 w-44 flex flex-col bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl overflow-hidden hover:border-[#252525] transition-all">
-      <div className="aspect-square bg-[#080808] overflow-hidden">
-        {product.images[0]?.url ? (
-          <img src={product.images[0].url} alt={product.name} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-[#1a1a1a]">
-            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" /></svg>
-          </div>
-        )}
-      </div>
-      <div className="p-3">
-        <p className="text-[9px] text-[#383838] uppercase tracking-wider">{product.brand}</p>
-        <p className="text-[11px] text-[#888] group-hover:text-white transition-colors line-clamp-2 mt-0.5 leading-snug">{product.name}</p>
-        {/* Peripheral prices hidden — only total PC price shown */}
-      </div>
-    </Link>
   );
 }
 
@@ -587,7 +779,6 @@ function MobileStepBar({
   const { components } = useBuilderStore();
   const activeRef = useRef<HTMLButtonElement>(null);
 
-  // Scroll active pill into view
   useEffect(() => {
     activeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   }, [activeStep]);
@@ -596,7 +787,7 @@ function MobileStepBar({
     <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-none" style={{ scrollbarWidth: "none" }}>
       {BUILD_STEPS.map((step) => {
         const meta = STEP_META[step];
-        const selected = !!components[step];
+        const done = !!components[step];
         const isActive = step === activeStep;
         return (
           <button
@@ -606,13 +797,13 @@ function MobileStepBar({
             className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all border ${
               isActive
                 ? "bg-white text-black border-white"
-                : selected
+                : done
                 ? "bg-[#00ff66]/10 text-[#00ff66] border-[#00ff66]/30"
                 : "bg-transparent text-[#444] border-[#1a1a1a] hover:border-[#252525] hover:text-[#666]"
             }`}
             style={{ fontFamily: isActive ? "var(--font-display)" : undefined }}
           >
-            {selected && !isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66]" />}
+            {done && !isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66]" />}
             {meta.label}
           </button>
         );
@@ -633,13 +824,11 @@ function MobileBottomBar({ onOpenSummary }: { onOpenSummary: () => void }) {
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0a] border-t border-[#141414] px-4 py-3 flex items-center gap-3">
       <div className="flex-1">
         <p className="text-[10px] text-[#444] uppercase tracking-widest">Total</p>
-        <p className="text-lg font-black font-mono text-white">{
-          new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(totalPrice)
-        }</p>
+        <p className="text-lg font-black font-mono text-white">
+          {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(totalPrice)}
+        </p>
       </div>
-      {hasErrors && (
-        <div className="w-2 h-2 rounded-full bg-[#ff4545] flex-shrink-0" title="Incompatibilidades" />
-      )}
+      {hasErrors && <div className="w-2 h-2 rounded-full bg-[#ff4545] flex-shrink-0" />}
       <button
         onClick={onOpenSummary}
         className="flex items-center gap-2 px-4 py-2.5 bg-[#00ff66] text-black text-xs font-black uppercase tracking-wider rounded-lg"
@@ -667,21 +856,13 @@ function MobileSummarySheet({
 }) {
   return (
     <>
-      {/* Backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60"
-          onClick={onClose}
-        />
-      )}
-      {/* Sheet */}
+      {open && <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a] border-t border-[#1a1a1a] rounded-t-2xl transition-transform duration-300 ease-out ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
         style={{ maxHeight: "85dvh", display: "flex", flexDirection: "column" }}
       >
-        {/* Handle */}
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
           <div className="w-10 h-1 rounded-full bg-[#252525]" />
         </div>
@@ -694,6 +875,28 @@ function MobileSummarySheet({
         </div>
       </div>
     </>
+  );
+}
+
+// ─── PERIPHERAL CARD ─────────────────────────────────────────────────────────
+
+function PeripheralCard({ product }: { product: { id: string; name: string; brand: string; price: unknown; slug: string; images: { url: string }[] } }) {
+  return (
+    <Link href={`/productos/${product.slug}`} className="group flex-shrink-0 w-44 flex flex-col bg-[#0d0d0d] border border-[#161616] rounded-xl overflow-hidden hover:border-[#252525] transition-all">
+      <div className="aspect-square bg-[#080808] overflow-hidden">
+        {product.images[0]?.url ? (
+          <img src={product.images[0].url} alt={product.name} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Package className="w-6 h-6 text-[#1a1a1a]" />
+          </div>
+        )}
+      </div>
+      <div className="p-3">
+        <p className="text-[9px] text-[#333] uppercase tracking-wider">{product.brand}</p>
+        <p className="text-[11px] text-[#666] group-hover:text-white transition-colors line-clamp-2 mt-0.5 leading-snug">{product.name}</p>
+      </div>
+    </Link>
   );
 }
 
@@ -715,10 +918,13 @@ export function BuilderPage() {
     []
   );
 
-  const scrollToSection = useCallback((step: BuildStep) => {
-    sectionRefs.current[step]?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setActiveStep(step);
-  }, [setActiveStep]);
+  const scrollToSection = useCallback(
+    (step: BuildStep) => {
+      sectionRefs.current[step]?.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveStep(step);
+    },
+    [setActiveStep]
+  );
 
   // Scroll-spy
   useEffect(() => {
@@ -737,50 +943,44 @@ export function BuilderPage() {
     return () => observer.disconnect();
   }, [setActiveStep]);
 
-  const handleHoverProduct = useCallback((step: BuildStep) => (p: Product | null) => {
-    setHoveredProduct(p);
-    setHoveredStep(p ? step : null);
-  }, []);
+  const handleHoverProduct = useCallback(
+    (step: BuildStep) => (p: Product | null) => {
+      setHoveredProduct(p);
+      setHoveredStep(p ? step : null);
+    },
+    []
+  );
 
   return (
     <div className="flex flex-col h-[100dvh] bg-[#080808] overflow-hidden">
       {/* Top bar */}
       <header className="flex-shrink-0 h-11 border-b border-[#111] flex items-center px-5 gap-3 bg-[#080808] z-10">
-        <Link href="/" className="text-[#333] hover:text-[#666] transition-colors">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+        <Link href="/" className="text-[#2a2a2a] hover:text-[#666] transition-colors">
+          <ChevronLeft className="w-4 h-4" />
         </Link>
         <div className="w-px h-3.5 bg-[#1a1a1a]" />
         <span className="text-xs font-black text-white uppercase tracking-widest" style={{ fontFamily: "var(--font-display)" }}>
           PC Builder
         </span>
-        <span className="hidden sm:inline text-[11px] text-[#2a2a2a]">— Arma tu equipo</span>
+        <span className="hidden sm:flex items-center gap-1.5 text-[11px] text-[#2a2a2a]">
+          <Zap className="w-3 h-3 text-[#00ff66]/40" />
+          Arma tu equipo ideal
+        </span>
       </header>
 
-      {/* Mobile step scroller (hidden on md+) */}
+      {/* Mobile step bar */}
       <div className="md:hidden flex-shrink-0 border-b border-[#111] bg-[#060606]">
         <MobileStepBar activeStep={activeStep} onSelect={scrollToSection} />
       </div>
 
       <div className="flex flex-1 min-h-0">
-        {/* Left nav — desktop only */}
-        <nav className="hidden md:block flex-shrink-0 w-48 border-r border-[#111] overflow-y-auto bg-[#060606]">
-          <div className="py-4">
-            <p className="px-4 mb-2 text-[9px] text-[#252525] uppercase tracking-widest">Componentes</p>
-            {BUILD_STEPS.map((step) => (
-              <NavItem
-                key={step}
-                step={step}
-                isActive={activeStep === step}
-                onClick={() => scrollToSection(step)}
-              />
-            ))}
-          </div>
+        {/* Left nav — desktop */}
+        <nav className="hidden md:block flex-shrink-0 w-52 border-r border-[#0f0f0f] overflow-y-auto bg-[#050505]">
+          <BuilderNav activeStep={activeStep} onSelect={scrollToSection} />
         </nav>
 
-        {/* Center — scrollable sections */}
-        <main className="flex-1 min-w-0 overflow-y-auto pb-20 md:pb-0">
+        {/* Center — scrollable component sections */}
+        <main className="flex-1 min-w-0 overflow-y-auto pb-20 md:pb-0 bg-[#080808]">
           {BUILD_STEPS.map((step) => (
             <BuilderSection
               key={step}
@@ -792,8 +992,8 @@ export function BuilderPage() {
 
           {/* Peripheral recommendations */}
           {peripherals && peripherals.length > 0 && (
-            <section className="px-5 py-8 border-t border-[#111]">
-              <p className="text-[10px] text-[#333] uppercase tracking-widest mb-1">También considera</p>
+            <section className="px-5 py-8 border-t border-[#0f0f0f]">
+              <p className="text-[9px] text-[#252525] uppercase tracking-widest mb-1">También considera</p>
               <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider" style={{ fontFamily: "var(--font-display)" }}>
                 Completa tu setup
               </h3>
@@ -807,8 +1007,8 @@ export function BuilderPage() {
           <div className="h-6" />
         </main>
 
-        {/* Right panel — desktop only */}
-        <aside className="hidden md:block flex-shrink-0 w-72 border-l border-[#111] overflow-hidden bg-[#060606]">
+        {/* Right panel — desktop */}
+        <aside className="hidden md:block flex-shrink-0 w-72 border-l border-[#0f0f0f] overflow-hidden bg-[#050505]">
           <BuilderSummary
             hoveredProduct={hoveredProduct}
             hoveredStep={hoveredStep}
