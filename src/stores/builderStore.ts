@@ -2,47 +2,44 @@ import { create } from "zustand";
 import { ComponentType } from "@prisma/client";
 
 export type BuildStep =
-  | "CASE"
-  | "MOTHERBOARD"
-  | "CPU"
-  | "CPU_COOLER"
   | "GPU"
+  | "CPU"
+  | "MOTHERBOARD"
   | "RAM"
   | "STORAGE"
+  | "CPU_COOLER"
   | "PSU"
-  | "EXTRAS";
+  | "CASE";
 
 export const BUILD_STEPS: BuildStep[] = [
-  "CASE",
-  "MOTHERBOARD",
-  "CPU",
-  "CPU_COOLER",
   "GPU",
+  "CPU",
+  "MOTHERBOARD",
   "RAM",
   "STORAGE",
+  "CPU_COOLER",
   "PSU",
-  "EXTRAS",
+  "CASE",
 ];
 
 export const STEP_META: Record<
   BuildStep,
   {
     label: string;
-    icon: string;
-    componentType: ComponentType | null;
+    componentType: ComponentType;
     optional: boolean;
     description: string;
+    icon: string;
   }
 > = {
-  CASE:        { label: "Gabinete",         icon: "🗂️", componentType: "CASE",        optional: false, description: "Define el tamaño y flujo de aire" },
-  MOTHERBOARD: { label: "Placa Madre",      icon: "🔲", componentType: "MOTHERBOARD", optional: false, description: "Socket, RAM slots y conectividad" },
-  CPU:         { label: "Procesador",       icon: "⚡", componentType: "CPU",         optional: false, description: "El cerebro del equipo" },
-  CPU_COOLER:  { label: "Refrigeración",    icon: "❄️", componentType: "CPU_COOLER",  optional: true,  description: "Cooler de CPU o AIO" },
-  GPU:         { label: "Tarjeta de Video", icon: "🖥️", componentType: "GPU",         optional: false, description: "Potencia gráfica para gaming" },
-  RAM:         { label: "Memoria RAM",      icon: "💾", componentType: "RAM",         optional: false, description: "DDR4 o DDR5 según la placa" },
-  STORAGE:     { label: "Almacenamiento",   icon: "🦊", componentType: "STORAGE_SSD", optional: false, description: "NVMe Gen4/5 o SSD SATA" },
-  PSU:         { label: "Fuente de Poder",  icon: "🔌", componentType: "PSU",         optional: false, description: "Calculada según TDP total" },
-  EXTRAS:      { label: "Extras",           icon: "✨", componentType: null,          optional: true,  description: "Fans, pasta térmica, OS" },
+  GPU:         { label: "Tarjeta de Video", componentType: "GPU",         optional: false, description: "Potencia gráfica para gaming",        icon: "M" },
+  CPU:         { label: "Procesador",       componentType: "CPU",         optional: false, description: "El cerebro del equipo",               icon: "P" },
+  MOTHERBOARD: { label: "Placa Madre",      componentType: "MOTHERBOARD", optional: false, description: "Socket, slots y conectividad",        icon: "B" },
+  RAM:         { label: "Memoria RAM",      componentType: "RAM",         optional: false, description: "DDR4 o DDR5 según la placa",          icon: "R" },
+  STORAGE:     { label: "Almacenamiento",   componentType: "STORAGE_SSD", optional: false, description: "NVMe Gen4/5 o SSD SATA",             icon: "S" },
+  CPU_COOLER:  { label: "Refrigeración",    componentType: "CPU_COOLER",  optional: true,  description: "Cooler o AIO",                        icon: "F" },
+  PSU:         { label: "Fuente de Poder",  componentType: "PSU",         optional: false, description: "Calculada según TDP total",           icon: "A" },
+  CASE:        { label: "Gabinete",         componentType: "CASE",        optional: false, description: "Formato y flujo de aire",             icon: "G" },
 };
 
 export interface SelectedComponent {
@@ -55,70 +52,36 @@ export interface SelectedComponent {
 }
 
 export interface BuilderState {
-  buildId: string | null;
-  currentStep: BuildStep;
   components: Partial<Record<BuildStep, SelectedComponent>>;
   totalPrice: number;
-  compatibilityStatus: "idle" | "checking" | "ok" | "warning" | "error";
-  compatibilityMessages: string[];
-  hoveredSlot: BuildStep | null;
-  activeSlot: BuildStep | null;
-  panelOpen: boolean;
+  activeStep: BuildStep;
 
-  // Actions
-  setBuildId: (id: string) => void;
-  setStep: (step: BuildStep) => void;
+  setActiveStep: (step: BuildStep) => void;
   selectComponent: (step: BuildStep, component: SelectedComponent) => void;
   removeComponent: (step: BuildStep) => void;
-  setHoveredSlot: (slot: BuildStep | null) => void;
-  setActiveSlot: (slot: BuildStep | null) => void;
-  togglePanel: () => void;
   reset: () => void;
 }
 
-const defaultState = {
-  buildId: null,
-  currentStep: "CASE" as BuildStep,
-  components: {} as Partial<Record<BuildStep, SelectedComponent>>,
-  totalPrice: 0,
-  compatibilityStatus: "idle" as const,
-  compatibilityMessages: [],
-  hoveredSlot: null,
-  activeSlot: null,
-  panelOpen: true,
-};
+const calcTotal = (components: Partial<Record<BuildStep, SelectedComponent>>) =>
+  Object.values(components).reduce((sum, c) => sum + (c?.price ?? 0), 0);
 
 export const useBuilderStore = create<BuilderState>((set, get) => ({
-  ...defaultState,
+  components: {},
+  totalPrice: 0,
+  activeStep: "GPU",
 
-  setBuildId: (id) => set({ buildId: id }),
-
-  setStep: (step) => set({ currentStep: step, activeSlot: step, panelOpen: true }),
+  setActiveStep: (step) => set({ activeStep: step }),
 
   selectComponent: (step, component) => {
     const components = { ...get().components, [step]: component };
-    const totalPrice = Object.values(components).reduce(
-      (sum, c) => sum + (c?.price ?? 0),
-      0
-    );
-    // Auto-advance to next step
-    const idx = BUILD_STEPS.indexOf(step);
-    const nextStep = BUILD_STEPS[idx + 1] ?? step;
-    set({ components, totalPrice, currentStep: nextStep, activeSlot: nextStep });
+    set({ components, totalPrice: calcTotal(components) });
   },
 
   removeComponent: (step) => {
     const components = { ...get().components };
     delete components[step];
-    const totalPrice = Object.values(components).reduce(
-      (sum, c) => sum + (c?.price ?? 0),
-      0
-    );
-    set({ components, totalPrice });
+    set({ components, totalPrice: calcTotal(components) });
   },
 
-  setHoveredSlot: (slot) => set({ hoveredSlot: slot }),
-  setActiveSlot: (slot) => set({ activeSlot: slot }),
-  togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
-  reset: () => set(defaultState),
+  reset: () => set({ components: {}, totalPrice: 0, activeStep: "GPU" }),
 }));

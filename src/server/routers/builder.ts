@@ -135,8 +135,6 @@ export const builderRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      // Basic implementation: return all active products of that type
-      // Full compatibility filtering will be added with the engine
       const items = await ctx.db.product.findMany({
         take: input.limit + 1,
         cursor: input.cursor ? { id: input.cursor } : undefined,
@@ -145,12 +143,8 @@ export const builderRouter = createTRPCRouter({
           componentType: input.componentType,
           stock: { gt: 0 },
           ...(input.brand && { brand: input.brand }),
-          ...(input.priceMin !== undefined && {
-            price: { gte: input.priceMin },
-          }),
-          ...(input.priceMax !== undefined && {
-            price: { lte: input.priceMax },
-          }),
+          ...(input.priceMin !== undefined && { price: { gte: input.priceMin } }),
+          ...(input.priceMax !== undefined && { price: { lte: input.priceMax } }),
         },
         include: { images: { take: 1 } },
         orderBy: { price: "asc" },
@@ -158,10 +152,30 @@ export const builderRouter = createTRPCRouter({
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        const nextItem = items.pop();
-        nextCursor = nextItem?.id;
+        nextCursor = items.pop()?.id;
       }
 
       return { items, nextCursor };
+    }),
+
+  productsByType: publicProcedure
+    .input(
+      z.object({
+        componentType: z.nativeEnum(ComponentType),
+        onlyInStock: z.boolean().default(false),
+        limit: z.number().default(50),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.db.product.findMany({
+        take: input.limit,
+        where: {
+          status: ProductStatus.ACTIVE,
+          componentType: input.componentType,
+          ...(input.onlyInStock && { stock: { gt: 0 } }),
+        },
+        include: { images: { take: 1 } },
+        orderBy: { price: "asc" },
+      });
     }),
 });
