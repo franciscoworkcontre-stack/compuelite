@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Product, ProductImage } from "@prisma/client";
 
 type ProductWithImage = Product & { images: ProductImage[] };
@@ -75,11 +76,12 @@ export function ProductCard({ product }: { product: ProductWithImage }) {
       {/* Image */}
       <div className="relative aspect-square bg-[#080808] overflow-hidden">
         {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={img}
             alt={product.name}
-            className="w-full h-full object-contain p-6 group-hover:scale-103 transition-transform duration-500"
+            fill
+            className="object-contain p-6 group-hover:scale-103 transition-transform duration-500"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

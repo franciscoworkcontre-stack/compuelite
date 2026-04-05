@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { api } from "@/lib/trpc/server";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { WishlistButton } from "@/components/shop/WishlistButton";
@@ -81,11 +82,12 @@ export default async function ProductPage({
             <div className="space-y-4">
               <div className="relative aspect-square bg-[#111] border border-[#222] rounded-xl overflow-hidden flex items-center justify-center">
                 {mainImg ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={mainImg}
                     alt={product.name}
-                    className="w-full h-full object-contain p-8"
+                    fill
+                    className="object-contain p-8"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 ) : (
                   <div className="text-8xl opacity-10">🖥️</div>
@@ -102,9 +104,8 @@ export default async function ProductPage({
               {product.images.length > 1 && (
                 <div className="flex gap-2 flex-wrap">
                   {product.images.map((img) => (
-                    <div key={img.id} className="w-16 h-16 bg-[#111] border border-[#222] rounded overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt="" className="w-full h-full object-contain p-1" />
+                    <div key={img.id} className="relative w-16 h-16 bg-[#111] border border-[#222] rounded overflow-hidden">
+                      <Image src={img.url} alt="" fill className="object-contain p-1" sizes="64px" />
                     </div>
                   ))}
                 </div>

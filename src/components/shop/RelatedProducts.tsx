@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { trpc } from "@/lib/trpc/client";
 
 function formatCLP(n: number | string | { toNumber?: () => number }) {
@@ -43,13 +44,13 @@ export function RelatedProducts({ currentId }: Props) {
               href={`/productos/${product.slug}`}
               className="group flex flex-col bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden hover:border-[#00ff66]/30 transition-all"
             >
-              <div className="aspect-square bg-[#0d0d0d] flex items-center justify-center overflow-hidden">
+              <div className="relative aspect-square bg-[#0d0d0d] overflow-hidden">
                 {img ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={img} alt={product.name}
-                    className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-500" />
+                  <Image src={img} alt={product.name} fill
+                    className="object-contain p-3 group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 640px) 50vw, 25vw" />
                 ) : (
-                  <span className="text-3xl opacity-10">🖥️</span>
+                  <span className="absolute inset-0 flex items-center justify-center text-3xl opacity-10">🖥️</span>
                 )}
               </div>
               <div className="p-3">
