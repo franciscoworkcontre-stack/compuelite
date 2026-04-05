@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { OrderStatus, ProductStatus } from "@prisma/client";
+import { OrderStatus, ProductStatus, PaymentStatus } from "@prisma/client";
 
 export const adminRouter = createTRPCRouter({
   stats: publicProcedure.query(async ({ ctx }) => {
@@ -77,6 +77,19 @@ export const adminRouter = createTRPCRouter({
       return ctx.db.order.update({
         where: { id: input.orderId },
         data: { status: input.status },
+      });
+    }),
+
+  confirmTransferPayment: publicProcedure
+    .input(z.object({ orderId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.order.update({
+        where: { id: input.orderId },
+        data: {
+          paymentStatus: PaymentStatus.COMPLETED,
+          paymentGateway: "transfer",
+          status: OrderStatus.CONFIRMED,
+        },
       });
     }),
 

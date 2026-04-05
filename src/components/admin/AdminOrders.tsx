@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { trpc } from "@/lib/trpc/client";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, PaymentStatus } from "@prisma/client";
 
 function formatCLP(n: number | string | { toNumber?: () => number }) {
   const val = typeof n === "object" && n.toNumber ? n.toNumber() : Number(n);
@@ -35,6 +35,9 @@ export function AdminOrders() {
   });
 
   const updateStatus = trpc.admin.updateOrderStatus.useMutation({
+    onSuccess: () => refetch(),
+  });
+  const confirmTransfer = trpc.admin.confirmTransferPayment.useMutation({
     onSuccess: () => refetch(),
   });
 
@@ -176,6 +179,23 @@ export function AdminOrders() {
                         {shippingAddr.city}, {shippingAddr.region}
                       </p>
                     </div>
+
+                    {/* Confirm transfer payment */}
+                    {order.paymentMethod === "TRANSFER" && order.paymentStatus === PaymentStatus.PENDING && (
+                      <div className="p-3 bg-[#0d1a0d] border border-[#00ff66]/20 rounded-lg flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-[#00ff66]">Transferencia bancaria pendiente</p>
+                          <p className="text-xs text-[#555] mt-0.5">Confirma cuando recibas la transferencia</p>
+                        </div>
+                        <button
+                          onClick={() => confirmTransfer.mutate({ orderId: order.id })}
+                          disabled={confirmTransfer.isPending}
+                          className="px-3 py-1.5 bg-[#00ff66]/10 border border-[#00ff66]/30 rounded text-xs text-[#00ff66] hover:bg-[#00ff66]/20 transition-all disabled:opacity-50"
+                        >
+                          {confirmTransfer.isPending ? "…" : "✓ Confirmar pago"}
+                        </button>
+                      </div>
+                    )}
 
                     {/* Status update */}
                     <div>

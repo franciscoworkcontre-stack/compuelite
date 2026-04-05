@@ -64,7 +64,7 @@ export function CheckoutView() {
   const createOrder = trpc.orders.create.useMutation({
     onSuccess: (order) => {
       clear();
-      router.push(`/pedido/${order.id}`);
+      router.push(`/pago/${order.id}`);
     },
   });
 
