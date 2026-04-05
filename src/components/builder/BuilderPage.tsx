@@ -569,7 +569,7 @@ function PeripheralCard({ product }: { product: { id: string; name: string; bran
       <div className="p-3">
         <p className="text-[9px] text-[#383838] uppercase tracking-wider">{product.brand}</p>
         <p className="text-[11px] text-[#888] group-hover:text-white transition-colors line-clamp-2 mt-0.5 leading-snug">{product.name}</p>
-        <p className="text-sm font-bold font-mono text-white mt-2">{formatCLP(price)}</p>
+        {/* Peripheral prices hidden — only total PC price shown */}
       </div>
     </Link>
   );
