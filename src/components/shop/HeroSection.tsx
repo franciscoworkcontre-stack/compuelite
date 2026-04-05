@@ -425,19 +425,6 @@ export function HeroSection() {
               {/* Image container */}
               <div className="relative z-10 w-full h-full flex items-center justify-center">
                 <div className="relative w-full max-w-md aspect-square">
-                  {/* Sale badge */}
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", delay: 0.6 }}
-                    className="absolute top-4 right-4 z-20 flex flex-col items-center justify-center w-16 h-16 rounded-full bg-[#00ff66] shadow-lg shadow-[#00ff66]/30"
-                  >
-                    <span className="text-black font-black text-lg leading-none" style={{ fontFamily: "var(--font-display)" }}>
-                      -{deal.pct}%
-                    </span>
-                    <span className="text-black/70 text-[9px] uppercase tracking-wider">OFF</span>
-                  </motion.div>
-
                   {/* Rotating images */}
                   {DEALS.map((d, i) => (
                     <div
