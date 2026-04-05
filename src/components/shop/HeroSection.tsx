@@ -219,7 +219,7 @@ export function HeroSection() {
   const deal = DEALS[active];
 
   return (
-    <section className="relative w-full min-h-[92vh] flex flex-col bg-[#0a0a0a] overflow-hidden">
+    <section className="relative w-full flex flex-col bg-[#0a0a0a] overflow-hidden">
 
       {/* Particles background */}
       <div className="absolute inset-0 z-0">
@@ -242,7 +242,7 @@ export function HeroSection() {
       />
 
       {/* Main content */}
-      <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-4 sm:px-8 lg:px-12 pt-10 pb-10 lg:pt-14 lg:pb-14 flex flex-col gap-8">
+      <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-4 sm:px-8 lg:px-12 pt-5 pb-5 lg:pt-8 lg:pb-8 flex flex-col gap-5">
 
         {/* ── Full-width promo banner (GREEN) ── */}
         <motion.div
@@ -256,7 +256,7 @@ export function HeroSection() {
               <Zap className="w-3 h-3" />
               BLACK SALE — Solo por tiempo limitado
             </p>
-            <h2 className="text-2xl sm:text-3xl font-black text-white uppercase leading-tight mb-1.5" style={{ fontFamily: "var(--font-display)" }}>
+            <h2 className="text-xl sm:text-2xl font-black text-white uppercase leading-tight mb-1.5" style={{ fontFamily: "var(--font-display)" }}>
               PCs Gamer con hasta 13% OFF
             </h2>
             <p className="text-[#555] text-xs leading-relaxed">
@@ -281,14 +281,14 @@ export function HeroSection() {
         </motion.div>
 
         {/* ── 2-col grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center w-full flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center w-full flex-1">
 
           {/* LEFT — Copy (App.tsx pattern) */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8 order-2 lg:order-1"
+            className="space-y-5 order-2 lg:order-1"
           >
             {/* Badge */}
             <motion.div variants={itemVariants}>
@@ -306,7 +306,7 @@ export function HeroSection() {
             {/* Headline */}
             <motion.div variants={itemVariants}>
               <h1
-                className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight uppercase"
+                className="text-4xl md:text-5xl lg:text-5xl font-bold text-white leading-tight uppercase"
                 style={{ fontFamily: "var(--font-display)", whiteSpace: "pre-line" }}
               >
                 {deal.name.split("\n")[0]}
@@ -321,7 +321,7 @@ export function HeroSection() {
             </motion.div>
 
             {/* Specs */}
-            <motion.p variants={itemVariants} className="text-lg text-gray-400 max-w-xl">
+            <motion.p variants={itemVariants} className="text-sm text-gray-400 max-w-xl">
               {deal.specs}
             </motion.p>
 
@@ -338,12 +338,12 @@ export function HeroSection() {
             {/* Price card */}
             <motion.div
               variants={itemVariants}
-              className="p-6 rounded-2xl border"
+              className="p-4 rounded-2xl border"
               style={{ backgroundColor: "rgba(0,255,102,0.05)", borderColor: "rgba(0,255,102,0.2)" }}
             >
               <div className="flex items-baseline gap-3 mb-2">
-                <span className="text-gray-500 line-through text-2xl">{formatCLP(deal.was)}</span>
-                <span className="text-5xl font-bold" style={{ color: "#00ff66", fontFamily: "var(--font-display)" }}>
+                <span className="text-gray-500 line-through text-xl">{formatCLP(deal.was)}</span>
+                <span className="text-4xl font-bold" style={{ color: "#00ff66", fontFamily: "var(--font-display)" }}>
                   {formatCLP(deal.price)}
                 </span>
               </div>
@@ -413,7 +413,7 @@ export function HeroSection() {
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative order-1 lg:order-2 flex items-center justify-center lg:h-[600px]"
+            className="relative order-1 lg:order-2 flex items-center justify-center lg:h-[440px]"
           >
             <div className="relative w-full h-full">
               {/* Glow */}
