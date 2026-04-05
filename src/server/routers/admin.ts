@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, adminProcedure } from "../trpc";
 import { OrderStatus, ProductStatus, PaymentStatus } from "@prisma/client";
+import { sendLowStockAlert, sendPaymentConfirmed, sendOrderShipped, sendOrderDelivered } from "@/lib/email";
+import { Prisma } from "@prisma/client";
 
 export const adminRouter = createTRPCRouter({
   stats: adminProcedure.query(async ({ ctx }) => {
@@ -74,16 +76,62 @@ export const adminRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.order.update({
+      const order = await ctx.db.order.update({
         where: { id: input.orderId },
         data: { status: input.status },
+        include: { items: { include: { product: { select: { slug: true } } }, take: 1 } },
       });
+      // Fire email on DELIVERED
+      if (input.status === OrderStatus.DELIVERED && order.guestEmail) {
+        sendOrderDelivered({
+          toEmail: order.guestEmail,
+          toName: String((order.shippingAddress as Record<string, string>)?.name ?? "Cliente"),
+          orderNumber: order.orderNumber,
+          orderId: order.id,
+          productSlug: order.items[0]?.product?.slug,
+        }).catch(console.error);
+      }
+      return order;
+    }),
+
+  markShipped: adminProcedure
+    .input(
+      z.object({
+        orderId: z.string(),
+        carrier: z.string(),
+        trackingNumber: z.string(),
+        trackingUrl: z.string().optional(),
+        estimatedDelivery: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const order = await ctx.db.order.update({
+        where: { id: input.orderId },
+        data: {
+          status: OrderStatus.SHIPPED,
+          trackingNumber: input.trackingNumber,
+          trackingUrl: input.trackingUrl,
+        },
+      });
+      if (order.guestEmail) {
+        sendOrderShipped({
+          toEmail: order.guestEmail,
+          toName: String((order.shippingAddress as Record<string, string>)?.name ?? "Cliente"),
+          orderNumber: order.orderNumber,
+          orderId: order.id,
+          carrier: input.carrier,
+          trackingNumber: input.trackingNumber,
+          trackingUrl: input.trackingUrl,
+          estimatedDelivery: input.estimatedDelivery,
+        }).catch(console.error);
+      }
+      return order;
     }),
 
   confirmTransferPayment: adminProcedure
     .input(z.object({ orderId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.order.update({
+      const order = await ctx.db.order.update({
         where: { id: input.orderId },
         data: {
           paymentStatus: PaymentStatus.COMPLETED,
@@ -91,6 +139,17 @@ export const adminRouter = createTRPCRouter({
           status: OrderStatus.CONFIRMED,
         },
       });
+      if (order.guestEmail) {
+        sendPaymentConfirmed({
+          toEmail: order.guestEmail,
+          toName: String((order.shippingAddress as Record<string, string>)?.name ?? "Cliente"),
+          orderNumber: order.orderNumber,
+          orderId: order.id,
+          amount: Number(order.total),
+          paymentMethod: "Transferencia bancaria",
+        }).catch(console.error);
+      }
+      return order;
     }),
 
   products: adminProcedure
@@ -129,10 +188,20 @@ export const adminRouter = createTRPCRouter({
   updateStock: adminProcedure
     .input(z.object({ productId: z.string(), stock: z.number().int().min(0) }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.product.update({
+      const updated = await ctx.db.product.update({
         where: { id: input.productId },
         data: { stock: input.stock },
+        select: { name: true, sku: true, stock: true, lowStockThreshold: true },
       });
+      if (updated.stock <= (updated.lowStockThreshold ?? 5)) {
+        sendLowStockAlert({
+          productName: updated.name,
+          sku: updated.sku,
+          currentStock: updated.stock,
+          threshold: updated.lowStockThreshold ?? 5,
+        }).catch(console.error);
+      }
+      return updated;
     }),
 
   updateProductStatus: adminProcedure
@@ -143,4 +212,85 @@ export const adminRouter = createTRPCRouter({
         data: { status: input.status },
       });
     }),
+
+  analytics: adminProcedure
+    .input(z.object({ period: z.enum(["7d", "30d", "90d", "365d"]).default("30d") }))
+    .query(async ({ ctx, input }) => {
+      const days = { "7d": 7, "30d": 30, "90d": 90, "365d": 365 }[input.period];
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const confirmedStatuses = [OrderStatus.CONFIRMED, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
+
+      const [revenueByDay, topProductsRaw, revenueByCategoryRaw, aovByDay] = await Promise.all([
+        // Revenue per day
+        ctx.db.$queryRaw<{ date: Date; revenue: number }[]>`
+          SELECT DATE_TRUNC('day', "createdAt") AS date, SUM(total)::float AS revenue
+          FROM "Order"
+          WHERE "createdAt" >= ${since} AND status = ANY(${Prisma.raw(`ARRAY['CONFIRMED','SHIPPED','DELIVERED']`)})
+          GROUP BY 1 ORDER BY 1
+        `,
+        // Top 10 products by revenue
+        ctx.db.orderItem.groupBy({
+          by: ["productId"],
+          _sum: { quantity: true, totalPrice: true },
+          orderBy: { _sum: { totalPrice: "desc" } },
+          take: 10,
+          where: {
+            order: { createdAt: { gte: since }, status: { in: confirmedStatuses } },
+          },
+        }),
+        // Revenue by category
+        ctx.db.$queryRaw<{ categoryName: string; revenue: number }[]>`
+          SELECT COALESCE(c.name, 'Sin categoría') AS "categoryName", SUM(oi."totalPrice")::float AS revenue
+          FROM "OrderItem" oi
+          JOIN "Order" o ON oi."orderId" = o.id
+          JOIN "Product" p ON oi."productId" = p.id
+          LEFT JOIN "Category" c ON p."categoryId" = c.id
+          WHERE o."createdAt" >= ${since} AND o.status = ANY(${Prisma.raw(`ARRAY['CONFIRMED','SHIPPED','DELIVERED']`)})
+          GROUP BY c.name ORDER BY revenue DESC LIMIT 8
+        `,
+        // AOV per day
+        ctx.db.$queryRaw<{ date: Date; aov: number }[]>`
+          SELECT DATE_TRUNC('day', "createdAt") AS date, AVG(total)::float AS aov
+          FROM "Order"
+          WHERE "createdAt" >= ${since} AND status = ANY(${Prisma.raw(`ARRAY['CONFIRMED','SHIPPED','DELIVERED']`)})
+          GROUP BY 1 ORDER BY 1
+        `,
+      ]);
+
+      // Enrich top products with names
+      const productIds = topProductsRaw.map((r) => r.productId);
+      const productNames = await ctx.db.product.findMany({
+        where: { id: { in: productIds } },
+        select: { id: true, name: true, sku: true },
+      });
+
+      const topProducts = topProductsRaw.map((r) => {
+        const p = productNames.find((p) => p.id === r.productId);
+        return {
+          productId: r.productId,
+          name: p?.name ?? r.productId,
+          sku: p?.sku ?? "",
+          totalSold: r._sum.quantity ?? 0,
+          totalRevenue: Number(r._sum.totalPrice ?? 0),
+        };
+      });
+
+      return {
+        revenueByDay: revenueByDay.map((r) => ({ date: r.date.toISOString().slice(0, 10), revenue: r.revenue ?? 0 })),
+        topProducts,
+        revenueByCategory: revenueByCategoryRaw,
+        aovByDay: aovByDay.map((r) => ({ date: r.date.toISOString().slice(0, 10), aov: r.aov ?? 0 })),
+      };
+    }),
+
+  // Fix admin.stats to respect lowStockThreshold per product
+  lowStockProducts: adminProcedure.query(async ({ ctx }) => {
+    return ctx.db.$queryRaw<{ id: string; name: string; sku: string; stock: number; threshold: number }[]>`
+      SELECT id, name, sku, stock, "lowStockThreshold" AS threshold
+      FROM "Product"
+      WHERE stock <= "lowStockThreshold" AND status = 'ACTIVE'
+      ORDER BY stock ASC
+      LIMIT 20
+    `;
+  }),
 });

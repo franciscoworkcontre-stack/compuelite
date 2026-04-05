@@ -4,7 +4,8 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 import { getShippingOptions, type Carrier } from "@/lib/shipping";
 import { CouponType } from "@prisma/client";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderConfirmation, sendLowStockAlert } from "@/lib/email";
+import { evaluatePromotions } from "./promotions";
 
 export const ordersRouter = createTRPCRouter({
   create: protectedProcedure
@@ -61,6 +62,23 @@ export const ordersRouter = createTRPCRouter({
       }
       const shippingCost = shippingOption.price;
 
+      // Evaluate automatic promotions (before coupon — stacks if stackable)
+      const promoLines = enrichedItems.map((item) => {
+        const p = products.find((p) => p.id === item.productId)!;
+        return { productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, categoryId: null as string | null, brand: p.name };
+      });
+      // We need category/brand — re-fetch with those fields
+      const productsWithMeta = await ctx.db.product.findMany({
+        where: { id: { in: input.items.map((i) => i.productId) } },
+        select: { id: true, brand: true, categoryId: true },
+      });
+      const promoLinesWithMeta = enrichedItems.map((item) => {
+        const meta = productsWithMeta.find((p) => p.id === item.productId)!;
+        return { productId: item.productId, quantity: item.quantity, unitPrice: item.unitPrice, categoryId: meta?.categoryId ?? null, brand: meta?.brand ?? "" };
+      });
+      const promoResult = await evaluatePromotions(ctx.db, promoLinesWithMeta, subtotal);
+      const promotionDiscount = promoResult.totalDiscount;
+
       // Validate coupon if provided
       let couponDiscount = 0;
       let appliedCoupon: { id: string; code: string } | null = null;
@@ -102,6 +120,12 @@ export const ordersRouter = createTRPCRouter({
           }
         }
 
+        // IVA 19% applies to net product value after all discounts
+        const totalDiscount = couponDiscount + promotionDiscount;
+        const taxBase = subtotal - totalDiscount;
+        const taxAmount = Math.round(taxBase * 0.19);
+        const orderTotal = subtotal + shippingCost - totalDiscount + taxAmount;
+
         const newOrder = await tx.order.create({
           data: {
             orderNumber: `CE-${Date.now()}`,
@@ -115,9 +139,10 @@ export const ordersRouter = createTRPCRouter({
             },
             subtotal,
             shippingCost,
-            discount: couponDiscount,
-            tax: 0,
-            total: subtotal + shippingCost - couponDiscount,
+            discount: couponDiscount + promotionDiscount,
+            promotionDiscount: promotionDiscount > 0 ? promotionDiscount : undefined,
+            tax: taxAmount,
+            total: orderTotal,
             shippingMethod: `${shippingOption.label} · ${shippingOption.days}`,
             ...(appliedCoupon && {
               couponCode: appliedCoupon.code,
@@ -155,8 +180,46 @@ export const ordersRouter = createTRPCRouter({
           });
         }
 
+        // Record applied promotions + increment usedCount
+        if (promoResult.appliedRules.length > 0) {
+          await tx.appliedPromotion.createMany({
+            data: promoResult.appliedRules.map((r) => ({
+              orderId: newOrder.id,
+              promotionRuleId: r.id,
+              discountAmount: r.discountAmount,
+            })),
+          });
+          for (const r of promoResult.appliedRules) {
+            await tx.promotionRule.update({
+              where: { id: r.id },
+              data: { usedCount: { increment: 1 } },
+            });
+          }
+        }
+
         return newOrder;
       });
+
+      // Post-transaction: check for low stock and fire alerts
+      const updatedProducts = await ctx.db.product.findMany({
+        where: { id: { in: enrichedItems.map((i) => i.productId) } },
+        select: { name: true, sku: true, stock: true, lowStockThreshold: true },
+      });
+      for (const p of updatedProducts) {
+        if (p.stock <= (p.lowStockThreshold ?? 5)) {
+          sendLowStockAlert({
+            productName: p.name,
+            sku: p.sku,
+            currentStock: p.stock,
+            threshold: p.lowStockThreshold ?? 5,
+          }).catch(console.error);
+        }
+      }
+
+      // Calculate final totals for email (mirrors what was saved in transaction)
+      const totalDiscount = couponDiscount + promotionDiscount;
+      const taxAmount = Math.round((subtotal - totalDiscount) * 0.19);
+      const orderTotal = subtotal + shippingCost - totalDiscount + taxAmount;
 
       // Fire confirmation email — non-blocking, failure doesn't affect the order
       sendOrderConfirmation({
@@ -170,8 +233,9 @@ export const ordersRouter = createTRPCRouter({
         }),
         subtotal,
         shippingCost,
-        discount: couponDiscount,
-        total: subtotal + shippingCost - couponDiscount,
+        discount: totalDiscount,
+        tax: taxAmount,
+        total: orderTotal,
         shippingMethod: `${shippingOption.label} · ${shippingOption.days}`,
         shippingAddress: {
           name: ctx.session.user.name ?? "",

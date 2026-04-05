@@ -249,6 +249,7 @@ model Product {
   parentVariantId  String?
   parentVariant    Product?      @relation("ProductVariants", fields: [parentVariantId], references: [id])
   childVariants    Product[]     @relation("ProductVariants")
+  wishlistItems    WishlistItem[]
 
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
@@ -464,8 +465,19 @@ model Order {
   invoiceType     InvoiceType    @default(BOLETA)
   rutCliente      String?
 
-  couponCode      String?
-  couponDiscount  Decimal?       @db.Decimal(10, 2)
+  couponCode          String?
+  couponDiscount      Decimal?       @db.Decimal(10, 2)
+  promotionDiscount   Decimal?       @db.Decimal(10, 2)
+  appliedPromotions   AppliedPromotion[]
+
+  invoicePdfUrl       String?
+  invoiceNumber       String?        @unique
+  invoiceIssuedAt     DateTime?
+
+  reviewRequestScheduledAt DateTime?
+  reviewRequestSentAt      DateTime?
+
+  returns             ReturnOrder[]
 
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -523,6 +535,7 @@ model WishlistItem {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   productId String
+  product   Product  @relation(fields: [productId], references: [id])
   addedAt   DateTime @default(now())
 
   @@unique([userId, productId])
@@ -617,4 +630,102 @@ model Coupon {
   active      Boolean    @default(true)
   expiresAt   DateTime?
   createdAt   DateTime   @default(now())
+}
+
+// ─── Promotions ─────────────────────────────────────────────────────────────
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+  BOGO
+}
+
+enum PromotionConditionType {
+  CART_TOTAL    // subtotal >= conditionValue
+  CATEGORY      // any item in categoryId == conditionValue
+  BRAND         // any item brand == conditionValue
+  PRODUCT       // specific productId == conditionValue
+  QUANTITY      // any item quantity >= minQty
+}
+
+model PromotionRule {
+  id              String                 @id @default(cuid())
+  name            String
+  description     String?
+  type            PromotionType
+  value           Decimal                @db.Decimal(10, 2)
+  conditionType   PromotionConditionType
+  conditionValue  String?                // categoryId | brand | productId | min CLP as string
+  minQty          Int?
+  startsAt        DateTime?
+  endsAt          DateTime?
+  isActive        Boolean                @default(true)
+  stackable       Boolean                @default(false)
+  priority        Int                    @default(0)
+  maxUses         Int?
+  usedCount       Int                    @default(0)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  appliedInOrders AppliedPromotion[]
+
+  @@index([isActive])
+}
+
+model AppliedPromotion {
+  id              String        @id @default(cuid())
+  orderId         String
+  order           Order         @relation(fields: [orderId], references: [id])
+  promotionRuleId String
+  promotionRule   PromotionRule @relation(fields: [promotionRuleId], references: [id])
+  discountAmount  Decimal       @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now())
+
+  @@index([orderId])
+}
+
+// ─── Returns & Refunds ───────────────────────────────────────────────────────
+
+enum ReturnReason {
+  DEFECTIVE
+  WRONG_ITEM
+  NOT_AS_DESCRIBED
+  CHANGED_MIND
+  OTHER
+}
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  ITEMS_RECEIVED
+  REFUND_ISSUED
+}
+
+model ReturnOrder {
+  id              String       @id @default(cuid())
+  orderId         String
+  order           Order        @relation(fields: [orderId], references: [id])
+  requestedById   String
+  reason          ReturnReason
+  description     String?
+  status          ReturnStatus @default(REQUESTED)
+  refundAmount    Decimal?     @db.Decimal(10, 2)
+  gatewayRefundId String?
+  adminNotes      String?
+  items           ReturnItem[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([orderId])
+}
+
+model ReturnItem {
+  id            String      @id @default(cuid())
+  returnOrderId String
+  returnOrder   ReturnOrder @relation(fields: [returnOrderId], references: [id])
+  orderItemId   String
+  quantity      Int
+  reason        String?
 }

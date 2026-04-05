@@ -1,14 +1,40 @@
 "use client";
 
+import { useSession } from "next-auth/react";
+import { trpc } from "@/lib/trpc/client";
 import { useWishlistStore } from "@/stores/wishlistStore";
 
 export function WishlistButton({ productId }: { productId: string }) {
-  const { toggle, has } = useWishlistStore();
-  const inWishlist = has(productId);
+  const { data: session } = useSession();
+  const { toggle: localToggle, has: localHas } = useWishlistStore();
+
+  // Authenticated: use server-side wishlist
+  const utils = trpc.useUtils();
+  const { data } = trpc.wishlist.isInList.useQuery(
+    { productId },
+    { enabled: !!session }
+  );
+  const toggleMutation = trpc.wishlist.toggle.useMutation({
+    onSuccess: () => {
+      utils.wishlist.isInList.invalidate({ productId });
+      utils.wishlist.list.invalidate();
+    },
+  });
+
+  const inWishlist = session ? (data?.inWishlist ?? false) : localHas(productId);
+
+  const handleClick = () => {
+    if (session) {
+      toggleMutation.mutate({ productId });
+    } else {
+      localToggle(productId);
+    }
+  };
 
   return (
     <button
-      onClick={() => toggle(productId)}
+      onClick={handleClick}
+      disabled={toggleMutation.isPending}
       className={`p-4 rounded border transition-all ${
         inWishlist
           ? "border-[#ff3333]/40 text-[#ff3333] bg-[#ff3333]/10 hover:bg-[#ff3333]/20"

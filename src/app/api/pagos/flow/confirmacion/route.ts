@@ -15,20 +15,27 @@ export async function POST(req: NextRequest) {
     const orderId = payment.commerceOrder;
 
     if (payment.status === 2) {
-      await db.order.update({
+      // Idempotency: skip if already confirmed
+      const existing = await db.order.findUnique({
         where: { id: orderId },
-        data: {
-          paymentStatus: PaymentStatus.COMPLETED,
-          paymentId: String(payment.flowOrder),
-          paymentGateway: "flow",
-          status: OrderStatus.CONFIRMED,
-          paymentMeta: JSON.parse(JSON.stringify({
-            flowOrder: payment.flowOrder,
-            payer: payment.payer,
-            paymentData: payment.paymentData,
-          })),
-        },
+        select: { status: true },
       });
+      if (existing?.status !== OrderStatus.CONFIRMED) {
+        await db.order.update({
+          where: { id: orderId },
+          data: {
+            paymentStatus: PaymentStatus.COMPLETED,
+            paymentId: String(payment.flowOrder),
+            paymentGateway: "flow",
+            status: OrderStatus.CONFIRMED,
+            paymentMeta: JSON.parse(JSON.stringify({
+              flowOrder: payment.flowOrder,
+              payer: payment.payer,
+              paymentData: payment.paymentData,
+            })),
+          },
+        });
+      }
     }
 
     return new Response("OK", { status: 200 });

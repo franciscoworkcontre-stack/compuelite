@@ -78,7 +78,17 @@ export function CheckoutView() {
   const selectedOption = shippingOptions.find((o) => o.carrier === carrier) ?? null;
   const shippingCost = selectedOption?.price ?? 0;
   const couponDiscount = appliedCoupon?.discount ?? 0;
-  const total = subtotal + (selectedOption ? shippingCost : 0) - couponDiscount;
+
+  // Preview automatic promotions
+  const { data: promoPreview } = trpc.promotions.preview.useQuery(
+    { items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })), subtotal },
+    { enabled: items.length > 0 }
+  );
+  const promotionDiscount = promoPreview?.totalDiscount ?? 0;
+  const effectiveShipping = promoPreview?.freeShipping ? 0 : shippingCost;
+
+  const taxAmount = Math.round((subtotal - couponDiscount - promotionDiscount) * 0.19);
+  const total = subtotal + (selectedOption ? effectiveShipping : 0) - couponDiscount - promotionDiscount + taxAmount;
 
   const createOrder = trpc.orders.create.useMutation({
     onSuccess: (order) => {
@@ -398,12 +408,28 @@ export function CheckoutView() {
                       <span className="text-[#444] italic">Seleccionar</span>
                     )}
                   </div>
+                  {promoPreview?.appliedRules.map((rule) => (
+                    <div key={rule.id} className="flex justify-between text-xs">
+                      <span className="text-[#00ff66]">🏷️ {rule.name}</span>
+                      <span className="font-mono text-[#00ff66]">-{formatCLP(rule.discountAmount)}</span>
+                    </div>
+                  ))}
+                  {promoPreview?.freeShipping && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#00ff66]">🚚 Envío gratis (promo)</span>
+                      <span className="font-mono text-[#00ff66]">Gratis</span>
+                    </div>
+                  )}
                   {appliedCoupon && (
                     <div className="flex justify-between text-xs">
                       <span className="text-[#00ff66]">Cupón {appliedCoupon.code}</span>
                       <span className="font-mono text-[#00ff66]">-{formatCLP(appliedCoupon.discount)}</span>
                     </div>
                   )}
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[#555]">IVA (19%)</span>
+                    <span className="font-mono text-[#555]">{formatCLP(taxAmount)}</span>
+                  </div>
                   <div className="flex justify-between items-baseline pt-2 border-t border-[#141414]">
                     <span className="text-sm text-[#888]">Total</span>
                     <span
@@ -413,7 +439,7 @@ export function CheckoutView() {
                       {formatCLP(total)}
                     </span>
                   </div>
-                  <p className="text-[10px] text-[#333]">IVA incluido</p>
+                  <p className="text-[10px] text-[#333]">IVA incluido en el total</p>
                 </div>
 
                 {createOrder.error && (

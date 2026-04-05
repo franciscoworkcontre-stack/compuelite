@@ -13,9 +13,10 @@ interface Props {
     stock: number;
     images?: { url: string }[];
   };
+  compact?: boolean;
 }
 
-export function AddToCartButton({ product }: Props) {
+export function AddToCartButton({ product, compact }: Props) {
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
@@ -40,10 +41,24 @@ export function AddToCartButton({ product }: Props) {
     return (
       <button
         disabled
-        className="w-full py-4 bg-[#1a1a1a] border border-[#222] text-[#555] text-sm font-bold uppercase tracking-wider rounded cursor-not-allowed"
+        className={`w-full bg-[#1a1a1a] border border-[#222] text-[#555] font-bold uppercase tracking-wider rounded cursor-not-allowed ${compact ? "py-2 text-xs" : "py-4 text-sm"}`}
         style={{ fontFamily: "var(--font-display)" }}
       >
         Sin Stock
+      </button>
+    );
+  }
+
+  if (compact) {
+    return (
+      <button
+        onClick={handleAdd}
+        className={`w-full py-2 text-xs font-black uppercase tracking-wider rounded transition-all ${
+          added ? "bg-[#00cc52] text-black" : "bg-[#00ff66] text-black hover:bg-[#00cc52]"
+        }`}
+        style={{ fontFamily: "var(--font-display)" }}
+      >
+        {added ? "✓ Agregado" : "Al carro"}
       </button>
     );
   }
