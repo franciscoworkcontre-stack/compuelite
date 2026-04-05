@@ -7,42 +7,90 @@ export const productsRouter = createTRPCRouter({
     .input(
       z.object({
         categorySlug: z.string().optional(),
-        componentType: z.string().optional(),
-        featured: z.boolean().optional(),
+        brand: z.string().optional(),
+        priceMin: z.number().optional(),
+        priceMax: z.number().optional(),
         inStock: z.boolean().optional(),
-        limit: z.number().min(1).max(100).default(20),
+        featured: z.boolean().optional(),
+        search: z.string().optional(),
+        sort: z.enum(["price_asc", "price_desc", "newest", "featured"]).default("newest"),
+        limit: z.number().min(1).max(100).default(24),
         cursor: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
+      const orderBy =
+        input.sort === "price_asc"
+          ? { price: "asc" as const }
+          : input.sort === "price_desc"
+          ? { price: "desc" as const }
+          : input.sort === "featured"
+          ? { featured: "desc" as const }
+          : { createdAt: "desc" as const };
+
       const items = await ctx.db.product.findMany({
         take: input.limit + 1,
         cursor: input.cursor ? { id: input.cursor } : undefined,
         where: {
           status: ProductStatus.ACTIVE,
-          ...(input.categorySlug && {
-            category: { slug: input.categorySlug },
-          }),
-          ...(input.componentType && {
-            componentType: input.componentType as never,
-          }),
-          ...(input.featured !== undefined && { featured: input.featured }),
+          ...(input.categorySlug && { category: { slug: input.categorySlug } }),
+          ...(input.brand && { brand: { contains: input.brand, mode: "insensitive" } }),
           ...(input.inStock && { stock: { gt: 0 } }),
+          ...(input.featured !== undefined && { featured: input.featured }),
+          ...(input.priceMin !== undefined && { price: { gte: input.priceMin } }),
+          ...(input.priceMax !== undefined && { price: { lte: input.priceMax } }),
+          ...(input.search && {
+            OR: [
+              { name: { contains: input.search, mode: "insensitive" } },
+              { brand: { contains: input.search, mode: "insensitive" } },
+              { sku: { contains: input.search, mode: "insensitive" } },
+            ],
+          }),
         },
         include: {
           images: { orderBy: { sortOrder: "asc" }, take: 1 },
-          category: true,
+          category: { select: { name: true, slug: true } },
         },
-        orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+        orderBy,
       });
 
       let nextCursor: string | undefined;
       if (items.length > input.limit) {
-        const nextItem = items.pop();
-        nextCursor = nextItem?.id;
+        const next = items.pop();
+        nextCursor = next?.id;
       }
 
       return { items, nextCursor };
+    }),
+
+  count: publicProcedure
+    .input(
+      z.object({
+        categorySlug: z.string().optional(),
+        brand: z.string().optional(),
+        priceMin: z.number().optional(),
+        priceMax: z.number().optional(),
+        inStock: z.boolean().optional(),
+        search: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.db.product.count({
+        where: {
+          status: ProductStatus.ACTIVE,
+          ...(input.categorySlug && { category: { slug: input.categorySlug } }),
+          ...(input.brand && { brand: { contains: input.brand, mode: "insensitive" } }),
+          ...(input.inStock && { stock: { gt: 0 } }),
+          ...(input.priceMin !== undefined && { price: { gte: input.priceMin } }),
+          ...(input.priceMax !== undefined && { price: { lte: input.priceMax } }),
+          ...(input.search && {
+            OR: [
+              { name: { contains: input.search, mode: "insensitive" } },
+              { brand: { contains: input.search, mode: "insensitive" } },
+            ],
+          }),
+        },
+      });
     }),
 
   bySlug: publicProcedure
@@ -60,18 +108,34 @@ export const productsRouter = createTRPCRouter({
           },
         },
       });
-
-      if (!product) throw new Error("Product not found");
+      if (!product) return null;
       return product;
     }),
 
   categories: publicProcedure.query(async ({ ctx }) => {
-    return ctx.db.category.findMany({
-      where: { parentId: null },
-      include: { children: true },
+    const cats = await ctx.db.category.findMany({
       orderBy: { sortOrder: "asc" },
+      include: {
+        _count: { select: { products: { where: { status: ProductStatus.ACTIVE } } } },
+      },
     });
+    return cats;
   }),
+
+  brands: publicProcedure
+    .input(z.object({ categorySlug: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      const brands = await ctx.db.product.groupBy({
+        by: ["brand"],
+        where: {
+          status: ProductStatus.ACTIVE,
+          ...(input.categorySlug && { category: { slug: input.categorySlug } }),
+        },
+        _count: { brand: true },
+        orderBy: { _count: { brand: "desc" } },
+      });
+      return brands.map((b) => ({ brand: b.brand, count: b._count.brand }));
+    }),
 
   featured: publicProcedure
     .input(z.object({ limit: z.number().default(8) }))
@@ -82,5 +146,22 @@ export const productsRouter = createTRPCRouter({
         orderBy: { updatedAt: "desc" },
         take: input.limit,
       });
+    }),
+
+  priceRange: publicProcedure
+    .input(z.object({ categorySlug: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      const agg = await ctx.db.product.aggregate({
+        where: {
+          status: ProductStatus.ACTIVE,
+          ...(input.categorySlug && { category: { slug: input.categorySlug } }),
+        },
+        _min: { price: true },
+        _max: { price: true },
+      });
+      return {
+        min: Number(agg._min.price ?? 0),
+        max: Number(agg._max.price ?? 10000000),
+      };
     }),
 });
