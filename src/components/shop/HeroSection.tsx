@@ -206,8 +206,46 @@ export function HeroSection() {
         style={{ backgroundImage: "linear-gradient(#00ff66 1px, transparent 1px), linear-gradient(90deg, #00ff66 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
       {/* Main content */}
-      <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-4 sm:px-8 lg:px-12 py-16 lg:py-24 flex items-center">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center w-full">
+      <div className="relative z-10 flex-1 max-w-7xl mx-auto w-full px-4 sm:px-8 lg:px-12 pt-10 pb-10 lg:pt-14 lg:pb-14 flex flex-col gap-8">
+
+        {/* Full-width promo banner */}
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full rounded-xl border border-[#1e1e1e] bg-[#0b0b0b]/90 backdrop-blur-sm px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-5"
+        >
+          <div className="flex-1 min-w-0">
+            <p className="flex items-center gap-1.5 text-[#ff4400] text-[11px] font-bold uppercase tracking-widest mb-1.5">
+              <Zap className="w-3 h-3" />
+              BLACK SALE — Solo por tiempo limitado
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-black text-white uppercase leading-tight mb-1.5" style={{ fontFamily: "var(--font-display)" }}>
+              PCs Gamer con hasta 13% OFF
+            </h2>
+            <p className="text-[#444] text-xs leading-relaxed">
+              Desde $667.166 · Intel i5 + RTX 3050 desde $876.432 · Ryzen 7 9800X3D + RTX 5070 Ti disponible · Garantía incluida · Despacho a todo Chile
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Link
+              href="/productos"
+              className="px-5 py-2.5 bg-[#ff4400] text-white text-sm font-black uppercase tracking-wider rounded-lg hover:bg-[#e03a00] transition-all whitespace-nowrap"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Ver todas las ofertas
+            </Link>
+            <Link
+              href="/builds"
+              className="px-4 py-2.5 border border-[#2a2a2a] text-[#888] text-xs font-semibold uppercase tracking-wider rounded-lg hover:border-[#444] hover:text-white transition-all whitespace-nowrap"
+            >
+              Serie START desde $667K
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* 2-col grid below */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center w-full flex-1">
 
           {/* LEFT — Copy */}
           <motion.div
