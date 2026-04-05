@@ -31,6 +31,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.logitech.com" },
       { protocol: "https", hostname: "**.razer.com" },
       { protocol: "https", hostname: "**.steelseries.com" },
+      // Jumpseller CDN (compuelite.cl product images)
+      { protocol: "https", hostname: "cdnx.jumpseller.com" },
       // Generic CDN wildcards for any other brand
       { protocol: "https", hostname: "**" },
     ],

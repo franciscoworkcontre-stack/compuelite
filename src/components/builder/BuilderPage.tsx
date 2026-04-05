@@ -190,11 +190,8 @@ function ProductRow({
         )}
       </div>
 
-      {/* Price + stock */}
+      {/* Stock only — no individual component prices shown */}
       <div className="flex-shrink-0 text-right">
-        <p className={`text-sm font-bold font-mono ${selected ? "text-white" : "text-[#777]"}`}>
-          {formatCLP(price)}
-        </p>
         <span className={`text-[10px] ${inStock ? "text-[#444]" : "text-[#ff4545]/50"}`}>
           {inStock ? `${product.stock} en stock` : "Sin stock"}
         </span>
@@ -480,9 +477,7 @@ function BuilderSummary({
                   <p className="text-[11px] text-[#252525] italic">{meta.optional ? "Opcional" : "Sin elegir"}</p>
                 )}
               </div>
-              {sel && (
-                <p className="text-[10px] font-mono text-[#444] flex-shrink-0">{formatCLP(sel.price)}</p>
-              )}
+              {/* Individual component prices hidden — total shown at footer */}
             </button>
           );
         })}
