@@ -1,146 +1,205 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import Image from "next/image";
+import { useState, useEffect } from "react";
+
+const DEALS = [
+  {
+    label: "Serie START — Más vendido",
+    name: "PC Gamer Ryzen 5 + RTX 3050",
+    specs: "6-Core · 16GB DDR4 · 1TB NVMe",
+    price: 863446,
+    was: 937000,
+    pct: 8,
+    href: "/productos/pc-gamer-amd-ryzen-5-5500-6-core-16gb-ddr4-rtx-3050-6gb-pcb4",
+    img: "https://cdnx.jumpseller.com/compuelite/image/71549613/thumb/1000/1000?1767716671",
+  },
+  {
+    label: "Serie START — Desde",
+    name: "PC Gamer Ryzen 7 5700G",
+    specs: "8-Core · 16GB DDR4 · Radeon integrada",
+    price: 667166,
+    was: 724000,
+    pct: 8,
+    href: "/productos/pc-gamer-amd-ryzen-7-5700g-8-core-radeon-16gb-ddr4-pcb307",
+    img: "https://cdnx.jumpseller.com/compuelite/image/67991777/thumb/1000/1000?1759162173",
+  },
+  {
+    label: "Mayor descuento · -12%",
+    name: "PC Gamer Intel i5 12400F + RTX 3050",
+    specs: "6-Core · 16GB DDR4 · H610 WiFi",
+    price: 876432,
+    was: 992000,
+    pct: 12,
+    href: "/productos/pc-gamer-intel-i5-12400f-6-core-h610-wifi-16gb-ddr4-ssd-1tb-",
+    img: "https://cdnx.jumpseller.com/compuelite/image/62387794/thumb/1000/1000?1744327929",
+  },
+];
+
+function formatCLP(n: number) {
+  return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(n);
+}
 
 export function HeroSection() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [active, setActive] = useState(0);
 
-  // Floating particles effect
+  // Auto-rotate every 5s
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    const particles: Array<{
-      x: number; y: number; vx: number; vy: number;
-      size: number; opacity: number;
-    }> = [];
-
-    for (let i = 0; i < 60; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        size: Math.random() * 2 + 0.5,
-        opacity: Math.random() * 0.4 + 0.1,
-      });
-    }
-
-    let animId: number;
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-        if (p.y < 0) p.y = canvas.height;
-        if (p.y > canvas.height) p.y = 0;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity * 0.4})`;
-        ctx.fill();
-      });
-      animId = requestAnimationFrame(draw);
-    };
-    draw();
-
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener("resize", resize);
-    };
+    const t = setInterval(() => setActive((i) => (i + 1) % DEALS.length), 5000);
+    return () => clearInterval(t);
   }, []);
 
+  const deal = DEALS[active];
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-grid">
-      {/* Particles */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
+    <section className="relative w-full bg-[#080808] overflow-hidden border-b border-[#111]">
+      {/* Background glow behind PC image */}
+      <div
+        className="absolute inset-0 pointer-events-none transition-opacity duration-700"
+        style={{ background: "radial-gradient(ellipse 60% 80% at 30% 50%, rgba(0,255,102,0.06) 0%, transparent 70%)" }}
+      />
 
-      {/* Subtle vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-10 sm:py-14 lg:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
-      {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-5xl mx-auto pt-16">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-[#00ff66]/30 rounded-full bg-[#00ff66]/5 mb-8">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-pulse" />
-          <span className="text-xs font-medium text-[#00ff66] uppercase tracking-widest">
-            Especialistas en Gaming · Chile
-          </span>
-        </div>
+          {/* LEFT — PC image */}
+          <div className="relative order-2 lg:order-1 flex items-center justify-center">
+            {/* Sale badge */}
+            <div className="absolute top-3 left-3 z-10 flex flex-col items-center justify-center w-16 h-16 rounded-full bg-[#ff3300] shadow-lg shadow-[#ff3300]/30">
+              <span className="text-white font-black text-lg leading-none" style={{ fontFamily: "var(--font-display)" }}>
+                -{deal.pct}%
+              </span>
+              <span className="text-white/80 text-[9px] uppercase tracking-wider">OFF</span>
+            </div>
 
-        {/* Headline */}
-        <h1
-          className="text-5xl sm:text-6xl lg:text-8xl font-black uppercase tracking-tight leading-none mb-6"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          <span className="block text-white">PCs GAMER</span>
-          <span className="block text-[#00ff66]">
-            LISTAS PARA
-          </span>
-          <span className="block text-white">JUGAR</span>
-        </h1>
+            {/* PC image */}
+            <div className="relative w-full max-w-sm lg:max-w-none aspect-square">
+              {DEALS.map((d, i) => (
+                <div
+                  key={d.href}
+                  className={`absolute inset-0 transition-opacity duration-700 ${i === active ? "opacity-100" : "opacity-0"}`}
+                >
+                  <Image
+                    src={d.img}
+                    alt={d.name}
+                    fill
+                    className="object-contain drop-shadow-2xl"
+                    priority={i === 0}
+                    sizes="(max-width: 1024px) 90vw, 45vw"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
-        {/* Subheadline */}
-        <p className="text-lg sm:text-xl text-[#888] max-w-2xl mx-auto mb-10 leading-relaxed">
-          Ensambladas, probadas y con garantía. Cada PC sale de nuestro taller
-          lista para usar, con soporte real y despacho a todo Chile.
-        </p>
+          {/* RIGHT — Offer copy */}
+          <div className="order-1 lg:order-2 flex flex-col">
+            {/* BLACK SALE badge */}
+            <div className="inline-flex items-center gap-2 mb-4 self-start">
+              <span className="px-3 py-1 bg-[#ff3300] text-white text-[10px] font-black uppercase tracking-widest rounded">
+                ⚡ BLACK SALE
+              </span>
+              <span className="text-[#555] text-xs">Oferta por tiempo limitado</span>
+            </div>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <Link
-            href="/productos"
-            className="w-full sm:w-auto px-8 py-4 bg-[#00ff66] text-black font-black text-sm uppercase tracking-widest rounded hover:bg-[#00cc52] transition-all active:scale-95"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Ver PCs Disponibles
-          </Link>
-          <Link
-            href="/productos?categoria=pc-elite"
-            className="w-full sm:w-auto px-8 py-4 border border-[#333] text-white font-semibold text-sm uppercase tracking-wider rounded hover:border-[#00ff66] hover:text-[#00ff66] transition-all"
-          >
-            Serie ELITE
-          </Link>
-        </div>
+            {/* Category label */}
+            <p className="text-[#00ff66] text-xs font-bold uppercase tracking-widest mb-2 transition-all duration-300">
+              {deal.label}
+            </p>
 
-        {/* Stats */}
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-center">
-          {[
-            { value: "+50", label: "Modelos disponibles" },
-            { value: "100%", label: "Ensamblado en Chile" },
-            { value: "24/7", label: "Soporte técnico" },
-            { value: "6x", label: "Cuotas sin interés" },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <div
-                className="text-2xl font-black text-[#00ff66]"
+            {/* PC name */}
+            <h1
+              className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-white leading-tight mb-2 transition-all duration-300"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {deal.name}
+            </h1>
+
+            {/* Specs */}
+            <p className="text-[#666] text-sm mb-6">{deal.specs}</p>
+
+            {/* Price block */}
+            <div className="flex items-end gap-3 mb-6">
+              <span
+                className="text-4xl sm:text-5xl font-black text-white"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                {stat.value}
-              </div>
-              <div className="text-xs text-[#555] mt-1 uppercase tracking-wider">
-                {stat.label}
+                {formatCLP(deal.price)}
+              </span>
+              <div className="flex flex-col mb-1">
+                <span className="text-[#444] text-sm line-through">{formatCLP(deal.was)}</span>
+                <span className="text-[#ff3300] text-xs font-bold">
+                  Ahorrás {formatCLP(deal.was - deal.price)}
+                </span>
               </div>
             </div>
-          ))}
+
+            {/* Trust signals */}
+            <div className="flex flex-wrap gap-3 mb-8">
+              {["6 cuotas sin interés", "Garantía incluida", "Despacho a todo Chile", "Lista para usar"].map((t) => (
+                <span key={t} className="flex items-center gap-1.5 text-xs text-[#666]">
+                  <span className="text-[#00ff66]">✓</span> {t}
+                </span>
+              ))}
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <Link
+                href={deal.href}
+                className="px-8 py-4 bg-[#ff3300] text-white font-black text-sm uppercase tracking-widest rounded hover:bg-[#e02d00] transition-all active:scale-95 text-center shadow-lg shadow-[#ff3300]/20"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Ver esta oferta →
+              </Link>
+              <Link
+                href="/productos"
+                className="px-8 py-4 border border-[#222] text-[#888] font-semibold text-sm uppercase tracking-wider rounded hover:border-[#444] hover:text-white transition-all text-center"
+              >
+                Ver todas las PCs
+              </Link>
+            </div>
+
+            {/* Dot selectors */}
+            <div className="flex items-center gap-2">
+              {DEALS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  className={`rounded-full transition-all duration-300 ${
+                    i === active ? "w-6 h-2 bg-[#ff3300]" : "w-2 h-2 bg-[#222] hover:bg-[#444]"
+                  }`}
+                  aria-label={`Ver oferta ${i + 1}`}
+                />
+              ))}
+              <span className="ml-2 text-[#333] text-xs">{active + 1}/{DEALS.length} ofertas</span>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
+      {/* Bottom stats bar */}
+      <div className="border-t border-[#111] bg-[#050505]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-3">
+          <div className="flex flex-wrap items-center justify-center sm:justify-between gap-4 text-center">
+            {[
+              { value: "+50", label: "Modelos disponibles" },
+              { value: "100%", label: "Ensamblado en Chile" },
+              { value: "24/7", label: "Soporte técnico" },
+              { value: "6x", label: "Cuotas sin interés" },
+            ].map((s) => (
+              <div key={s.label} className="flex items-center gap-2">
+                <span className="text-base font-black text-[#00ff66]" style={{ fontFamily: "var(--font-display)" }}>
+                  {s.value}
+                </span>
+                <span className="text-[10px] text-[#444] uppercase tracking-wider">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
