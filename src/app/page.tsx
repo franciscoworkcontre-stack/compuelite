@@ -8,9 +8,6 @@ import { ContentZone } from "@/components/content/ContentZone";
 export default function HomePage() {
   return (
     <>
-      {/* Global announcement bar */}
-      <ContentZone zone="announcement_bar" />
-
       <Navbar />
 
       <main className="pt-16">
