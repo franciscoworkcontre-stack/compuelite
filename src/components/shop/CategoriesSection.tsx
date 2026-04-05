@@ -1,73 +1,23 @@
 import Link from "next/link";
+import { api } from "@/lib/trpc/server";
 
-const categories = [
-  {
-    slug: "gpu",
-    name: "Tarjetas de Video",
-    description: "RTX 4090 hasta presupuesto",
-    icon: "🖥️",
-    count: "120+",
-    color: "#ff6b35",
-  },
-  {
-    slug: "cpu",
-    name: "Procesadores",
-    description: "Intel & AMD última generación",
-    icon: "⚡",
-    count: "80+",
-    color: "#00ff66",
-  },
-  {
-    slug: "motherboard",
-    name: "Placas Madre",
-    description: "AM5, LGA1700, DDR5",
-    icon: "🔲",
-    count: "95+",
-    color: "#0088ff",
-  },
-  {
-    slug: "ram",
-    name: "Memorias RAM",
-    description: "DDR4 y DDR5 hasta 7200MHz",
-    icon: "💾",
-    count: "60+",
-    color: "#ff3333",
-  },
-  {
-    slug: "almacenamiento",
-    name: "Almacenamiento",
-    description: "NVMe Gen4/5, SSD, HDD",
-    icon: "🦊",
-    count: "75+",
-    color: "#ffb800",
-  },
-  {
-    slug: "gabinetes",
-    name: "Gabinetes",
-    description: "ATX, Micro-ATX, ITX con RGB",
-    icon: "🗂️",
-    count: "50+",
-    color: "#cc44ff",
-  },
-  {
-    slug: "fuentes",
-    name: "Fuentes de Poder",
-    description: "80+ Gold, Platinum, Titanium",
-    icon: "🔌",
-    count: "45+",
-    color: "#00ddff",
-  },
-  {
-    slug: "refrigeracion",
-    name: "Refrigeración",
-    description: "AIO 240/360mm, aire premium",
-    icon: "❄️",
-    count: "55+",
-    color: "#00ffdd",
-  },
-];
+// Icon + color map per slug
+const CAT_META: Record<string, { icon: string; color: string; description: string }> = {
+  "componentes":           { icon: "🔧", color: "#888888", description: "GPU, CPU, RAM, almacenamiento y más" },
+  "pc-gamer":              { icon: "🎮", color: "#00ff66", description: "PCs gamer armadas y listas para jugar" },
+  "pc-gamer-start-series": { icon: "⚡", color: "#4488ff", description: "Tu primer PC gamer, desde $667K" },
+  "pc-gamer-pro-series":   { icon: "🔥", color: "#00ff66", description: "1080p sin compromiso, RTX 3050–4070" },
+  "pc-elite":              { icon: "💀", color: "#ffb800", description: "1440p / 4K — sin límites de rendimiento" },
+  "monitores":             { icon: "🖥️", color: "#cc44ff", description: "144Hz, 165Hz, 240Hz — IPS y VA" },
+  "workstation":           { icon: "💻", color: "#00ddff", description: "Estaciones de trabajo para creadores e IA" },
+};
 
-export function CategoriesSection() {
+export async function CategoriesSection() {
+  const categories = await api.products.categories();
+
+  // Only show categories with products
+  const visible = categories.filter((c) => c._count.products > 0);
+
   return (
     <section className="py-20 px-4 max-w-7xl mx-auto">
       {/* Header */}
@@ -80,7 +30,7 @@ export function CategoriesSection() {
             className="text-3xl sm:text-4xl font-black uppercase text-white"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Componentes
+            Productos
           </h2>
         </div>
         <Link
@@ -96,53 +46,53 @@ export function CategoriesSection() {
 
       {/* Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {categories.map((cat) => (
-          <Link
-            key={cat.slug}
-            href={`/productos/${cat.slug}`}
-            className="group relative flex flex-col p-5 bg-[#111] border border-[#222] rounded-lg hover:border-[#00ff66] hover:bg-[#111] transition-all duration-300 overflow-hidden"
-          >
-            {/* Background accent */}
-            <div
-              className="absolute top-0 right-0 w-20 h-20 rounded-bl-full opacity-5 group-hover:opacity-10 transition-opacity"
-              style={{ background: cat.color }}
-            />
-
-            {/* Icon */}
-            <span className="text-3xl mb-3">{cat.icon}</span>
-
-            {/* Name */}
-            <h3 className="font-bold text-white text-sm leading-tight mb-1 group-hover:text-[#00ff66] transition-colors">
-              {cat.name}
-            </h3>
-
-            {/* Description */}
-            <p className="text-xs text-[#555] leading-snug mb-3">
-              {cat.description}
-            </p>
-
-            {/* Count */}
-            <div className="mt-auto flex items-center gap-1">
-              <span
-                className="text-xs font-mono font-bold"
-                style={{ color: cat.color }}
-              >
-                {cat.count}
-              </span>
-              <span className="text-xs text-[#555]">productos</span>
-            </div>
-
-            {/* Arrow */}
-            <svg
-              className="absolute bottom-4 right-4 w-4 h-4 text-[#333] group-hover:text-[#00ff66] transition-all group-hover:translate-x-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        {visible.map((cat) => {
+          const meta = CAT_META[cat.slug] ?? { icon: "📦", color: "#00ff66", description: "" };
+          return (
+            <Link
+              key={cat.slug}
+              href={`/productos?categoria=${cat.slug}`}
+              className="group relative flex flex-col p-5 bg-[#111] border border-[#222] rounded-lg hover:border-[#00ff66] transition-all duration-300 overflow-hidden"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        ))}
+              {/* Background accent */}
+              <div
+                className="absolute top-0 right-0 w-20 h-20 rounded-bl-full opacity-5 group-hover:opacity-10 transition-opacity"
+                style={{ background: meta.color }}
+              />
+
+              {/* Icon */}
+              <span className="text-3xl mb-3">{meta.icon}</span>
+
+              {/* Name */}
+              <h3 className="font-bold text-white text-sm leading-tight mb-1 group-hover:text-[#00ff66] transition-colors">
+                {cat.name}
+              </h3>
+
+              {/* Description */}
+              <p className="text-xs text-[#555] leading-snug mb-3">
+                {cat.description ?? meta.description}
+              </p>
+
+              {/* Count */}
+              <div className="mt-auto flex items-center gap-1">
+                <span className="text-xs font-mono font-bold" style={{ color: meta.color }}>
+                  {cat._count.products}
+                </span>
+                <span className="text-xs text-[#555]">productos</span>
+              </div>
+
+              {/* Arrow */}
+              <svg
+                className="absolute bottom-4 right-4 w-4 h-4 text-[#333] group-hover:text-[#00ff66] transition-all group-hover:translate-x-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
