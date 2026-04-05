@@ -14,35 +14,29 @@ export default function HomePage() {
       <Navbar />
 
       <main className="pt-16">
-        {/* 1 · Hero — 3D builder teaser */}
+        {/* 1 · Hero */}
         <HeroSection />
 
-        {/* 2 · Live stock ticker — real-time urgency, not fake discounts */}
+        {/* 2 · Announcement bar inline (ticker, offers) */}
         <ContentZone zone="homepage_live" />
 
-        {/* 3 · Dual audience entry — Gamer vs AI Dev */}
+        {/* 3 · Highlight banner / promo */}
         <ContentZone zone="homepage_dual" />
 
-        {/* 4 · Editorial spotlight — opinion + recommendation, replaces banner */}
+        {/* 4 · Editorial / featured recommendation */}
         <ContentZone zone="homepage_editorial" />
 
-        {/* 5 · Category grid — browse by type */}
+        {/* 5 · Category grid */}
         <CategoriesSection />
 
-        {/* 6 · AI capability showcase — targets AI dev audience */}
-        <ContentZone zone="homepage_ai" />
-
-        {/* 7 · Promo / countdown — only when there's actually a sale */}
+        {/* 6 · Promo block */}
         <ContentZone zone="homepage_promo" />
 
-        {/* 8 · Featured community builds */}
+        {/* 7 · Featured products */}
         <FeaturedBuilds />
 
-        {/* 9 · Community build spotlight */}
+        {/* 8 · Community / reviews */}
         <ContentZone zone="homepage_community" />
-
-        {/* 10 · Quiz — help users find their build */}
-        <ContentZone zone="homepage_quiz" />
 
         {/* Trust signals */}
         <section className="py-14 px-4 border-t border-[#111]">

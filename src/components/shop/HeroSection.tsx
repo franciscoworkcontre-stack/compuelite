@@ -77,7 +77,7 @@ export function HeroSection() {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-[#00ff66]/30 rounded-full bg-[#00ff66]/5 mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-pulse" />
           <span className="text-xs font-medium text-[#00ff66] uppercase tracking-widest">
-            PC Builder 3D Interactivo
+            Especialistas en Gaming · Chile
           </span>
         </div>
 
@@ -86,43 +86,43 @@ export function HeroSection() {
           className="text-5xl sm:text-6xl lg:text-8xl font-black uppercase tracking-tight leading-none mb-6"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          <span className="block text-white">ARMA TU</span>
+          <span className="block text-white">PCs GAMER</span>
           <span className="block text-[#00ff66]">
-            PC GAMER
+            LISTAS PARA
           </span>
-          <span className="block text-white">IDEAL</span>
+          <span className="block text-white">JUGAR</span>
         </h1>
 
         {/* Subheadline */}
         <p className="text-lg sm:text-xl text-[#888] max-w-2xl mx-auto mb-10 leading-relaxed">
-          El único configurador de PC 3D interactivo de Chile. Selecciona componentes,
-          verifica compatibilidad en tiempo real y recibe en todo el país.
+          Ensambladas, probadas y con garantía. Cada PC sale de nuestro taller
+          lista para usar, con soporte real y despacho a todo Chile.
         </p>
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <Link
-            href="/builder"
+            href="/productos"
             className="w-full sm:w-auto px-8 py-4 bg-[#00ff66] text-black font-black text-sm uppercase tracking-widest rounded hover:bg-[#00cc52] transition-all active:scale-95"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Comenzar Build
+            Ver PCs Disponibles
           </Link>
           <Link
-            href="/productos"
+            href="/productos?categoria=pc-elite"
             className="w-full sm:w-auto px-8 py-4 border border-[#333] text-white font-semibold text-sm uppercase tracking-wider rounded hover:border-[#00ff66] hover:text-[#00ff66] transition-all"
           >
-            Ver Productos
+            Serie ELITE
           </Link>
         </div>
 
         {/* Stats */}
         <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-center">
           {[
-            { value: "+500", label: "Componentes" },
-            { value: "100%", label: "Compatibilidad verificada" },
+            { value: "+50", label: "Modelos disponibles" },
+            { value: "100%", label: "Ensamblado en Chile" },
             { value: "24/7", label: "Soporte técnico" },
-            { value: "3D", label: "Configurador único" },
+            { value: "6x", label: "Cuotas sin interés" },
           ].map((stat) => (
             <div key={stat.label}>
               <div
