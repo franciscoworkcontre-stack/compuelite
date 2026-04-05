@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { ProductStatus } from "@prisma/client";
+import { ComponentType, ProductStatus } from "@prisma/client";
 
 export const productsRouter = createTRPCRouter({
   list: publicProcedure
@@ -12,6 +12,7 @@ export const productsRouter = createTRPCRouter({
         priceMax: z.number().optional(),
         inStock: z.boolean().optional(),
         featured: z.boolean().optional(),
+        componentType: z.nativeEnum(ComponentType).optional(),
         search: z.string().optional(),
         sort: z.enum(["price_asc", "price_desc", "newest", "featured"]).default("newest"),
         limit: z.number().min(1).max(100).default(24),
@@ -37,6 +38,7 @@ export const productsRouter = createTRPCRouter({
           ...(input.brand && { brand: { contains: input.brand, mode: "insensitive" } }),
           ...(input.inStock && { stock: { gt: 0 } }),
           ...(input.featured !== undefined && { featured: input.featured }),
+          ...(input.componentType && { componentType: input.componentType }),
           ...(input.priceMin !== undefined && { price: { gte: input.priceMin } }),
           ...(input.priceMax !== undefined && { price: { lte: input.priceMax } }),
           ...(input.search && {
