@@ -216,12 +216,27 @@ export function HeroSection() {
             variants={stagger}
             className="space-y-7 order-2 lg:order-1"
           >
-            {/* BLACK SALE badge */}
+            {/* BLACK SALE banner */}
             <motion.div variants={fadeUp}>
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#00ff66]/10 border border-[#00ff66]/30 text-[#00ff66] text-xs font-bold uppercase tracking-widest">
-                <Zap className="w-3.5 h-3.5" />
-                BLACK SALE — Hasta 13% OFF
-              </span>
+              <div className="inline-flex items-center justify-between gap-6 px-6 py-3 rounded-xl bg-[#00ff66]/10 border border-[#00ff66]/30 w-full max-w-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#00ff66]/20 border border-[#00ff66]/40 flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-4 h-4 text-[#00ff66]" />
+                  </div>
+                  <div>
+                    <p className="text-[#00ff66] text-sm font-black uppercase tracking-widest leading-tight" style={{ fontFamily: "var(--font-display)" }}>
+                      BLACK SALE
+                    </p>
+                    <p className="text-[#00ff66]/70 text-[11px] uppercase tracking-wider leading-tight">
+                      25 Marzo — 5 Abril
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-white text-xl font-black leading-none" style={{ fontFamily: "var(--font-display)" }}>13% OFF</p>
+                  <p className="text-[#00ff66]/60 text-[10px] uppercase tracking-wider">en PCs Gamer</p>
+                </div>
+              </div>
             </motion.div>
 
             {/* Category */}
