@@ -1,6 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useBuilderStore, BUILD_STEPS } from "@/stores/builderStore";
+import { useCartStore } from "@/stores/cartStore";
 
 function formatCLP(n: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -19,12 +21,15 @@ const STATUS_CONFIG = {
 };
 
 export function BuilderBottomBar() {
+  const router = useRouter();
   const {
     totalPrice,
     components,
     compatibilityStatus,
     compatibilityMessages,
+    reset,
   } = useBuilderStore();
+  const addItem = useCartStore((s) => s.addItem);
 
   const filled = Object.keys(components).length;
   const required = BUILD_STEPS.filter((s) => s !== "EXTRAS").length; // 8
@@ -112,7 +117,20 @@ export function BuilderBottomBar() {
           boxShadow: allRequired ? "0 0 20px rgba(0,255,102,0.3)" : "none",
         }}
         onClick={() => {
-          // TODO: wire cart / checkout
+          // Add each selected component as a separate cart item
+          Object.entries(components).forEach(([, comp]) => {
+            if (!comp) return;
+            addItem({
+              productId: comp.productId,
+              name: comp.name,
+              brand: comp.brand,
+              price: comp.price,
+              sku: comp.sku,
+              imageUrl: comp.imageUrl,
+            });
+          });
+          reset();
+          router.push("/carrito");
         }}
       >
         Agregar al Carrito

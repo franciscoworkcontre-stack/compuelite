@@ -1,16 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import { useCartStore } from "@/stores/cartStore";
 
 interface Props {
-  product: { id: string; name: string; stock: number };
+  product: {
+    id: string;
+    name: string;
+    brand: string;
+    price: { toNumber?: () => number } | number | string;
+    sku: string;
+    stock: number;
+    images?: { url: string }[];
+  };
 }
 
 export function AddToCartButton({ product }: Props) {
   const [added, setAdded] = useState(false);
+  const addItem = useCartStore((s) => s.addItem);
 
   const handleAdd = () => {
-    // TODO: integrate with cart store (Zustand) in Sprint 4
+    const price =
+      typeof product.price === "object" && product.price?.toNumber
+        ? product.price.toNumber()
+        : Number(product.price);
+    addItem({
+      productId: product.id,
+      name: product.name,
+      brand: product.brand,
+      price,
+      sku: product.sku,
+      imageUrl: product.images?.[0]?.url,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };

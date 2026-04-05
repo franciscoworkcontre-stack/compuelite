@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useCartStore } from "@/stores/cartStore";
 
 const navLinks = [
   { href: "/productos", label: "Productos" },
@@ -12,6 +13,7 @@ const navLinks = [
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const totalItems = useCartStore((s) => s.totalItems());
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-[#222] bg-[#0a0a0a]/90 backdrop-blur-md">
@@ -60,6 +62,11 @@ export function Navbar() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.874-7.148a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
               </svg>
+              {totalItems > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#00ff66] text-black text-[9px] font-black rounded-full flex items-center justify-center">
+                  {totalItems > 9 ? "9+" : totalItems}
+                </span>
+              )}
             </Link>
 
             {/* Mobile menu toggle */}

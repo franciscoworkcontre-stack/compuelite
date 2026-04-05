@@ -169,7 +169,15 @@ export default async function ProductPage({
               </div>
 
               {/* Add to cart */}
-              <AddToCartButton product={{ id: product.id, name: product.name, stock: product.stock }} />
+              <AddToCartButton product={{
+                id: product.id,
+                name: product.name,
+                brand: product.brand,
+                price: product.price,
+                sku: product.sku,
+                stock: product.stock,
+                images: product.images,
+              }} />
 
               {/* Trust badges */}
               <div className="grid grid-cols-3 gap-3 mt-8">
