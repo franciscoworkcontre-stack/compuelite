@@ -1,7 +1,5 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Navbar } from "@/components/ui/Navbar";
-import { Footer } from "@/components/ui/Footer";
 import { CatalogFilters } from "@/components/shop/CatalogFilters";
 import { CatalogGrid } from "@/components/shop/CatalogGrid";
 import { api } from "@/lib/trpc/server";
@@ -27,7 +25,6 @@ export default async function ProductosPage({
 
   return (
     <>
-      <Navbar />
       <main className="min-h-screen pt-16">
         {/* Header */}
         <div className="border-b border-[#222] bg-[#0a0a0a]">
@@ -72,7 +69,6 @@ export default async function ProductosPage({
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

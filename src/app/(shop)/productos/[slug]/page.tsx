@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Navbar } from "@/components/ui/Navbar";
-import { Footer } from "@/components/ui/Footer";
 import { api } from "@/lib/trpc/server";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 
@@ -52,7 +50,6 @@ export default async function ProductPage({
 
   return (
     <>
-      <Navbar />
       <main className="min-h-screen pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}
@@ -224,7 +221,6 @@ export default async function ProductPage({
           )}
         </div>
       </main>
-      <Footer />
     </>
   );
 }
