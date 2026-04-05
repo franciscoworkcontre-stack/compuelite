@@ -221,14 +221,14 @@ export default async function BuildsPage() {
             Arma tu PC personalizado
           </h2>
           <p className="text-sm text-[#555] mb-8 leading-relaxed">
-            Usa nuestro Configurador para elegir cada componente a tu medida.
+            Usa nuestro configurador para elegir cada componente a tu medida.
           </p>
           <Link
             href="/builder"
             className="inline-flex items-center gap-2 px-8 py-3 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded hover:bg-[#00cc52] transition-all"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Abrir Configurador →
+            Arma tu PC →
           </Link>
         </div>
       </div>
