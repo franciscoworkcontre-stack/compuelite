@@ -1,5 +1,6 @@
 import { type Metadata } from "next";
 import { BuilderPage } from "@/components/builder/BuilderPage";
+import { ContentZone } from "@/components/content/ContentZone";
 
 export const metadata: Metadata = {
   title: "PC Builder 3D — Compuelite",
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <BuilderPage />;
+  return (
+    <>
+      <ContentZone zone="builder_notice" />
+      <BuilderPage />
+    </>
+  );
 }

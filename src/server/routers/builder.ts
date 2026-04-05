@@ -1,6 +1,8 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { ComponentType, ProductStatus } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { randomBytes } from "crypto";
 
 export const builderRouter = createTRPCRouter({
   createBuild: publicProcedure
@@ -192,5 +194,67 @@ export const builderRouter = createTRPCRouter({
         include: { images: { take: 1 } },
         orderBy: { price: "asc" },
       });
+    }),
+
+  // Create a shareable build from Zustand store components (no prior buildId needed)
+  shareBuild: protectedProcedure
+    .input(z.object({
+      name: z.string().max(80).optional(),
+      components: z.array(z.object({
+        productId: z.string(),
+        componentType: z.nativeEnum(ComponentType),
+      })).min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const slug = randomBytes(5).toString("hex");
+
+      const build = await ctx.db.build.create({
+        data: {
+          userId: ctx.session.user.id,
+          name: input.name ?? "Mi PC",
+          isPublic: true,
+          shareSlug: slug,
+          components: {
+            create: input.components.map((c, i) => ({
+              productId: c.productId,
+              componentType: c.componentType,
+              slotIndex: i,
+            })),
+          },
+        },
+      });
+
+      // Calculate total from DB prices
+      const comps = await ctx.db.buildComponent.findMany({
+        where: { buildId: build.id },
+        include: { product: { select: { price: true } } },
+      });
+      const totalPrice = comps.reduce((s, c) => s + Number(c.product.price), 0);
+      await ctx.db.build.update({ where: { id: build.id }, data: { totalPrice } });
+
+      return { slug };
+    }),
+
+  // Fetch a public shared build by slug — no auth required
+  getSharedBuild: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const build = await ctx.db.build.findUnique({
+        where: { shareSlug: input.slug },
+        include: {
+          components: {
+            include: {
+              product: {
+                include: { images: { take: 1 } },
+              },
+            },
+            orderBy: { componentType: "asc" },
+          },
+          user: { select: { name: true } },
+        },
+      });
+
+      if (!build || !build.isPublic) throw new TRPCError({ code: "NOT_FOUND" });
+      return build;
     }),
 });

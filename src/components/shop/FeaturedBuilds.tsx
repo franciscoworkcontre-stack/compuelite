@@ -74,12 +74,11 @@ export function FeaturedBuilds() {
         {featuredBuilds.map((build) => (
           <div
             key={build.id}
-            className="group relative flex flex-col bg-[#111] border border-[#222] rounded-xl overflow-hidden hover:border-[#00ff66] transition-all duration-300 hover:shadow-[0_0_40px_rgba(0,255,102,0.1)]"
+            className="group relative flex flex-col bg-[#111] border border-[#222] rounded-xl overflow-hidden hover:border-[#00ff66] transition-all duration-300"
           >
             {/* Preview placeholder */}
             <div className="relative h-48 bg-[#0d0d0d] flex items-center justify-center overflow-hidden">
               <div className="text-6xl opacity-20">🖥️</div>
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,255,102,0.05)_0%,transparent_70%)]" />
 
               {/* Badge */}
               <div
@@ -138,7 +137,7 @@ export function FeaturedBuilds() {
                   <div className="text-xs text-[#555] uppercase tracking-wider mb-0.5">Desde</div>
                   <div
                     className="text-xl font-bold font-mono text-[#00ff66]"
-                    style={{ textShadow: "0 0 15px rgba(0,255,102,0.3)" }}
+                    style={{}}
                   >
                     {formatCLP(build.price)}
                   </div>

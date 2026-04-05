@@ -100,7 +100,7 @@ export function CategoriesSection() {
           <Link
             key={cat.slug}
             href={`/productos/${cat.slug}`}
-            className="group relative flex flex-col p-5 bg-[#111] border border-[#222] rounded-lg hover:border-[#00ff66] hover:bg-[#111] transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,102,0.1)] overflow-hidden"
+            className="group relative flex flex-col p-5 bg-[#111] border border-[#222] rounded-lg hover:border-[#00ff66] hover:bg-[#111] transition-all duration-300 overflow-hidden"
           >
             {/* Background accent */}
             <div

@@ -73,12 +73,7 @@ export default async function BuildsPage() {
       {/* Hero */}
       <div className="border-b border-[#1a1a1a] relative overflow-hidden">
         <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,255,102,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.08) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
+          className="absolute inset-0 bg-grid opacity-30"
         />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
           <p className="text-xs text-[#00ff66] uppercase tracking-widest mb-3"
@@ -96,7 +91,7 @@ export default async function BuildsPage() {
           <div className="flex gap-3 mt-6">
             <Link
               href="/builder"
-              className="px-5 py-2.5 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded hover:bg-[#00cc52] transition-all hover:shadow-[0_0_20px_rgba(0,255,102,0.3)]"
+              className="px-5 py-2.5 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded hover:bg-[#00cc52] transition-all"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Armar PC personalizado
@@ -166,7 +161,7 @@ export default async function BuildsPage() {
                     <Link
                       key={product.id}
                       href={`/productos/${product.slug}`}
-                      className="group flex flex-col bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden hover:border-[#00ff66]/30 transition-all hover:shadow-[0_0_24px_rgba(0,255,102,0.06)]"
+                      className="group flex flex-col bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden hover:border-[#00ff66]/30 transition-all"
                     >
                       <div className="aspect-[4/3] bg-[#0d0d0d] flex items-center justify-center overflow-hidden">
                         {img ? (
@@ -186,8 +181,7 @@ export default async function BuildsPage() {
                           {product.name}
                         </p>
                         <div className="mt-3 flex items-end justify-between">
-                          <p className="text-lg font-black font-mono text-[#00ff66]"
-                            style={{ textShadow: "0 0 12px rgba(0,255,102,0.2)" }}>
+                          <p className="text-lg font-black font-mono text-[#00ff66]">
                             {formatCLP(price)}
                           </p>
                           {product.stock <= 3 && (
@@ -232,7 +226,7 @@ export default async function BuildsPage() {
           </p>
           <Link
             href="/builder"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded hover:bg-[#00cc52] transition-all hover:shadow-[0_0_30px_rgba(0,255,102,0.35)]"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded hover:bg-[#00cc52] transition-all"
             style={{ fontFamily: "var(--font-display)" }}
           >
             Abrir PC Builder 3D →

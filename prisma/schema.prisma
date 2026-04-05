@@ -151,6 +151,25 @@ enum ImportStatus {
   FAILED
 }
 
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+enum BlockType {
+  ANNOUNCEMENT
+  PROMO_BANNER
+  PRODUCT_SPOT
+  COUNTDOWN
+  EDITORIAL
+  BENCHMARK_GRID
+  AI_CAPABILITY
+  COMMUNITY_BUILD
+  DUAL_AUDIENCE
+  STOCK_TICKER
+  QUIZ_FLOW
+}
+
 // ============================
 // CATEGORÍAS
 // ============================
@@ -561,4 +580,41 @@ model CsvImportLog {
   importedBy  String
   batchId     String       @unique
   createdAt   DateTime     @default(now())
+}
+
+// ============================
+// COUPONS
+// ============================
+
+// ============================
+// CONTENT BLOCKS
+// ============================
+
+model ContentBlock {
+  id        String    @id @default(cuid())
+  zone      String    // "announcement_bar" | "homepage_promo" | "category_notice" | "builder_notice" | "cart_upsell" | "checkout_notice"
+  type      BlockType
+  data      Json      // payload varies per type
+  active    Boolean   @default(false)
+  order     Int       @default(0)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  label     String?   // internal name for admin UI
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([zone, active])
+}
+
+model Coupon {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  type        CouponType
+  value       Decimal    @db.Decimal(10, 2)  // percent (0-100) or fixed CLP amount
+  minOrder    Decimal?   @db.Decimal(10, 2)  // minimum order subtotal required
+  maxUses     Int?                            // null = unlimited
+  usedCount   Int        @default(0)
+  active      Boolean    @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime   @default(now())
 }

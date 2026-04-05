@@ -80,7 +80,7 @@ export function Navbar() {
 
               <Link
                 href="/builder"
-                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#00ff66] text-black text-sm font-bold uppercase tracking-wider rounded hover:bg-[#00cc52] transition-all hover:shadow-[0_0_20px_rgba(0,255,102,0.4)]"
+                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#00ff66] text-black text-sm font-bold uppercase tracking-wider rounded hover:bg-[#00cc52] transition-all"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Armar PC

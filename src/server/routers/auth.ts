@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { hash } from "bcryptjs";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 
 export const authRouter = createTRPCRouter({
@@ -32,11 +32,11 @@ export const authRouter = createTRPCRouter({
       return user;
     }),
 
-  me: publicProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(async ({ ctx, input }) => {
+  // Uses session — no userId input needed (prevents IDOR)
+  me: protectedProcedure
+    .query(async ({ ctx }) => {
       return ctx.db.user.findUnique({
-        where: { id: input.userId },
+        where: { id: ctx.session.user.id },
         select: {
           id: true,
           name: true,
@@ -56,19 +56,17 @@ export const authRouter = createTRPCRouter({
       });
     }),
 
-  updateProfile: publicProcedure
+  updateProfile: protectedProcedure
     .input(
       z.object({
-        userId: z.string(),
         name: z.string().min(2).optional(),
         phone: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { userId, ...data } = input;
       return ctx.db.user.update({
-        where: { id: userId },
-        data,
+        where: { id: ctx.session.user.id },
+        data: input,
         select: { id: true, name: true, email: true, phone: true },
       });
     }),

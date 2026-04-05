@@ -13,8 +13,7 @@ export function BuilderCTASection() {
   return (
     <section className="py-20 px-4 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-[#0d1a0d] border-y border-[#1a3320]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,255,102,0.05)_0%,transparent_60%)]" />
+      <div className="absolute inset-0 bg-[#0d0d0d] border-y border-[#1a1a1a]" />
 
       <div className="relative max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -28,9 +27,7 @@ export function BuilderCTASection() {
               style={{ fontFamily: "var(--font-display)" }}
             >
               PC Builder{" "}
-              <span className="text-[#00ff66]" style={{ textShadow: "0 0 30px rgba(0,255,102,0.5)" }}>
-                3D
-              </span>
+              <span className="text-[#00ff66]">3D</span>
               <br />
               Interactivo
             </h2>
@@ -42,7 +39,7 @@ export function BuilderCTASection() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/builder"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#00ff66] text-black font-black text-sm uppercase tracking-widest rounded hover:bg-[#00cc52] transition-all hover:shadow-[0_0_40px_rgba(0,255,102,0.4)]"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#00ff66] text-black font-black text-sm uppercase tracking-widest rounded hover:bg-[#00cc52] transition-all"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Abrir Builder

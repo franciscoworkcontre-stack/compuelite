@@ -1,11 +1,15 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
 import { db } from "./db/client";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
+  const session = await getServerSession(authOptions);
   return {
     db,
+    session,
     ...opts,
   };
 };
@@ -28,8 +32,19 @@ export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
-// Authenticated procedure (extend when auth is added)
 export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
-  // TODO: add auth check here
-  return next({ ctx });
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({ ctx: { ...ctx, session: ctx.session } });
+});
+
+export const adminProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.session?.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  if (ctx.session.user.role !== "ADMIN") {
+    throw new TRPCError({ code: "FORBIDDEN" });
+  }
+  return next({ ctx: { ...ctx, session: ctx.session } });
 });

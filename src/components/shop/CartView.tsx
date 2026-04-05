@@ -144,10 +144,7 @@ export function CartView() {
                   <span className="text-sm text-[#888]">Total</span>
                   <span
                     className="text-2xl font-black font-mono text-[#00ff66]"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      textShadow: "0 0 16px rgba(0,255,102,0.3)",
-                    }}
+                    style={{ fontFamily: "var(--font-display)" }}
                   >
                     {formatCLP(total)}
                   </span>
@@ -157,7 +154,7 @@ export function CartView() {
 
               <Link
                 href="/checkout"
-                className="block w-full py-3 text-center bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded-lg hover:bg-[#00cc52] hover:shadow-[0_0_20px_rgba(0,255,102,0.3)] transition-all"
+                className="block w-full py-3 text-center bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded-lg hover:bg-[#00cc52] transition-all"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Continuar →

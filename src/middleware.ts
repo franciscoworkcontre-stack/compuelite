@@ -22,10 +22,11 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
-        // /cuenta requires any authenticated user
         if (pathname.startsWith("/cuenta")) return Boolean(token);
-        // /admin is handled in the middleware function above
-        if (pathname.startsWith("/admin")) return true; // let middleware decide
+        if (pathname.startsWith("/checkout")) return Boolean(token);
+        if (pathname.startsWith("/pedido/")) return Boolean(token);
+        if (pathname.startsWith("/pago/")) return Boolean(token);
+        if (pathname.startsWith("/admin")) return true;
         return true;
       },
     },
@@ -33,5 +34,11 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/admin/:path*", "/cuenta/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/cuenta/:path*",
+    "/checkout/:path*",
+    "/pedido/:path*",
+    "/pago/:path*",
+  ],
 };

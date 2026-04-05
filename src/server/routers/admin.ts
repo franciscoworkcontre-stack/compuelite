@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, adminProcedure } from "../trpc";
 import { OrderStatus, ProductStatus, PaymentStatus } from "@prisma/client";
 
 export const adminRouter = createTRPCRouter({
-  stats: publicProcedure.query(async ({ ctx }) => {
+  stats: adminProcedure.query(async ({ ctx }) => {
     const [
       totalOrders,
       pendingOrders,
@@ -37,7 +37,7 @@ export const adminRouter = createTRPCRouter({
     };
   }),
 
-  orders: publicProcedure
+  orders: adminProcedure
     .input(
       z.object({
         status: z.nativeEnum(OrderStatus).optional(),
@@ -66,7 +66,7 @@ export const adminRouter = createTRPCRouter({
       return { items, nextCursor };
     }),
 
-  updateOrderStatus: publicProcedure
+  updateOrderStatus: adminProcedure
     .input(
       z.object({
         orderId: z.string(),
@@ -80,7 +80,7 @@ export const adminRouter = createTRPCRouter({
       });
     }),
 
-  confirmTransferPayment: publicProcedure
+  confirmTransferPayment: adminProcedure
     .input(z.object({ orderId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.order.update({
@@ -93,7 +93,7 @@ export const adminRouter = createTRPCRouter({
       });
     }),
 
-  products: publicProcedure
+  products: adminProcedure
     .input(
       z.object({
         search: z.string().optional(),
@@ -126,7 +126,7 @@ export const adminRouter = createTRPCRouter({
       return { items, nextCursor };
     }),
 
-  updateStock: publicProcedure
+  updateStock: adminProcedure
     .input(z.object({ productId: z.string(), stock: z.number().int().min(0) }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.product.update({
@@ -135,7 +135,7 @@ export const adminRouter = createTRPCRouter({
       });
     }),
 
-  updateProductStatus: publicProcedure
+  updateProductStatus: adminProcedure
     .input(z.object({ productId: z.string(), status: z.nativeEnum(ProductStatus) }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.product.update({

@@ -50,7 +50,7 @@ export function HeroSection() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 255, 102, ${p.opacity})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity * 0.4})`;
         ctx.fill();
       });
       animId = requestAnimationFrame(draw);
@@ -68,8 +68,8 @@ export function HeroSection() {
       {/* Particles */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
-      {/* Radial glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,255,102,0.08)_0%,transparent_70%)] pointer-events-none" />
+      {/* Subtle vignette */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-5xl mx-auto pt-16">
@@ -87,10 +87,7 @@ export function HeroSection() {
           style={{ fontFamily: "var(--font-display)" }}
         >
           <span className="block text-white">ARMA TU</span>
-          <span
-            className="block text-[#00ff66]"
-            style={{ textShadow: "0 0 40px rgba(0,255,102,0.5)" }}
-          >
+          <span className="block text-[#00ff66]">
             PC GAMER
           </span>
           <span className="block text-white">IDEAL</span>
@@ -106,7 +103,7 @@ export function HeroSection() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <Link
             href="/builder"
-            className="w-full sm:w-auto px-8 py-4 bg-[#00ff66] text-black font-black text-sm uppercase tracking-widest rounded hover:bg-[#00cc52] transition-all hover:shadow-[0_0_40px_rgba(0,255,102,0.4)] active:scale-95"
+            className="w-full sm:w-auto px-8 py-4 bg-[#00ff66] text-black font-black text-sm uppercase tracking-widest rounded hover:bg-[#00cc52] transition-all active:scale-95"
             style={{ fontFamily: "var(--font-display)" }}
           >
             Comenzar Build
@@ -130,10 +127,7 @@ export function HeroSection() {
             <div key={stat.label}>
               <div
                 className="text-2xl font-black text-[#00ff66]"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  textShadow: "0 0 20px rgba(0,255,102,0.4)",
-                }}
+                style={{ fontFamily: "var(--font-display)" }}
               >
                 {stat.value}
               </div>

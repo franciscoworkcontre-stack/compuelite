@@ -6,6 +6,7 @@ import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { WishlistButton } from "@/components/shop/WishlistButton";
 import { ProductReviews } from "@/components/shop/ProductReviews";
 import { RelatedProducts } from "@/components/shop/RelatedProducts";
+import { ContentZone } from "@/components/content/ContentZone";
 
 function formatCLP(n: number | string | { toNumber?: () => number }) {
   const val = typeof n === "object" && n?.toNumber ? n.toNumber() : Number(n);
@@ -129,7 +130,7 @@ export default async function ProductPage({
               <div className="flex items-end gap-3 mb-2">
                 <span
                   className="text-4xl font-bold font-mono text-[#00ff66]"
-                  style={{ textShadow: "0 0 20px rgba(0,255,102,0.3)" }}
+                  style={{}}
                 >
                   {formatCLP(product.price)}
                 </span>
@@ -228,6 +229,12 @@ export default async function ProductPage({
             </div>
           )}
         </div>
+
+        {/* Benchmark grid — performance data for this product category */}
+        <ContentZone zone="pdp_benchmark" />
+
+        {/* AI capability — what this GPU/CPU can do with local AI */}
+        <ContentZone zone="pdp_ai" />
 
         {/* Reviews */}
         <ProductReviews productId={product.id} />

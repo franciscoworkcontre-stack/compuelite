@@ -30,12 +30,10 @@ const STATUS_META: Record<string, { label: string; color: string }> = {
 
 export function AccountView() {
   const { data: session } = useSession();
-  const userId = session?.user.id ?? "";
 
-  const { data, isLoading } = trpc.auth.me.useQuery(
-    { userId },
-    { enabled: Boolean(userId) }
-  );
+  const { data, isLoading } = trpc.auth.me.useQuery(undefined, {
+    enabled: Boolean(session?.user),
+  });
 
   if (!session) {
     return (

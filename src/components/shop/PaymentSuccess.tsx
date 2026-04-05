@@ -27,7 +27,7 @@ export function PaymentSuccess({ orderId }: { orderId: string }) {
         {/* Checkmark */}
         <div
           className="w-20 h-20 rounded-full bg-[#00ff66]/10 border-2 border-[#00ff66]/40 flex items-center justify-center mx-auto mb-6"
-          style={{ boxShadow: "0 0 40px rgba(0,255,102,0.2)" }}
+          style={{}}
         >
           <svg className="w-10 h-10 text-[#00ff66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />

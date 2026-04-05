@@ -55,7 +55,7 @@ export function AddToCartButton({ product }: Props) {
         className={`flex-1 py-4 text-sm font-black uppercase tracking-wider rounded transition-all ${
           added
             ? "bg-[#00cc52] text-black"
-            : "bg-[#00ff66] text-black hover:bg-[#00cc52] hover:shadow-[0_0_30px_rgba(0,255,102,0.4)]"
+            : "bg-[#00ff66] text-black hover:bg-[#00cc52]"
         }`}
         style={{ fontFamily: "var(--font-display)" }}
       >

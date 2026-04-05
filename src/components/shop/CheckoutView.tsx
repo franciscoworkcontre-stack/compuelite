@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCartStore } from "@/stores/cartStore";
 import { trpc } from "@/lib/trpc/client";
+import { getShippingOptions, type Carrier, type ShippingOption } from "@/lib/shipping";
 
 function formatCLP(n: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -35,7 +36,6 @@ const REGIONS = [
 
 interface FormState {
   guestName: string;
-  guestEmail: string;
   guestPhone: string;
   line1: string;
   line2: string;
@@ -47,11 +47,10 @@ interface FormState {
 export function CheckoutView() {
   const router = useRouter();
   const { items, totalPrice, clear } = useCartStore();
-  const total = totalPrice();
+  const subtotal = totalPrice();
 
   const [form, setForm] = useState<FormState>({
     guestName: "",
-    guestEmail: "",
     guestPhone: "",
     line1: "",
     line2: "",
@@ -59,7 +58,27 @@ export function CheckoutView() {
     region: "Región Metropolitana",
     notes: "",
   });
-  const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [errors, setErrors] = useState<Partial<FormState & { carrier: string }>>({});
+  const [carrier, setCarrier] = useState<Carrier | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number; label: string } | null>(null);
+
+  const validateCoupon = trpc.coupons.validate.useQuery(
+    { code: couponInput, subtotal },
+    { enabled: false, retry: false }
+  );
+
+  // Recalculate shipping options whenever region changes
+  const shippingOptions: ShippingOption[] = useMemo(
+    () => getShippingOptions(form.region),
+    [form.region]
+  );
+
+  // Reset carrier if selected carrier is not available in new region
+  const selectedOption = shippingOptions.find((o) => o.carrier === carrier) ?? null;
+  const shippingCost = selectedOption?.price ?? 0;
+  const couponDiscount = appliedCoupon?.discount ?? 0;
+  const total = subtotal + (selectedOption ? shippingCost : 0) - couponDiscount;
 
   const createOrder = trpc.orders.create.useMutation({
     onSuccess: (order) => {
@@ -70,25 +89,24 @@ export function CheckoutView() {
 
   const set = (field: keyof FormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => setForm((f) => ({ ...f, [field]: e.target.value }));
+  ) => {
+    setForm((f) => ({ ...f, [field]: e.target.value }));
+    if (field === "region") setCarrier(null); // reset on region change
+  };
 
   const validate = () => {
-    const e: Partial<FormState> = {};
-    if (!form.guestName.trim()) e.guestName = "Requerido";
-    if (!form.guestEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.guestEmail))
-      e.guestEmail = "Email inválido";
+    const e: Partial<FormState & { carrier: string }> = {};
     if (!form.line1.trim()) e.line1 = "Requerido";
     if (!form.city.trim()) e.city = "Requerido";
+    if (!carrier) e.carrier = "Selecciona un método de envío";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || !carrier) return;
     createOrder.mutate({
-      guestName: form.guestName,
-      guestEmail: form.guestEmail,
       guestPhone: form.guestPhone || undefined,
       shippingAddress: {
         line1: form.line1,
@@ -96,11 +114,9 @@ export function CheckoutView() {
         city: form.city,
         region: form.region,
       },
-      items: items.map((i) => ({
-        productId: i.productId,
-        quantity: i.quantity,
-        unitPrice: i.price,
-      })),
+      items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+      shippingCarrier: carrier,
+      couponCode: appliedCoupon?.code,
       notes: form.notes || undefined,
     });
   };
@@ -130,51 +146,37 @@ export function CheckoutView() {
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Form */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Contact */}
+            {/* Form — left 2 cols */}
+            <div className="lg:col-span-2 space-y-5">
+
+              {/* Shipping address */}
               <section className="bg-[#111] border border-[#1a1a1a] rounded-xl p-5">
                 <h2
                   className="text-xs font-black text-[#00ff66] uppercase tracking-widest mb-4"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Datos de contacto
+                  Dirección de entrega
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field
-                    label="Nombre completo *"
-                    value={form.guestName}
-                    onChange={set("guestName")}
-                    error={errors.guestName}
-                    placeholder="Juan Pérez"
-                  />
-                  <Field
-                    label="Email *"
-                    type="email"
-                    value={form.guestEmail}
-                    onChange={set("guestEmail")}
-                    error={errors.guestEmail}
-                    placeholder="juan@email.com"
-                  />
-                  <Field
-                    label="Teléfono"
+                    label="Teléfono de contacto"
                     type="tel"
                     value={form.guestPhone}
                     onChange={set("guestPhone")}
                     placeholder="+56 9 1234 5678"
                   />
-                </div>
-              </section>
-
-              {/* Shipping */}
-              <section className="bg-[#111] border border-[#1a1a1a] rounded-xl p-5">
-                <h2
-                  className="text-xs font-black text-[#00ff66] uppercase tracking-widest mb-4"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  Dirección de envío
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-[#888] uppercase tracking-wider mb-1.5">Región</label>
+                    <select
+                      value={form.region}
+                      onChange={set("region")}
+                      className="w-full bg-[#0d0d0d] border border-[#222] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#00ff66]/40 transition-colors"
+                    >
+                      {REGIONS.map((r) => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="sm:col-span-2">
                     <Field
                       label="Dirección *"
@@ -197,21 +199,65 @@ export function CheckoutView() {
                     error={errors.city}
                     placeholder="Santiago"
                   />
-                  <div>
-                    <label className="block text-xs text-[#888] uppercase tracking-wider mb-1.5">
-                      Región
-                    </label>
-                    <select
-                      value={form.region}
-                      onChange={set("region")}
-                      className="w-full bg-[#0d0d0d] border border-[#222] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#00ff66]/40 transition-colors"
-                    >
-                      {REGIONS.map((r) => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
+              </section>
+
+              {/* Carrier selector */}
+              <section className="bg-[#111] border border-[#1a1a1a] rounded-xl p-5">
+                <h2
+                  className="text-xs font-black text-[#00ff66] uppercase tracking-widest mb-4"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Método de envío
+                </h2>
+                <div className="space-y-2">
+                  {shippingOptions.map((opt) => (
+                    <label
+                      key={opt.carrier}
+                      className={`flex items-center justify-between gap-4 px-4 py-3 rounded-lg border cursor-pointer transition-all ${
+                        carrier === opt.carrier
+                          ? "border-[#00ff66]/40 bg-[#00ff66]/[0.03]"
+                          : "border-[#1a1a1a] hover:border-[#252525]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            carrier === opt.carrier
+                              ? "border-[#00ff66]"
+                              : "border-[#333]"
+                          }`}
+                        >
+                          {carrier === opt.carrier && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66]" />
+                          )}
+                        </div>
+                        <input
+                          type="radio"
+                          name="carrier"
+                          value={opt.carrier}
+                          className="sr-only"
+                          onChange={() => setCarrier(opt.carrier)}
+                          checked={carrier === opt.carrier}
+                        />
+                        <div>
+                          <p className="text-sm text-white font-medium">{opt.label}</p>
+                          <p className="text-xs text-[#555]">{opt.days}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm font-mono font-bold text-white flex-shrink-0">
+                        {opt.price === 0 ? (
+                          <span className="text-[#00ff66]">Gratis</span>
+                        ) : (
+                          formatCLP(opt.price)
+                        )}
+                      </p>
+                    </label>
+                  ))}
+                </div>
+                {errors.carrier && (
+                  <p className="mt-2 text-xs text-[#ff6666]">{errors.carrier}</p>
+                )}
               </section>
 
               {/* Notes */}
@@ -231,22 +277,76 @@ export function CheckoutView() {
                 />
               </section>
 
-              {/* Payment info */}
-              <section className="bg-[#0d1a0d] border border-[#00ff66]/20 rounded-xl p-5">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">🏦</span>
-                  <div>
-                    <p className="text-sm font-bold text-white mb-1">Pago por transferencia</p>
-                    <p className="text-xs text-[#888] leading-relaxed">
-                      Al confirmar tu pedido, te enviaremos los datos de la cuenta bancaria por email.
-                      Una vez confirmado el pago, tu pedido será procesado y despachado.
-                    </p>
+              {/* Coupon */}
+              <section className="bg-[#111] border border-[#1a1a1a] rounded-xl p-5">
+                <h2
+                  className="text-xs font-black text-[#00ff66] uppercase tracking-widest mb-4"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Cupón de descuento
+                </h2>
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between px-3 py-2.5 bg-[#00ff66]/[0.04] border border-[#00ff66]/20 rounded-lg">
+                    <div>
+                      <p className="text-xs font-mono font-bold text-[#00ff66]">{appliedCoupon.code}</p>
+                      <p className="text-[10px] text-[#555]">{appliedCoupon.label}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAppliedCoupon(null)}
+                      className="text-xs text-[#444] hover:text-[#888] transition-colors"
+                    >
+                      Quitar
+                    </button>
                   </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      placeholder="CÓDIGO"
+                      maxLength={30}
+                      className="flex-1 bg-[#0d0d0d] border border-[#222] rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-[#333] focus:outline-none focus:border-[#00ff66]/40 transition-colors uppercase"
+                    />
+                    <button
+                      type="button"
+                      disabled={!couponInput.trim() || validateCoupon.isFetching}
+                      onClick={async () => {
+                        const result = await validateCoupon.refetch();
+                        if (result.data) {
+                          const { code, discount, type, value } = result.data;
+                          const label = type === "PERCENT"
+                            ? `${value}% de descuento`
+                            : `-${new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(value)}`;
+                          setAppliedCoupon({ code, discount, label });
+                          setCouponInput("");
+                        }
+                      }}
+                      className="px-4 py-2 bg-[#1a1a1a] text-white text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-[#222] transition-colors disabled:opacity-40"
+                    >
+                      {validateCoupon.isFetching ? "…" : "Aplicar"}
+                    </button>
+                  </div>
+                )}
+                {validateCoupon.error && (
+                  <p className="mt-2 text-xs text-[#ff6666]">{validateCoupon.error.message}</p>
+                )}
+              </section>
+
+              {/* Transfer notice */}
+              <section className="border border-[#1a1a1a] rounded-xl p-4 flex items-start gap-3">
+                <span className="text-lg mt-0.5">🏦</span>
+                <div>
+                  <p className="text-sm font-semibold text-white mb-1">Pago por transferencia</p>
+                  <p className="text-xs text-[#666] leading-relaxed">
+                    Al confirmar, te enviamos los datos bancarios por email. El pedido se procesa una vez confirmado el pago.
+                  </p>
                 </div>
               </section>
             </div>
 
-            {/* Order summary */}
+            {/* Order summary — right col */}
             <div className="lg:col-span-1">
               <div className="bg-[#111] border border-[#1a1a1a] rounded-xl p-5 sticky top-24">
                 <h2
@@ -256,7 +356,8 @@ export function CheckoutView() {
                   Tu pedido
                 </h2>
 
-                <div className="space-y-2 mb-4 max-h-52 overflow-y-auto">
+                {/* Items */}
+                <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
                   {items.map((item) => (
                     <div key={item.productId} className="flex gap-2 text-xs">
                       <div className="w-8 h-8 bg-[#0d0d0d] border border-[#222] rounded flex-shrink-0 overflow-hidden">
@@ -264,7 +365,7 @@ export function CheckoutView() {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={item.imageUrl} alt="" className="w-full h-full object-contain p-1" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-base">🖥️</div>
+                          <div className="w-full h-full flex items-center justify-center">🖥️</div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -278,20 +379,41 @@ export function CheckoutView() {
                   ))}
                 </div>
 
-                <div className="border-t border-[#222] pt-4 mb-5">
-                  <div className="flex justify-between items-baseline">
+                {/* Price breakdown */}
+                <div className="border-t border-[#1a1a1a] pt-4 space-y-2 mb-5">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[#888]">Subtotal</span>
+                    <span className="text-white font-mono">{formatCLP(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-[#888]">Despacho</span>
+                    {selectedOption ? (
+                      <span className="font-mono text-white">
+                        {selectedOption.price === 0
+                          ? <span className="text-[#00ff66]">Gratis</span>
+                          : formatCLP(selectedOption.price)
+                        }
+                      </span>
+                    ) : (
+                      <span className="text-[#444] italic">Seleccionar</span>
+                    )}
+                  </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#00ff66]">Cupón {appliedCoupon.code}</span>
+                      <span className="font-mono text-[#00ff66]">-{formatCLP(appliedCoupon.discount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-baseline pt-2 border-t border-[#141414]">
                     <span className="text-sm text-[#888]">Total</span>
                     <span
                       className="text-2xl font-black font-mono text-[#00ff66]"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        textShadow: "0 0 16px rgba(0,255,102,0.3)",
-                      }}
+                      style={{ fontFamily: "var(--font-display)" }}
                     >
                       {formatCLP(total)}
                     </span>
                   </div>
-                  <p className="text-xs text-[#555] mt-1">IVA incluido · Despacho gratis RM</p>
+                  <p className="text-[10px] text-[#333]">IVA incluido</p>
                 </div>
 
                 {createOrder.error && (
@@ -302,12 +424,18 @@ export function CheckoutView() {
 
                 <button
                   type="submit"
-                  disabled={createOrder.isPending}
-                  className="w-full py-3 text-center bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded-lg hover:bg-[#00cc52] hover:shadow-[0_0_20px_rgba(0,255,102,0.3)] transition-all disabled:opacity-50 disabled:cursor-wait"
+                  disabled={createOrder.isPending || !carrier}
+                  className="w-full py-3 text-center bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded-lg hover:bg-[#00cc52] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {createOrder.isPending ? "Procesando…" : "Confirmar pedido"}
                 </button>
+
+                {!carrier && (
+                  <p className="text-center text-[10px] text-[#333] mt-2">
+                    Selecciona un método de envío
+                  </p>
+                )}
               </div>
             </div>
           </div>

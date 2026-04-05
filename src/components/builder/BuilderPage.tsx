@@ -329,6 +329,34 @@ function BuilderSummary({
   const { addItem } = useCartStore();
   const router = useRouter();
   const [added, setAdded] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const shareBuild = trpc.builder.shareBuild.useMutation({
+    onSuccess: ({ slug }) => {
+      const url = `${window.location.origin}/builds/${slug}`;
+      setShareUrl(url);
+      navigator.clipboard.writeText(url).catch(() => {});
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    },
+  });
+
+  const handleShare = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl).catch(() => {});
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+      return;
+    }
+    const items = BUILD_STEPS.flatMap((step) => {
+      const c = components[step];
+      if (!c) return [];
+      return [{ productId: c.productId, componentType: STEP_META[step].componentType }];
+    });
+    if (items.length === 0) return;
+    shareBuild.mutate({ components: items });
+  };
 
   const issues = checkCompatibility(components);
   const selectedCount = Object.keys(components).length;
@@ -473,6 +501,21 @@ function BuilderSummary({
         {issues.filter((i) => i.type === "error").length > 0 && (
           <p className="text-[10px] text-[#ff4545]/60 text-center">Resuelve incompatibilidades antes de continuar</p>
         )}
+
+        {/* Share */}
+        {selectedCount > 0 && (
+          <button
+            onClick={handleShare}
+            disabled={shareBuild.isPending}
+            className="w-full py-2 border border-[#1a1a1a] rounded-lg text-[10px] text-[#444] hover:text-[#888] hover:border-[#252525] transition-all uppercase tracking-widest flex items-center justify-center gap-1.5 disabled:opacity-40"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            {shareBuild.isPending ? "Generando..." : copied ? "¡Link copiado!" : shareUrl ? "Copiar link" : "Compartir build"}
+          </button>
+        )}
+
         <button onClick={reset} className="w-full py-1.5 text-[10px] text-[#2a2a2a] hover:text-[#444] transition-colors uppercase tracking-widest">
           Reiniciar
         </button>
@@ -537,6 +580,128 @@ function PeripheralCard({ product }: { product: { id: string; name: string; bran
   );
 }
 
+// ─── MOBILE STEP BAR ─────────────────────────────────────────────────────────
+
+function MobileStepBar({
+  activeStep,
+  onSelect,
+}: {
+  activeStep: BuildStep;
+  onSelect: (step: BuildStep) => void;
+}) {
+  const { components } = useBuilderStore();
+  const activeRef = useRef<HTMLButtonElement>(null);
+
+  // Scroll active pill into view
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [activeStep]);
+
+  return (
+    <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+      {BUILD_STEPS.map((step) => {
+        const meta = STEP_META[step];
+        const selected = !!components[step];
+        const isActive = step === activeStep;
+        return (
+          <button
+            key={step}
+            ref={isActive ? activeRef : null}
+            onClick={() => onSelect(step)}
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all border ${
+              isActive
+                ? "bg-white text-black border-white"
+                : selected
+                ? "bg-[#00ff66]/10 text-[#00ff66] border-[#00ff66]/30"
+                : "bg-transparent text-[#444] border-[#1a1a1a] hover:border-[#252525] hover:text-[#666]"
+            }`}
+            style={{ fontFamily: isActive ? "var(--font-display)" : undefined }}
+          >
+            {selected && !isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66]" />}
+            {meta.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── MOBILE BOTTOM BAR ───────────────────────────────────────────────────────
+
+function MobileBottomBar({ onOpenSummary }: { onOpenSummary: () => void }) {
+  const { components, totalPrice } = useBuilderStore();
+  const selectedCount = Object.keys(components).length;
+  const issues = checkCompatibility(components);
+  const hasErrors = issues.some((i) => i.type === "error");
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0a] border-t border-[#141414] px-4 py-3 flex items-center gap-3">
+      <div className="flex-1">
+        <p className="text-[10px] text-[#444] uppercase tracking-widest">Total</p>
+        <p className="text-lg font-black font-mono text-white">{
+          new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(totalPrice)
+        }</p>
+      </div>
+      {hasErrors && (
+        <div className="w-2 h-2 rounded-full bg-[#ff4545] flex-shrink-0" title="Incompatibilidades" />
+      )}
+      <button
+        onClick={onOpenSummary}
+        className="flex items-center gap-2 px-4 py-2.5 bg-[#00ff66] text-black text-xs font-black uppercase tracking-wider rounded-lg"
+        style={{ fontFamily: "var(--font-display)" }}
+      >
+        Resumen
+        {selectedCount > 0 && (
+          <span className="bg-black/20 px-1.5 py-0.5 rounded-full text-[10px]">{selectedCount}</span>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// ─── MOBILE SUMMARY SHEET ────────────────────────────────────────────────────
+
+function MobileSummarySheet({
+  open,
+  onClose,
+  onScrollTo,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onScrollTo: (step: BuildStep) => void;
+}) {
+  return (
+    <>
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60"
+          onClick={onClose}
+        />
+      )}
+      {/* Sheet */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a] border-t border-[#1a1a1a] rounded-t-2xl transition-transform duration-300 ease-out ${
+          open ? "translate-y-0" : "translate-y-full"
+        }`}
+        style={{ maxHeight: "85dvh", display: "flex", flexDirection: "column" }}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div className="w-10 h-1 rounded-full bg-[#252525]" />
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <BuilderSummary
+            hoveredProduct={null}
+            hoveredStep={null}
+            onScrollTo={(step) => { onScrollTo(step); onClose(); }}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 export function BuilderPage() {
@@ -544,6 +709,7 @@ export function BuilderPage() {
   const sectionRefs = useRef<Partial<Record<BuildStep, HTMLElement>>>({});
   const [hoveredProduct, setHoveredProduct] = useState<Product | null>(null);
   const [hoveredStep, setHoveredStep] = useState<BuildStep | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const { data: peripherals } = trpc.builder.peripheralRecommendations.useQuery({ limit: 8 });
 
@@ -582,9 +748,9 @@ export function BuilderPage() {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-[#080808] overflow-hidden">
+    <div className="flex flex-col h-[100dvh] bg-[#080808] overflow-hidden">
       {/* Top bar */}
-      <header className="flex-shrink-0 h-11 border-b border-[#111] flex items-center px-5 gap-3 bg-[#080808]">
+      <header className="flex-shrink-0 h-11 border-b border-[#111] flex items-center px-5 gap-3 bg-[#080808] z-10">
         <Link href="/" className="text-[#333] hover:text-[#666] transition-colors">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -594,12 +760,17 @@ export function BuilderPage() {
         <span className="text-xs font-black text-white uppercase tracking-widest" style={{ fontFamily: "var(--font-display)" }}>
           PC Builder
         </span>
-        <span className="text-[11px] text-[#2a2a2a]">— Arma tu equipo</span>
+        <span className="hidden sm:inline text-[11px] text-[#2a2a2a]">— Arma tu equipo</span>
       </header>
 
+      {/* Mobile step scroller (hidden on md+) */}
+      <div className="md:hidden flex-shrink-0 border-b border-[#111] bg-[#060606]">
+        <MobileStepBar activeStep={activeStep} onSelect={scrollToSection} />
+      </div>
+
       <div className="flex flex-1 min-h-0">
-        {/* Left nav */}
-        <nav className="flex-shrink-0 w-48 border-r border-[#111] overflow-y-auto bg-[#060606]">
+        {/* Left nav — desktop only */}
+        <nav className="hidden md:block flex-shrink-0 w-48 border-r border-[#111] overflow-y-auto bg-[#060606]">
           <div className="py-4">
             <p className="px-4 mb-2 text-[9px] text-[#252525] uppercase tracking-widest">Componentes</p>
             {BUILD_STEPS.map((step) => (
@@ -614,7 +785,7 @@ export function BuilderPage() {
         </nav>
 
         {/* Center — scrollable sections */}
-        <main className="flex-1 min-w-0 overflow-y-auto">
+        <main className="flex-1 min-w-0 overflow-y-auto pb-20 md:pb-0">
           {BUILD_STEPS.map((step) => (
             <BuilderSection
               key={step}
@@ -631,24 +802,34 @@ export function BuilderPage() {
               <h3 className="text-sm font-black text-white mb-4 uppercase tracking-wider" style={{ fontFamily: "var(--font-display)" }}>
                 Completa tu setup
               </h3>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+              <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
                 {peripherals.map((p) => (
                   <PeripheralCard key={p.id} product={p} />
                 ))}
               </div>
             </section>
           )}
-          <div className="h-24" />
+          <div className="h-6" />
         </main>
 
-        {/* Right panel */}
-        <aside className="flex-shrink-0 w-72 border-l border-[#111] overflow-hidden bg-[#060606]">
+        {/* Right panel — desktop only */}
+        <aside className="hidden md:block flex-shrink-0 w-72 border-l border-[#111] overflow-hidden bg-[#060606]">
           <BuilderSummary
             hoveredProduct={hoveredProduct}
             hoveredStep={hoveredStep}
             onScrollTo={scrollToSection}
           />
         </aside>
+      </div>
+
+      {/* Mobile bottom bar + summary sheet */}
+      <div className="md:hidden">
+        <MobileBottomBar onOpenSummary={() => setSheetOpen(true)} />
+        <MobileSummarySheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          onScrollTo={scrollToSection}
+        />
       </div>
     </div>
   );

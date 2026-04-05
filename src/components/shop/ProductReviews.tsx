@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { trpc } from "@/lib/trpc/client";
 
 function Stars({ rating, interactive = false, onRate }: {
@@ -48,15 +50,10 @@ interface Props {
 }
 
 export function ProductReviews({ productId }: Props) {
+  const { data: session } = useSession();
   const [showForm, setShowForm] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [form, setForm] = useState({
-    rating: 0,
-    authorName: "",
-    authorEmail: "",
-    title: "",
-    body: "",
-  });
+  const [form, setForm] = useState({ rating: 0, title: "", body: "" });
   const [formError, setFormError] = useState("");
 
   const { data } = trpc.reviews.list.useQuery({ productId });
@@ -71,12 +68,9 @@ export function ProductReviews({ productId }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (form.rating === 0) { setFormError("Selecciona una calificación"); return; }
-    if (!form.authorName || !form.authorEmail || form.body.length < 10) {
-      setFormError("Completa todos los campos requeridos");
-      return;
-    }
+    if (form.body.length < 10) { setFormError("El comentario debe tener al menos 10 caracteres"); return; }
     setFormError("");
-    createReview.mutate({ productId, ...form });
+    createReview.mutate({ productId, rating: form.rating, title: form.title || undefined, body: form.body });
   };
 
   const avgRating = data?.avgRating ?? 0;
@@ -100,12 +94,21 @@ export function ProductReviews({ productId }: Props) {
           )}
         </div>
         {!showForm && !submitted && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 border border-[#222] rounded text-xs text-[#555] hover:border-[#00ff66]/30 hover:text-[#00ff66] transition-all uppercase tracking-wider"
-          >
-            Escribir reseña
-          </button>
+          session ? (
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-4 py-2 border border-[#222] rounded text-xs text-[#555] hover:border-[#00ff66]/30 hover:text-[#00ff66] transition-all uppercase tracking-wider"
+            >
+              Escribir reseña
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="px-4 py-2 border border-[#222] rounded text-xs text-[#555] hover:border-[#333] transition-all uppercase tracking-wider"
+            >
+              Inicia sesión para opinar
+            </Link>
+          )
         )}
       </div>
 
@@ -127,23 +130,6 @@ export function ProductReviews({ productId }: Props) {
           <div>
             <label className="block text-xs text-[#888] mb-2">Calificación *</label>
             <Stars rating={form.rating} interactive onRate={(r) => setForm((f) => ({ ...f, rating: r }))} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-[#888] mb-1.5">Nombre *</label>
-              <input type="text" value={form.authorName}
-                onChange={(e) => setForm((f) => ({ ...f, authorName: e.target.value }))}
-                placeholder="Tu nombre"
-                className="w-full bg-[#0d0d0d] border border-[#222] rounded-lg px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#00ff66]/40 transition-colors" />
-            </div>
-            <div>
-              <label className="block text-xs text-[#888] mb-1.5">Email *</label>
-              <input type="email" value={form.authorEmail}
-                onChange={(e) => setForm((f) => ({ ...f, authorEmail: e.target.value }))}
-                placeholder="tu@email.com"
-                className="w-full bg-[#0d0d0d] border border-[#222] rounded-lg px-3 py-2 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#00ff66]/40 transition-colors" />
-            </div>
           </div>
 
           <div>

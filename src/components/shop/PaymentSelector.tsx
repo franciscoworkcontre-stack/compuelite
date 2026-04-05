@@ -254,7 +254,7 @@ export function PaymentSelector({ orderId }: { orderId: string }) {
                 ? "linear-gradient(135deg, #00ff66, #00cc52)"
                 : "#1a1a1a",
               color: selected && !loading ? "#000" : "#555",
-              boxShadow: selected && !loading ? "0 0 24px rgba(0,255,102,0.25)" : "none",
+              boxShadow: "none",
             }}
           >
             {loading

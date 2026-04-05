@@ -43,7 +43,7 @@ export function OrderConfirmation({ orderId }: { orderId: string }) {
         <div className="text-center mb-10">
           <div
             className="w-16 h-16 rounded-full bg-[#00ff66]/10 border border-[#00ff66]/30 flex items-center justify-center mx-auto mb-4"
-            style={{ boxShadow: "0 0 30px rgba(0,255,102,0.15)" }}
+            style={{}}
           >
             <svg className="w-8 h-8 text-[#00ff66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

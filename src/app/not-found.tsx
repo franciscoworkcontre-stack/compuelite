@@ -8,19 +8,10 @@ export default function NotFound() {
         <div className="relative mb-6">
           <p
             className="text-8xl font-black text-[#00ff66] select-none"
-            style={{
-              fontFamily: "var(--font-display)",
-              textShadow: "0 0 40px rgba(0,255,102,0.4), 2px 2px 0 #004422, -2px -2px 0 #002211",
-            }}
+            style={{ fontFamily: "var(--font-display)" }}
           >
             404
           </p>
-          <div
-            className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,102,0.05) 2px, rgba(0,255,102,0.05) 4px)",
-            }}
-          />
         </div>
 
         <h1 className="text-xl font-black text-white uppercase tracking-widest mb-3"
