@@ -88,7 +88,7 @@ function HeroCard({ product }: { product: ProductWithImage }) {
             <p className="text-3xl font-black font-mono text-white">{formatCLP(product.price)}</p>
             <p className="text-xs text-[#383838] mt-1">IVA incluido</p>
           </div>
-          <div className="px-5 py-2.5 bg-[#00ff66] text-black text-sm font-black uppercase tracking-wider rounded-lg opacity-0 group-hover:opacity-100 transition-all" style={{ fontFamily: "var(--font-display)" }}>
+          <div className="px-4 py-2 border border-[#00ff66]/30 text-[#00ff66] text-xs font-bold uppercase tracking-wider rounded opacity-0 group-hover:opacity-100 transition-all" style={{ fontFamily: "var(--font-display)" }}>
             Ver detalle →
           </div>
         </div>
