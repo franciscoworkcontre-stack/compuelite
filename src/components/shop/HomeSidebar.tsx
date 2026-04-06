@@ -1,49 +1,107 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion, type TargetAndTransition } from "framer-motion";
 import {
-  Gamepad2,
-  Zap,
-  Flame,
-  Skull,
-  Monitor,
-  Laptop,
-  Cpu,
-  Package,
-  Layers,
   LayoutGrid,
+  Keyboard,
+  Armchair,
+  Headphones,
+  Mouse,
+  Package,
+  Square,
+  Monitor,
+  AppWindow,
+  Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type Category = {
-  slug: string;
-  name: string;
-  description: string | null;
-  _count: { products: number };
-};
-
-type Brand = { brand: string; count: number };
-
-// ─── Category meta ────────────────────────────────────────────────────────────
+// ─── Static nav items ─────────────────────────────────────────────────────────
 
 type AnimType = "pulse" | "float" | "spin" | "bounce" | "shake" | "wiggle";
 
-const CAT_META: Record<string, { Icon: LucideIcon; anim: AnimType }> = {
-  "pc-gamer":              { Icon: Gamepad2, anim: "bounce" },
-  "pc-gamer-start-series": { Icon: Zap,      anim: "pulse"  },
-  "pc-gamer-pro-series":   { Icon: Flame,    anim: "float"  },
-  "pc-elite":              { Icon: Skull,    anim: "shake"  },
-  "monitores":             { Icon: Monitor,  anim: "wiggle" },
-  "workstation":           { Icon: Laptop,   anim: "float"  },
-  "accesorios-gamer":      { Icon: LayoutGrid, anim: "bounce" },
-  "componentes":           { Icon: Cpu,      anim: "spin"   },
-};
+type NavItem =
+  | { type: "link"; label: string; href: string; Icon: LucideIcon; anim: AnimType }
+  | { type: "divider" }
+  | { type: "heading"; label: string };
 
-const DEFAULT_META: { Icon: LucideIcon; anim: AnimType } = { Icon: Package, anim: "pulse" };
+const NAV_ITEMS: NavItem[] = [
+  {
+    type: "link",
+    label: "Builds",
+    href: "/builds",
+    Icon: LayoutGrid,
+    anim: "pulse",
+  },
+  { type: "divider" },
+  { type: "heading", label: "Accesorios" },
+  {
+    type: "link",
+    label: "Teclados",
+    href: "/productos?categoria=teclados",
+    Icon: Keyboard,
+    anim: "wiggle",
+  },
+  {
+    type: "link",
+    label: "Sillas Gamer",
+    href: "/productos?categoria=sillas-gamer",
+    Icon: Armchair,
+    anim: "float",
+  },
+  {
+    type: "link",
+    label: "Audífonos",
+    href: "/productos?categoria=audifonos",
+    Icon: Headphones,
+    anim: "bounce",
+  },
+  {
+    type: "link",
+    label: "Mouse",
+    href: "/productos?categoria=mouse",
+    Icon: Mouse,
+    anim: "shake",
+  },
+  {
+    type: "link",
+    label: "Kits",
+    href: "/productos?categoria=kits",
+    Icon: Package,
+    anim: "pulse",
+  },
+  {
+    type: "link",
+    label: "Mousepads",
+    href: "/productos?categoria=mousepads",
+    Icon: Square,
+    anim: "float",
+  },
+  {
+    type: "link",
+    label: "Monitores",
+    href: "/productos?categoria=monitores",
+    Icon: Monitor,
+    anim: "wiggle",
+  },
+  { type: "divider" },
+  { type: "heading", label: "Más" },
+  {
+    type: "link",
+    label: "Software",
+    href: "/productos?categoria=software",
+    Icon: AppWindow,
+    anim: "pulse",
+  },
+  {
+    type: "link",
+    label: "Servicios",
+    href: "/productos?categoria=servicios",
+    Icon: Wrench,
+    anim: "spin",
+  },
+];
 
 // ─── Icon animation variants ──────────────────────────────────────────────────
 
@@ -74,28 +132,26 @@ const iconAnims: Record<AnimType, { animate: TargetAndTransition; transition: Re
   },
 };
 
-// ─── Category Card ────────────────────────────────────────────────────────────
+// ─── Nav link item ────────────────────────────────────────────────────────────
 
-function CategoryCard({
-  cat,
+function NavLinkItem({
+  item,
   active,
   index,
 }: {
-  cat: Category;
+  item: Extract<NavItem, { type: "link" }>;
   active: boolean;
   index: number;
 }) {
-  const meta = CAT_META[cat.slug] ?? DEFAULT_META;
-  const { Icon, anim } = meta;
-  const animDef = iconAnims[anim];
+  const animDef = iconAnims[item.anim];
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.04, type: "spring", stiffness: 220, damping: 26 }}
+      transition={{ delay: index * 0.03, type: "spring", stiffness: 220, damping: 26 }}
     >
-      <Link href={`/productos?categoria=${cat.slug}`}>
+      <Link href={item.href}>
         <div
           className="relative flex items-center gap-2.5 px-2 py-1.5 rounded-lg border cursor-pointer transition-all duration-200 hover:bg-[#00ff66]/5 group"
           style={{
@@ -103,7 +159,6 @@ function CategoryCard({
             borderColor: active ? "#00ff6650" : "#00ff6618",
           }}
         >
-          {/* Active left accent */}
           {active && (
             <motion.div
               layoutId="sidebar-active-bar"
@@ -111,38 +166,30 @@ function CategoryCard({
             />
           )}
 
-          {/* Icon box — dark green bg + green icon, only icon animates */}
+          {/* Icon box */}
           <div
             className="relative z-10 flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center border"
-            style={{
-              backgroundColor: "#071a0e",
-              borderColor: "#00ff6628",
-            }}
+            style={{ backgroundColor: "#071a0e", borderColor: "#00ff6628" }}
           >
             <motion.div
               animate={animDef.animate}
               transition={animDef.transition}
               className="flex items-center justify-center"
             >
-              <Icon
+              <item.Icon
                 className="w-[14px] h-[14px]"
                 style={{ color: "#00ff66", strokeWidth: 2 }}
               />
             </motion.div>
           </div>
 
-          {/* Text */}
-          <div className="relative z-10 flex-1 min-w-0">
-            <p
-              className="text-[11px] font-semibold truncate leading-tight transition-colors"
-              style={{ color: active ? "#00ff66" : "#666" }}
-            >
-              {cat.name}
-            </p>
-            <p className="text-[9px] text-[#2a2a2a] mt-0.5 tabular-nums group-hover:text-[#3a3a3a] transition-colors">
-              {cat._count.products} items
-            </p>
-          </div>
+          {/* Label */}
+          <p
+            className="relative z-10 text-[11px] font-semibold truncate transition-colors flex-1"
+            style={{ color: active ? "#00ff66" : "#666" }}
+          >
+            {item.label}
+          </p>
 
           {/* Arrow */}
           <svg
@@ -162,62 +209,47 @@ function CategoryCard({
 
 // ─── Main sidebar ─────────────────────────────────────────────────────────────
 
-export function HomeSidebar({
-  categories,
-}: {
-  categories: Category[];
-  brands?: Brand[];
-}) {
+export function HomeSidebar() {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const activeSlug = searchParams.get("categoria") ?? "";
+  const activeCategoria = searchParams.get("categoria") ?? "";
 
-  const visible = categories.filter((c) => c._count.products > 0);
+  function isActive(item: Extract<NavItem, { type: "link" }>) {
+    if (item.href === "/builds") return pathname === "/builds";
+    const url = new URL(item.href, "http://x");
+    const cat = url.searchParams.get("categoria");
+    return cat ? cat === activeCategoria : false;
+  }
 
   return (
     <aside className="w-52 flex-shrink-0 hidden lg:flex flex-col border-r border-[#0f0f0f] sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-[#080808]">
-      <div className="p-2.5 space-y-1">
-
-        {/* Builds link */}
-        <div className="px-1 pt-2 pb-1">
-          <Link
-            href="/builds"
-            className="flex items-center gap-2 px-2 py-1.5 rounded-lg border cursor-pointer transition-all duration-200 hover:bg-[#00ff66]/5 group"
-            style={{ borderColor: "#00ff6618" }}
-          >
-            <div
-              className="w-7 h-7 rounded-md flex items-center justify-center border flex-shrink-0"
-              style={{ backgroundColor: "#071a0e", borderColor: "#00ff6628" }}
-            >
-              <LayoutGrid className="w-[14px] h-[14px]" style={{ color: "#00ff66", strokeWidth: 2 }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-semibold text-[#666] group-hover:text-[#00ff66] transition-colors">
-                Builds
-              </p>
-              <p className="text-[9px] text-[#2a2a2a]">PCs armadas</p>
-            </div>
-          </Link>
+      <div className="p-2.5 space-y-0.5">
+        <div className="px-1 pt-2 pb-2">
+          <p className="text-[9px] font-bold text-[#222] uppercase tracking-widest">Navegación</p>
         </div>
 
-        {/* Divider */}
-        <div className="h-px bg-[#0f0f0f] mx-1 mb-1" />
+        {NAV_ITEMS.map((item, i) => {
+          if (item.type === "divider") {
+            return <div key={`div-${i}`} className="h-px bg-[#0f0f0f] mx-1 my-1.5" />;
+          }
+          if (item.type === "heading") {
+            return (
+              <div key={`h-${i}`} className="px-1 pt-1 pb-0.5">
+                <p className="text-[9px] font-bold text-[#222] uppercase tracking-widest">{item.label}</p>
+              </div>
+            );
+          }
+          return (
+            <NavLinkItem
+              key={item.href}
+              item={item}
+              active={isActive(item)}
+              index={i}
+            />
+          );
+        })}
 
-        {/* Section header */}
-        <div className="px-1 pb-1.5">
-          <p className="text-[9px] font-bold text-[#222] uppercase tracking-widest">Categorías</p>
-        </div>
-
-        {/* Category cards */}
-        {visible.map((cat, i) => (
-          <CategoryCard
-            key={cat.slug}
-            cat={cat}
-            active={activeSlug === cat.slug}
-            index={i}
-          />
-        ))}
-
-        {/* All products link */}
+        {/* All products */}
         <div className="pt-2 pb-3">
           <Link
             href="/productos"
@@ -228,7 +260,6 @@ export function HomeSidebar({
             </span>
           </Link>
         </div>
-
       </div>
     </aside>
   );

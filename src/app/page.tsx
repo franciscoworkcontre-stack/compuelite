@@ -8,11 +8,8 @@ import { BestDeals } from "@/components/shop/BestDeals";
 import { BrandLogos } from "@/components/shop/BrandLogos";
 import { FeaturedBuilds } from "@/components/shop/FeaturedBuilds";
 import { BrandFilter } from "@/components/shop/BrandFilter";
-import { api } from "@/lib/trpc/server";
 
 export default async function HomePage() {
-  const categories = await api.products.categories();
-
   return (
     <>
       <Navbar />
@@ -20,9 +17,9 @@ export default async function HomePage() {
       <div className="pt-16 min-h-screen bg-[#0a0a0a]">
         <div className="flex">
 
-          {/* Left sidebar — desktop only, client component for active state */}
-          <Suspense fallback={<div className="w-56 hidden lg:block" />}>
-            <HomeSidebar categories={categories} />
+          {/* Left sidebar — static nav, client component for active state */}
+          <Suspense fallback={<div className="w-52 hidden lg:block" />}>
+            <HomeSidebar />
           </Suspense>
 
           {/* Main content */}
