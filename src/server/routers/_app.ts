@@ -11,6 +11,7 @@ import { contentRouter } from "./content";
 import { wishlistRouter } from "./wishlist";
 import { promotionsRouter } from "./promotions";
 import { returnsRouter } from "./returns";
+import { navigationRouter } from "./navigation";
 
 export const appRouter = createTRPCRouter({
   products: productsRouter,
@@ -25,6 +26,7 @@ export const appRouter = createTRPCRouter({
   wishlist: wishlistRouter,
   promotions: promotionsRouter,
   returns: returnsRouter,
+  navigation: navigationRouter,
 });
 
 export type AppRouter = typeof appRouter;
