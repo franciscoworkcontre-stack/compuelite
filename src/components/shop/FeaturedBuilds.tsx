@@ -44,7 +44,41 @@ function formatCLP(price: number) {
   }).format(price);
 }
 
-export function FeaturedBuilds() {
+export function FeaturedBuilds({ compact }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <div className="grid sm:grid-cols-3 gap-3">
+        {featuredBuilds.map((build) => (
+          <Link
+            key={build.id}
+            href={`/builder?base=${build.id}`}
+            className="group flex items-center gap-3 p-4 bg-[#0d0d0d] border border-[#161616] rounded-xl hover:border-[#00ff66]/30 transition-all"
+          >
+            <div className="flex-shrink-0 text-3xl">🖥️</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <p
+                  className="text-xs font-black text-white group-hover:text-[#00ff66] transition-colors truncate"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {build.name}
+                </p>
+                <span
+                  className="text-[9px] px-1.5 py-0.5 rounded font-bold flex-shrink-0"
+                  style={{ background: `${build.badgeColor}15`, color: build.badgeColor }}
+                >
+                  {build.badge}
+                </span>
+              </div>
+              <p className="text-[10px] text-[#444] truncate">{build.fps}</p>
+              <p className="text-xs font-bold text-[#00ff66] mt-1">{formatCLP(build.price)}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <section className="py-20 px-4 max-w-7xl mx-auto">
       <div className="flex items-end justify-between mb-12">

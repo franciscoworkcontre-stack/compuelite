@@ -150,6 +150,31 @@ export const productsRouter = createTRPCRouter({
       });
     }),
 
+  bestDeals: publicProcedure
+    .input(z.object({ limit: z.number().default(12) }))
+    .query(async ({ ctx, input }) => {
+      const products = await ctx.db.product.findMany({
+        where: {
+          status: ProductStatus.ACTIVE,
+          stock: { gt: 0 },
+          compareAtPrice: { not: null },
+        },
+        include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+        take: input.limit * 4, // over-fetch so we can sort by % in memory
+      });
+      // Sort by discount % descending
+      return products
+        .map((p) => ({
+          ...p,
+          discountPct: p.compareAtPrice
+            ? Math.round(((Number(p.compareAtPrice) - Number(p.price)) / Number(p.compareAtPrice)) * 100)
+            : 0,
+        }))
+        .filter((p) => p.discountPct > 0)
+        .sort((a, b) => b.discountPct - a.discountPct)
+        .slice(0, input.limit);
+    }),
+
   priceRange: publicProcedure
     .input(z.object({ categorySlug: z.string().optional() }))
     .query(async ({ ctx, input }) => {

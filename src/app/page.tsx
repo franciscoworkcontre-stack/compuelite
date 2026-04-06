@@ -1,62 +1,82 @@
+import Link from "next/link";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
-import { HeroSection } from "@/components/shop/HeroSection";
-import { CategoriesSection } from "@/components/shop/CategoriesSection";
+import { HomeSidebar } from "@/components/shop/HomeSidebar";
+import { FeaturedBanners } from "@/components/shop/FeaturedBanners";
+import { BestDeals } from "@/components/shop/BestDeals";
+import { BrandPills } from "@/components/shop/BrandPills";
 import { FeaturedBuilds } from "@/components/shop/FeaturedBuilds";
-import { ContentZone } from "@/components/content/ContentZone";
 
 export default function HomePage() {
   return (
     <>
       <Navbar />
 
-      <main className="pt-16">
-        {/* 1 · Hero */}
-        <HeroSection />
+      <div className="pt-16 min-h-screen bg-[#0a0a0a]">
+        <div className="flex">
 
-        {/* 2 · Announcement bar inline (ticker, offers) */}
-        <ContentZone zone="homepage_live" />
+          {/* Left sidebar — desktop only */}
+          <HomeSidebar />
 
-        {/* 3 · Highlight banner / promo */}
-        <ContentZone zone="homepage_dual" />
+          {/* Main content */}
+          <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 space-y-8">
 
-        {/* 4 · Editorial / featured recommendation */}
-        <ContentZone zone="homepage_editorial" />
+            {/* Brand pills */}
+            <BrandPills />
 
-        {/* 5 · Category grid */}
-        <CategoriesSection />
+            {/* Featured banners */}
+            <FeaturedBanners />
 
-        {/* 6 · Promo block */}
-        <ContentZone zone="homepage_promo" />
+            {/* Today's Best Deals */}
+            <BestDeals />
 
-        {/* 7 · Featured products */}
-        <FeaturedBuilds />
+            {/* Separator */}
+            <div className="h-px bg-[#111]" />
 
-        {/* 8 · Community / reviews */}
-        <ContentZone zone="homepage_community" />
+            {/* Builds section */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2
+                  className="text-sm font-black text-white uppercase tracking-widest"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Builds Populares
+                </h2>
+                <Link
+                  href="/builds"
+                  className="text-[10px] text-[#444] hover:text-[#00ff66] transition-colors uppercase tracking-widest flex items-center gap-1"
+                >
+                  Ver todas
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+              <FeaturedBuilds compact />
+            </section>
 
-        {/* Trust signals */}
-        <section className="py-14 px-4 border-t border-[#111]">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+            {/* Trust signals */}
+            <div className="h-px bg-[#111]" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-8">
               {[
-                { icon: "🚚", title: "Envío a Chile",  desc: "Starken, Chilexpress y Blue Express" },
-                { icon: "🔒", title: "Pago seguro",    desc: "WebPay, Mercado Pago y Flow" },
-                { icon: "⚡", title: "Stock real",     desc: "Disponibilidad en tiempo real" },
-                { icon: "🛠️", title: "Garantía",       desc: "Respaldo técnico postventa" },
+                { icon: "🚚", title: "Envío a Chile", desc: "Starken · Chilexpress · Blue Express" },
+                { icon: "🔒", title: "Pago seguro", desc: "WebPay · Mercado Pago · Flow" },
+                { icon: "⚡", title: "Stock real", desc: "Disponibilidad en tiempo real" },
+                { icon: "🛠️", title: "Garantía", desc: "Respaldo técnico postventa" },
               ].map((item) => (
-                <div key={item.title} className="flex flex-col items-center gap-3">
-                  <span className="text-3xl">{item.icon}</span>
+                <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#111]">
+                  <span className="text-2xl flex-shrink-0">{item.icon}</span>
                   <div>
-                    <div className="font-semibold text-white text-sm mb-1">{item.title}</div>
-                    <div className="text-xs text-[#555]">{item.desc}</div>
+                    <p className="text-xs font-semibold text-white">{item.title}</p>
+                    <p className="text-[10px] text-[#444] leading-snug">{item.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-      </main>
+
+          </main>
+        </div>
+      </div>
 
       <Footer />
     </>
