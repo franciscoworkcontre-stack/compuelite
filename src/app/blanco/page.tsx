@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { api } from "@/lib/trpc/server";
 import { Truck, Lock, Zap, Wrench, ChevronRight, Zap as ZapIcon, Gamepad2, Skull, Laptop, Home as HomeIcon, Menu, ShoppingCart, Search } from "lucide-react";
+import { WhiteSidebar } from "./_sidebar";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -640,8 +641,13 @@ export default function BlancoPaPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <WhiteNavbar />
 
-      <main className="flex-1 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+      <div className="flex-1 pt-16 flex">
+        {/* Sidebar — desktop only */}
+        <Suspense fallback={<div className="w-48 hidden lg:block border-r border-[#f3f4f6]" />}>
+          <WhiteSidebar />
+        </Suspense>
+
+        <main className="flex-1 min-w-0 px-4 sm:px-6 py-8 space-y-10 pb-20 lg:pb-8">
 
           {/* Brand filter */}
           <WhiteBrandFilter />
@@ -664,8 +670,8 @@ export default function BlancoPaPage() {
 
           {/* Brand logos */}
           <WhiteBrandLogos />
-        </div>
-      </main>
+        </main>
+      </div>
 
       <WhiteFooter />
     </div>
