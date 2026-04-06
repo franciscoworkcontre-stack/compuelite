@@ -4,14 +4,16 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, type TargetAndTransition } from "framer-motion";
 import {
-  Wrench,
   Gamepad2,
   Zap,
   Flame,
   Skull,
   Monitor,
   Laptop,
+  Cpu,
   Package,
+  Layers,
+  LayoutGrid,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -31,13 +33,14 @@ type Brand = { brand: string; count: number };
 type AnimType = "pulse" | "float" | "spin" | "bounce" | "shake" | "wiggle";
 
 const CAT_META: Record<string, { Icon: LucideIcon; anim: AnimType }> = {
-  "componentes":           { Icon: Wrench,   anim: "spin"   },
   "pc-gamer":              { Icon: Gamepad2, anim: "bounce" },
   "pc-gamer-start-series": { Icon: Zap,      anim: "pulse"  },
   "pc-gamer-pro-series":   { Icon: Flame,    anim: "float"  },
   "pc-elite":              { Icon: Skull,    anim: "shake"  },
   "monitores":             { Icon: Monitor,  anim: "wiggle" },
   "workstation":           { Icon: Laptop,   anim: "float"  },
+  "accesorios-gamer":      { Icon: LayoutGrid, anim: "bounce" },
+  "componentes":           { Icon: Cpu,      anim: "spin"   },
 };
 
 const DEFAULT_META: { Icon: LucideIcon; anim: AnimType } = { Icon: Package, anim: "pulse" };
@@ -174,8 +177,33 @@ export function HomeSidebar({
     <aside className="w-52 flex-shrink-0 hidden lg:flex flex-col border-r border-[#0f0f0f] sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto bg-[#080808]">
       <div className="p-2.5 space-y-1">
 
+        {/* Builds link */}
+        <div className="px-1 pt-2 pb-1">
+          <Link
+            href="/builds"
+            className="flex items-center gap-2 px-2 py-1.5 rounded-lg border cursor-pointer transition-all duration-200 hover:bg-[#00ff66]/5 group"
+            style={{ borderColor: "#00ff6618" }}
+          >
+            <div
+              className="w-7 h-7 rounded-md flex items-center justify-center border flex-shrink-0"
+              style={{ backgroundColor: "#071a0e", borderColor: "#00ff6628" }}
+            >
+              <LayoutGrid className="w-[14px] h-[14px]" style={{ color: "#00ff66", strokeWidth: 2 }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-semibold text-[#666] group-hover:text-[#00ff66] transition-colors">
+                Builds
+              </p>
+              <p className="text-[9px] text-[#2a2a2a]">PCs armadas</p>
+            </div>
+          </Link>
+        </div>
+
+        {/* Divider */}
+        <div className="h-px bg-[#0f0f0f] mx-1 mb-1" />
+
         {/* Section header */}
-        <div className="px-1 pt-2 pb-1.5">
+        <div className="px-1 pb-1.5">
           <p className="text-[9px] font-bold text-[#222] uppercase tracking-widest">Categorías</p>
         </div>
 
