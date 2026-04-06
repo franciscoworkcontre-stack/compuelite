@@ -46,7 +46,7 @@ export default async function ProductosPage({
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex gap-8">
+          <div className="flex gap-6 lg:gap-8">
             {/* Sidebar */}
             <aside className="hidden lg:block w-56 flex-shrink-0">
               <CatalogFilters
@@ -60,7 +60,7 @@ export default async function ProductosPage({
             <div className="flex-1 min-w-0">
               <Suspense
                 fallback={
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div key={i} className="skeleton rounded-xl aspect-[3/4]" />
                     ))}

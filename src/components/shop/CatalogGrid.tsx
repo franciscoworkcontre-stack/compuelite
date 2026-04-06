@@ -185,7 +185,7 @@ export function CatalogGrid() {
 
       {/* Products */}
       {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div className="col-span-2 h-72 bg-[#0f0f0f] border border-[#1a1a1a] rounded-2xl animate-pulse" />
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="aspect-[3/4] bg-[#0f0f0f] border border-[#1a1a1a] rounded-2xl animate-pulse" />
@@ -204,7 +204,7 @@ export function CatalogGrid() {
         <>
           {/* Hero + bento layout */}
           {hero && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               {/* Hero takes 2 cols on desktop */}
               <HeroCard product={hero} />
               {/* Remaining 2 products in 1 col each */}
@@ -216,7 +216,7 @@ export function CatalogGrid() {
 
           {/* Second bento row: 1 col + 2-col wide */}
           {bento.length >= 3 && (
-            <div className="grid grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
               <ProductCard product={bento[1]} />
               <div className="col-span-2">
                 <ProductCard product={bento[2]} />
@@ -226,7 +226,7 @@ export function CatalogGrid() {
 
           {/* Standard grid for the rest */}
           {grid.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-4">
               {grid.map((p) => (
                 <ProductCard key={p.id} product={p as ProductWithImage} />
               ))}

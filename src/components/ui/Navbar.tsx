@@ -112,7 +112,7 @@ export function Navbar() {
                     {session.user.name?.[0]?.toUpperCase() ?? "U"}
                   </button>
                   {userMenuOpen && (
-                    <div className="absolute right-0 top-10 w-44 bg-[#111] border border-[#222] rounded-xl shadow-2xl overflow-hidden z-50">
+                    <div className="absolute right-0 top-10 w-44 max-w-[calc(100vw-2rem)] bg-[#111] border border-[#222] rounded-xl shadow-2xl overflow-hidden z-50">
                       <div className="px-3 py-2.5 border-b border-[#1a1a1a]">
                         <p className="text-xs text-white font-medium truncate">{session.user.name}</p>
                         <p className="text-xs text-[#555] truncate">{session.user.email}</p>

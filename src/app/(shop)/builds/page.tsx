@@ -125,7 +125,7 @@ export default async function BuildsPage() {
           </span>
 
           <h1
-            className="text-5xl sm:text-7xl font-black uppercase leading-none mb-6"
+            className="text-3xl sm:text-5xl lg:text-7xl font-black uppercase leading-none mb-6"
             style={{ fontFamily: "var(--font-display)" }}
           >
             <span style={{ color: "#00ff66" }}>ELIGE TU</span>
@@ -168,7 +168,7 @@ export default async function BuildsPage() {
 
       {/* ── Category tier cards ───────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
           {categoryProducts.map((cat, idx) => {
             const { Icon } = cat;
             return (

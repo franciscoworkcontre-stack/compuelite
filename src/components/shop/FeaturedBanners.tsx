@@ -40,7 +40,7 @@ export async function FeaturedBanners() {
           <Link
             key={product.id}
             href={`/productos/${product.slug}`}
-            className={`relative group flex items-center justify-between gap-4 bg-gradient-to-br ${gradient} border border-[#1a1a1a] hover:border-[${accent}]/30 rounded-2xl p-6 overflow-hidden transition-all duration-300`}
+            className={`relative group flex items-center justify-between gap-3 bg-gradient-to-br ${gradient} border border-[#1a1a1a] hover:border-[${accent}]/30 rounded-2xl p-4 sm:p-6 overflow-hidden transition-all duration-300`}
           >
             {/* Background glow */}
             <div
@@ -81,7 +81,7 @@ export async function FeaturedBanners() {
 
             {/* Right: image */}
             {img && (
-              <div className="relative flex-shrink-0 w-32 h-32 sm:w-36 sm:h-36">
+              <div className="relative flex-shrink-0 w-20 h-20 sm:w-32 sm:h-32 md:w-36 md:h-36">
                 <Image
                   src={img}
                   alt={product.name}
