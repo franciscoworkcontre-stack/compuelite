@@ -82,18 +82,18 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 flex-shrink-0 h-full bg-[#0a0a0a] border-r border-[#1a1a1a] flex flex-col">
+    <aside className="w-56 flex-shrink-0 h-full bg-[#fafafa] border-r border-[#e5e7eb] flex flex-col">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-[#1a1a1a]">
+      <div className="px-4 py-5 border-b border-[#e5e7eb]">
         <Link href="/" className="flex items-center gap-2 group">
           <span
-            className="text-sm font-black tracking-widest text-white group-hover:text-[#00ff66] transition-colors"
+            className="text-sm font-black tracking-widest text-[#111827] group-hover:text-[#16a34a] transition-colors"
             style={{ fontFamily: "var(--font-display)" }}
           >
             COMPUELITE
           </span>
         </Link>
-        <p className="text-xs text-[#444] mt-0.5 uppercase tracking-wider">Admin</p>
+        <p className="text-xs text-[#9ca3af] mt-0.5 uppercase tracking-wider">Admin</p>
       </div>
 
       {/* Nav */}
@@ -106,8 +106,8 @@ export function AdminSidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
                 active
-                  ? "bg-[#00ff66]/10 text-[#00ff66] border border-[#00ff66]/20"
-                  : "text-[#555] hover:text-[#888] hover:bg-[#111]"
+                  ? "bg-[#16a34a]/10 text-[#16a34a] border border-[#16a34a]/20"
+                  : "text-[#6b7280] hover:text-[#374151] hover:bg-[#f3f4f6]"
               }`}
             >
               {item.icon}
@@ -118,10 +118,10 @@ export function AdminSidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="px-4 py-4 border-t border-[#1a1a1a]">
+      <div className="px-4 py-4 border-t border-[#e5e7eb]">
         <Link
           href="/"
-          className="flex items-center gap-2 text-xs text-[#444] hover:text-[#666] transition-colors"
+          className="flex items-center gap-2 text-xs text-[#9ca3af] hover:text-[#4b5563] transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

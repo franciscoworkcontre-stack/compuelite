@@ -127,13 +127,13 @@ function defaultData(type: BlockType): Record<string, unknown> {
       return { text: "Nuevo anuncio de Compuelite", variant: "sale", dismissible: true, linkLabel: "Ver más", linkHref: "/productos" };
 
     case "PROMO_BANNER":
-      return { eyebrow: "Oferta especial", title: "Título de la promo", subtitle: "Subtítulo descriptivo de la oferta", ctaLabel: "Ver oferta", ctaHref: "/productos", layout: "full", accentColor: "#00ff66" };
+      return { eyebrow: "Oferta especial", title: "Título de la promo", subtitle: "Subtítulo descriptivo de la oferta", ctaLabel: "Ver oferta", ctaHref: "/productos", layout: "full", accentColor: "#16a34a" };
 
     case "PRODUCT_SPOT":
       return { productId: "", productName: "Nombre del producto", productSlug: "slug-del-producto", productPrice: 499990, badge: "Destacado" };
 
     case "COUNTDOWN":
-      return { title: "Oferta por tiempo limitado", subtitle: "Solo hasta agotar stock", endsAt: new Date(Date.now() + 7 * 86400 * 1000).toISOString(), ctaLabel: "Aprovechar", ctaHref: "/productos", accentColor: "#00ff66" };
+      return { title: "Oferta por tiempo limitado", subtitle: "Solo hasta agotar stock", endsAt: new Date(Date.now() + 7 * 86400 * 1000).toISOString(), ctaLabel: "Aprovechar", ctaHref: "/productos", accentColor: "#16a34a" };
 
     case "EDITORIAL":
       return {
@@ -144,7 +144,7 @@ function defaultData(type: BlockType): Record<string, unknown> {
         ctaLabel: "Leer análisis",
         ctaHref: "/productos?categoria=gpu",
         layout: "full",
-        accentColor: "#00ff66",
+        accentColor: "#16a34a",
       };
 
     case "BENCHMARK_GRID":
@@ -216,7 +216,7 @@ function defaultData(type: BlockType): Record<string, unknown> {
         leftLabel: "PC Gamer",
         leftHref: "/builder?profile=gaming",
         leftDesc: "Arma tu setup para streaming, competitivo o inmersión total en mundos abiertos.",
-        leftAccent: "#00ff66",
+        leftAccent: "#16a34a",
         leftBullets: ["120+ fps en 1440p garantizados", "Compatible con G-Sync y FreeSync", "Asesoría de compatibilidad incluida"],
         rightLabel: "AI Workstation",
         rightHref: "/builder?profile=ai",
@@ -241,7 +241,7 @@ function defaultData(type: BlockType): Record<string, unknown> {
       return {
         headline: "¿Qué PC necesitas?",
         deck: "3 preguntas. Te mostramos el build perfecto para ti.",
-        accentColor: "#00ff66",
+        accentColor: "#16a34a",
         steps: [
           {
             question: "¿Para qué usas principalmente tu PC?",
@@ -300,18 +300,18 @@ function BlockRow({
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
-      block.active ? "border-[#00ff66]/20 bg-[#00ff66]/[0.03]" : "border-[#1a1a1a] bg-[#0f0f0f]"
+      block.active ? "border-[#16a34a]/20 bg-[#16a34a]/[0.03]" : "border-[#e5e7eb] bg-[#0f0f0f]"
     }`}>
-      <span className="text-[10px] font-mono text-[#333] w-5 text-center flex-shrink-0">{block.order}</span>
+      <span className="text-[10px] font-mono text-[#9ca3af] w-5 text-center flex-shrink-0">{block.order}</span>
 
-      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border border-[#1a1a1a] text-[#444] flex-shrink-0">
+      <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border border-[#e5e7eb] text-[#9ca3af] flex-shrink-0">
         {BLOCK_LABELS[block.type]}
       </span>
 
-      <p className="flex-1 text-sm text-[#888] truncate">{block.label ?? "Sin nombre"}</p>
+      <p className="flex-1 text-sm text-[#374151] truncate">{block.label ?? "Sin nombre"}</p>
 
       {(block.startsAt || block.endsAt) && (
-        <span className="text-[10px] text-[#333] hidden md:block flex-shrink-0">
+        <span className="text-[10px] text-[#9ca3af] hidden md:block flex-shrink-0">
           {block.startsAt ? new Date(block.startsAt).toLocaleDateString("es-CL") : "∞"}
           {" — "}
           {block.endsAt ? new Date(block.endsAt).toLocaleDateString("es-CL") : "∞"}
@@ -322,17 +322,17 @@ function BlockRow({
       <button
         onClick={() => toggle.mutate({ id: block.id })}
         disabled={toggle.isPending}
-        className={`flex-shrink-0 w-8 h-4 rounded-full transition-all relative ${block.active ? "bg-[#00ff66]/40" : "bg-[#222]"}`}
+        className={`flex-shrink-0 w-8 h-4 rounded-full transition-all relative ${block.active ? "bg-[#16a34a]/40" : "bg-[#e5e7eb]"}`}
         title={block.active ? "Desactivar" : "Activar"}
       >
-        <span className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${block.active ? "left-4 bg-[#00ff66]" : "left-0.5 bg-[#555]"}`} />
+        <span className={`absolute top-0.5 w-3 h-3 rounded-full transition-all ${block.active ? "left-4 bg-[#16a34a]" : "left-0.5 bg-[#555]"}`} />
       </button>
 
       {/* Delete */}
       <button
         onClick={() => { if (confirm(`¿Eliminar "${block.label ?? block.type}"?`)) del.mutate({ id: block.id }); }}
         disabled={del.isPending}
-        className="flex-shrink-0 text-[#2a2a2a] hover:text-[#ff4444] transition-colors"
+        className="flex-shrink-0 text-[#d1d5db] hover:text-[#ff4444] transition-colors"
         title="Eliminar"
       >
         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,50 +378,50 @@ function CreateBlockForm({ zone, onSuccess }: { zone: typeof ZONES[0]; onSuccess
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 p-4 rounded-xl border border-[#00ff66]/20 bg-[#00ff66]/[0.02]">
-      <p className="text-xs font-bold uppercase tracking-wider text-[#00ff66] mb-3">Nuevo bloque</p>
+    <form onSubmit={handleSubmit} className="space-y-3 p-4 rounded-xl border border-[#16a34a]/20 bg-[#16a34a]/[0.02]">
+      <p className="text-xs font-bold uppercase tracking-wider text-[#16a34a] mb-3">Nuevo bloque</p>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-[10px] uppercase tracking-wider text-[#333] mb-1">Tipo</label>
+          <label className="block text-[10px] uppercase tracking-wider text-[#9ca3af] mb-1">Tipo</label>
           <select
             value={type}
             onChange={(e) => handleTypeChange(e.target.value as BlockType)}
-            className="w-full bg-[#0a0a0a] border border-[#222] rounded-lg px-3 py-2 text-sm text-[#888] focus:border-[#333] outline-none"
+            className="w-full bg-[#fafafa] border border-[#d1d5db] rounded-lg px-3 py-2 text-sm text-[#374151] focus:border-[#333] outline-none"
           >
             {zone.types.map((t) => <option key={t} value={t}>{BLOCK_LABELS[t]}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-[10px] uppercase tracking-wider text-[#333] mb-1">Nombre interno</label>
+          <label className="block text-[10px] uppercase tracking-wider text-[#9ca3af] mb-1">Nombre interno</label>
           <input
             type="text" value={label} onChange={(e) => setLabel(e.target.value)}
             placeholder="Ej: Black Friday GPU"
-            className="w-full bg-[#0a0a0a] border border-[#222] rounded-lg px-3 py-2 text-sm text-[#888] placeholder:text-[#2a2a2a] focus:border-[#333] outline-none"
+            className="w-full bg-[#fafafa] border border-[#d1d5db] rounded-lg px-3 py-2 text-sm text-[#374151] placeholder:text-[#d1d5db] focus:border-[#333] outline-none"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-[10px] uppercase tracking-wider text-[#333] mb-1">Inicio (opcional)</label>
+          <label className="block text-[10px] uppercase tracking-wider text-[#9ca3af] mb-1">Inicio (opcional)</label>
           <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)}
-            className="w-full bg-[#0a0a0a] border border-[#222] rounded-lg px-3 py-2 text-sm text-[#888] focus:border-[#333] outline-none" />
+            className="w-full bg-[#fafafa] border border-[#d1d5db] rounded-lg px-3 py-2 text-sm text-[#374151] focus:border-[#333] outline-none" />
         </div>
         <div>
-          <label className="block text-[10px] uppercase tracking-wider text-[#333] mb-1">Fin (opcional)</label>
+          <label className="block text-[10px] uppercase tracking-wider text-[#9ca3af] mb-1">Fin (opcional)</label>
           <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)}
-            className="w-full bg-[#0a0a0a] border border-[#222] rounded-lg px-3 py-2 text-sm text-[#888] focus:border-[#333] outline-none" />
+            className="w-full bg-[#fafafa] border border-[#d1d5db] rounded-lg px-3 py-2 text-sm text-[#374151] focus:border-[#333] outline-none" />
         </div>
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="text-[10px] uppercase tracking-wider text-[#333]">Datos JSON</label>
+          <label className="text-[10px] uppercase tracking-wider text-[#9ca3af]">Datos JSON</label>
           <button
             type="button"
             onClick={() => { setDataRaw(JSON.stringify(defaultData(type), null, 2)); setJsonError(""); }}
-            className="text-[10px] text-[#333] hover:text-[#555] transition-colors underline underline-offset-2"
+            className="text-[10px] text-[#9ca3af] hover:text-[#6b7280] transition-colors underline underline-offset-2"
           >
             Resetear template
           </button>
@@ -429,7 +429,7 @@ function CreateBlockForm({ zone, onSuccess }: { zone: typeof ZONES[0]; onSuccess
         <textarea
           value={dataRaw} onChange={(e) => { setDataRaw(e.target.value); setJsonError(""); }}
           rows={10}
-          className="w-full bg-[#080808] border border-[#1a1a1a] rounded-lg px-3 py-2 text-[11px] font-mono text-[#666] focus:border-[#333] outline-none resize-none"
+          className="w-full bg-[#ffffff] border border-[#e5e7eb] rounded-lg px-3 py-2 text-[11px] font-mono text-[#4b5563] focus:border-[#333] outline-none resize-none"
           spellCheck={false}
         />
         {jsonError && <p className="text-xs text-red-400 mt-1">{jsonError}</p>}
@@ -438,7 +438,7 @@ function CreateBlockForm({ zone, onSuccess }: { zone: typeof ZONES[0]; onSuccess
       <button
         type="submit" disabled={create.isPending}
         className="w-full py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all active:scale-95 disabled:opacity-50"
-        style={{ background: "#00ff66", color: "#000", fontFamily: "var(--font-display)" }}
+        style={{ background: "#16a34a", color: "#000", fontFamily: "var(--font-display)" }}
       >
         {create.isPending ? "Creando..." : "Crear bloque"}
       </button>
@@ -453,20 +453,20 @@ function ZonePanel({ zone }: { zone: typeof ZONES[0] }) {
   const { data: blocks, refetch } = trpc.content.list.useQuery({ zone: zone.id });
 
   return (
-    <div className="rounded-2xl border border-[#1a1a1a] bg-[#0a0a0a] overflow-hidden">
-      <div className="px-5 py-4 border-b border-[#1a1a1a] flex items-center justify-between">
+    <div className="rounded-2xl border border-[#e5e7eb] bg-[#fafafa] overflow-hidden">
+      <div className="px-5 py-4 border-b border-[#e5e7eb] flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white">{zone.label}</h3>
-          <p className="text-xs text-[#333] mt-0.5">{zone.desc}</p>
+          <h3 className="text-sm font-bold text-[#111827]">{zone.label}</h3>
+          <p className="text-xs text-[#9ca3af] mt-0.5">{zone.desc}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-[#2a2a2a] font-mono">{blocks?.length ?? 0} bloques</span>
+          <span className="text-xs text-[#d1d5db] font-mono">{blocks?.length ?? 0} bloques</span>
           <button
             onClick={() => setShowCreate((v) => !v)}
             className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
               showCreate
-                ? "border-[#00ff66]/30 text-[#00ff66] bg-[#00ff66]/[0.05]"
-                : "border-[#1a1a1a] text-[#444] hover:text-[#00ff66] hover:border-[#00ff66]/30"
+                ? "border-[#16a34a]/30 text-[#16a34a] bg-[#16a34a]/[0.05]"
+                : "border-[#e5e7eb] text-[#9ca3af] hover:text-[#16a34a] hover:border-[#16a34a]/30"
             }`}
           >
             {showCreate ? "Cancelar" : "+ Añadir"}
@@ -476,7 +476,7 @@ function ZonePanel({ zone }: { zone: typeof ZONES[0] }) {
 
       <div className="p-4 space-y-2">
         {blocks?.length === 0 && !showCreate && (
-          <p className="text-xs text-[#2a2a2a] text-center py-6">Sin bloques — pulsa Añadir para crear el primero.</p>
+          <p className="text-xs text-[#d1d5db] text-center py-6">Sin bloques — pulsa Añadir para crear el primero.</p>
         )}
         {blocks?.map((block) => (
           <BlockRow
@@ -511,23 +511,23 @@ export function AdminContent() {
     <div className="p-6 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-[10px] uppercase tracking-widest text-[#00ff66] mb-1">Admin · Compuelite</p>
-        <h1 className="text-2xl font-black text-white uppercase" style={{ fontFamily: "var(--font-display)" }}>
+        <p className="text-[10px] uppercase tracking-widest text-[#16a34a] mb-1">Admin · Compuelite</p>
+        <h1 className="text-2xl font-black text-[#111827] uppercase" style={{ fontFamily: "var(--font-display)" }}>
           Contenido editorial
         </h1>
-        <p className="text-sm text-[#444] mt-1 max-w-lg">
+        <p className="text-sm text-[#9ca3af] mt-1 max-w-lg">
           Gestiona banners, editoriales, benchmarks, IA y promos por zona. Bloques inactivos no se muestran. Los que tienen fechas se activan automáticamente.
         </p>
       </div>
 
       {/* Group tabs */}
-      <div className="flex gap-1 p-1 bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl mb-6 w-fit">
+      <div className="flex gap-1 p-1 bg-[#fafafa] border border-[#e5e7eb] rounded-xl mb-6 w-fit">
         {GROUPS.map((g) => (
           <button
             key={g}
             onClick={() => setActiveGroup(g)}
             className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-              activeGroup === g ? "bg-[#00ff66] text-black" : "text-[#333] hover:text-[#888]"
+              activeGroup === g ? "bg-[#16a34a] text-white" : "text-[#9ca3af] hover:text-[#374151]"
             }`}
             style={{ fontFamily: "var(--font-display)" }}
           >

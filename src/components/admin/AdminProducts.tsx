@@ -22,13 +22,13 @@ function StockEditor({ productId, current, onDone }: { productId: string; curren
       <input
         type="number" min={0} value={value} onChange={e => setValue(e.target.value)} autoFocus
         onKeyDown={e => { if (e.key === "Enter") updateStock.mutate({ productId, stock: Number(value) }); if (e.key === "Escape") onDone(); }}
-        className="w-16 bg-[#0d0d0d] border border-[#00ff66]/40 rounded px-2 py-1 text-xs font-mono text-white focus:outline-none"
+        className="w-16 bg-[#f9fafb] border border-[#16a34a]/40 rounded px-2 py-1 text-xs font-mono text-[#111827] focus:outline-none"
       />
       <button onClick={() => updateStock.mutate({ productId, stock: Number(value) })} disabled={updateStock.isPending}
-        className="px-2 py-1 bg-[#00ff66]/10 border border-[#00ff66]/30 rounded text-xs text-[#00ff66] hover:bg-[#00ff66]/20">
+        className="px-2 py-1 bg-[#16a34a]/10 border border-[#16a34a]/30 rounded text-xs text-[#16a34a] hover:bg-[#16a34a]/20">
         {updateStock.isPending ? "…" : "✓"}
       </button>
-      <button onClick={onDone} className="px-2 py-1 border border-[#222] rounded text-xs text-[#555]">✕</button>
+      <button onClick={onDone} className="px-2 py-1 border border-[#d1d5db] rounded text-xs text-[#6b7280]">✕</button>
     </div>
   );
 }
@@ -55,25 +55,25 @@ function ProductTable() {
     <div className="space-y-4">
       <div className="max-w-sm">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input value={search} onChange={e => handleSearch(e.target.value)} placeholder="Buscar por nombre, SKU, marca…"
-            className="w-full bg-[#111] border border-[#1a1a1a] rounded-lg pl-9 pr-4 py-2.5 text-sm text-white placeholder-[#333] focus:outline-none focus:border-[#00ff66]/30" />
+            className="w-full bg-[#f3f4f6] border border-[#e5e7eb] rounded-lg pl-9 pr-4 py-2.5 text-sm text-[#111827] placeholder-[#9ca3af] focus:outline-none focus:border-[#16a34a]/30" />
         </div>
       </div>
 
       {isLoading ? (
-        <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-14 rounded-xl bg-[#111] animate-pulse" />)}</div>
+        <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-14 rounded-xl bg-[#f3f4f6] animate-pulse" />)}</div>
       ) : products.length === 0 ? (
-        <div className="text-center py-16 text-xs text-[#555]">No hay productos{search ? ` para "${search}"` : ""}</div>
+        <div className="text-center py-16 text-xs text-[#6b7280]">No hay productos{search ? ` para "${search}"` : ""}</div>
       ) : (
-        <div className="bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden">
+        <div className="bg-[#f3f4f6] border border-[#e5e7eb] rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#1a1a1a]">
+              <tr className="border-b border-[#e5e7eb]">
                 {["Producto", "SKU", "Categoría", "Precio", "Stock", "Estado", ""].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs text-[#444] uppercase tracking-wider font-medium">{h}</th>
+                  <th key={h} className="px-4 py-3 text-left text-xs text-[#9ca3af] uppercase tracking-wider font-medium">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -83,44 +83,44 @@ function ProductTable() {
                 const isEditing = editingStock === product.id;
                 const lowStock  = product.stock <= 3;
                 return (
-                  <tr key={product.id} className="border-b border-[#0d0d0d] hover:bg-[#0d0d0d] transition-colors">
+                  <tr key={product.id} className="border-b border-[#f9fafb] hover:bg-[#f9fafb] transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#0d0d0d] border border-[#1a1a1a] rounded overflow-hidden flex-shrink-0">
+                        <div className="w-8 h-8 bg-[#f9fafb] border border-[#e5e7eb] rounded overflow-hidden flex-shrink-0">
                           {product.images[0]?.url
                             // eslint-disable-next-line @next/next/no-img-element
                             ? <img src={product.images[0].url} alt="" className="w-full h-full object-contain p-1" />
                             : <div className="w-full h-full flex items-center justify-center text-xs">📦</div>}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs text-white font-medium truncate max-w-[200px]">{product.name}</p>
-                          <p className="text-xs text-[#555]">{product.brand}</p>
+                          <p className="text-xs text-[#111827] font-medium truncate max-w-[200px]">{product.name}</p>
+                          <p className="text-xs text-[#6b7280]">{product.brand}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3"><span className="font-mono text-xs text-[#555]">{product.sku}</span></td>
-                    <td className="px-4 py-3"><span className="text-xs text-[#666]">{product.category?.name ?? "—"}</span></td>
-                    <td className="px-4 py-3"><span className="font-mono text-xs text-[#00ff66] font-bold">{formatCLP(product.price)}</span></td>
+                    <td className="px-4 py-3"><span className="font-mono text-xs text-[#6b7280]">{product.sku}</span></td>
+                    <td className="px-4 py-3"><span className="text-xs text-[#4b5563]">{product.category?.name ?? "—"}</span></td>
+                    <td className="px-4 py-3"><span className="font-mono text-xs text-[#16a34a] font-bold">{formatCLP(product.price)}</span></td>
                     <td className="px-4 py-3">
                       {isEditing
                         ? <StockEditor productId={product.id} current={product.stock} onDone={() => { setEditingStock(null); refetch(); }} />
                         : (
                           <button onClick={() => setEditingStock(product.id)} className="flex items-center gap-1.5 group">
-                            <span className={`font-mono text-xs font-bold ${lowStock ? "text-[#ff3333]" : "text-white"}`}>{product.stock}</span>
+                            <span className={`font-mono text-xs font-bold ${lowStock ? "text-[#ff3333]" : "text-[#111827]"}`}>{product.stock}</span>
                             {lowStock && <span className="text-xs text-[#ff3333]/60">bajo</span>}
-                            <Pencil className="w-3 h-3 text-[#333] group-hover:text-[#00ff66] transition-colors" />
+                            <Pencil className="w-3 h-3 text-[#9ca3af] group-hover:text-[#16a34a] transition-colors" />
                           </button>
                         )}
                     </td>
                     <td className="px-4 py-3">
                       <span className="inline-block px-2 py-0.5 rounded text-xs font-medium"
-                        style={{ color: isActive ? "#00ff66" : "#555", background: isActive ? "#00ff6618" : "#1a1a1a", border: `1px solid ${isActive ? "#00ff6633" : "#222"}` }}>
+                        style={{ color: isActive ? "#16a34a" : "#555", background: isActive ? "#16a34a18" : "#e5e7eb", border: `1px solid ${isActive ? "#16a34a33" : "#d1d5db"}` }}>
                         {isActive ? "Activo" : "Inactivo"}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <button onClick={() => updateStatus.mutate({ productId: product.id, status: isActive ? ProductStatus.ARCHIVED : ProductStatus.ACTIVE })}
-                        disabled={updateStatus.isPending} className="text-xs text-[#444] hover:text-[#00ff66] transition-colors disabled:opacity-40">
+                        disabled={updateStatus.isPending} className="text-xs text-[#9ca3af] hover:text-[#16a34a] transition-colors disabled:opacity-40">
                         {isActive ? "Archivar" : "Activar"}
                       </button>
                     </td>
@@ -187,9 +187,9 @@ function CreateProductForm() {
 
   const field = (label: string, key: keyof typeof form, props?: object) => (
     <div>
-      <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1">{label}</label>
+      <label className="text-[10px] text-[#6b7280] uppercase tracking-wider block mb-1">{label}</label>
       <input value={form[key]} onChange={e => set(key)(e.target.value)}
-        className="w-full px-3 py-2 text-sm bg-[#111] border border-[#1a1a1a] text-white rounded-lg focus:outline-none focus:border-[#00ff66]/40 placeholder-[#333]"
+        className="w-full px-3 py-2 text-sm bg-[#f3f4f6] border border-[#e5e7eb] text-[#111827] rounded-lg focus:outline-none focus:border-[#16a34a]/40 placeholder-[#9ca3af]"
         {...props} />
     </div>
   );
@@ -211,9 +211,9 @@ function CreateProductForm() {
       <div className="grid grid-cols-2 gap-4">
         {field("Stock inicial", "stock", { type: "number", min: "0", placeholder: "0" })}
         <div>
-          <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1">Categoría *</label>
+          <label className="text-[10px] text-[#6b7280] uppercase tracking-wider block mb-1">Categoría *</label>
           <select value={form.categoryId} onChange={e => set("categoryId")(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-[#111] border border-[#1a1a1a] text-white rounded-lg focus:outline-none focus:border-[#00ff66]/40">
+            className="w-full px-3 py-2 text-sm bg-[#f3f4f6] border border-[#e5e7eb] text-[#111827] rounded-lg focus:outline-none focus:border-[#16a34a]/40">
             <option value="">Selecciona…</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -221,17 +221,17 @@ function CreateProductForm() {
       </div>
 
       <div>
-        <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1">Tipo de producto</label>
+        <label className="text-[10px] text-[#6b7280] uppercase tracking-wider block mb-1">Tipo de producto</label>
         <select value={form.productType} onChange={e => set("productType")(e.target.value as ProductType)}
-          className="w-full px-3 py-2 text-sm bg-[#111] border border-[#1a1a1a] text-white rounded-lg focus:outline-none focus:border-[#00ff66]/40">
+          className="w-full px-3 py-2 text-sm bg-[#f3f4f6] border border-[#e5e7eb] text-[#111827] rounded-lg focus:outline-none focus:border-[#16a34a]/40">
           {Object.values(ProductType).map(t => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
 
       <div>
-        <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1">Descripción</label>
+        <label className="text-[10px] text-[#6b7280] uppercase tracking-wider block mb-1">Descripción</label>
         <textarea value={form.description} onChange={e => set("description")(e.target.value)} rows={3}
-          className="w-full px-3 py-2 text-sm bg-[#111] border border-[#1a1a1a] text-white rounded-lg focus:outline-none focus:border-[#00ff66]/40 resize-none" />
+          className="w-full px-3 py-2 text-sm bg-[#f3f4f6] border border-[#e5e7eb] text-[#111827] rounded-lg focus:outline-none focus:border-[#16a34a]/40 resize-none" />
       </div>
 
       <ImageUploader
@@ -244,7 +244,7 @@ function CreateProductForm() {
       {error && <p className="text-[11px] text-[#ff4545] border border-[#ff4545]/20 bg-[#ff4545]/5 px-3 py-2 rounded-lg">{error}</p>}
 
       <button onClick={handleSubmit} disabled={saving}
-        className="flex items-center gap-2 px-6 py-3 bg-[#00ff66] text-black text-xs font-black uppercase tracking-widest rounded-lg disabled:opacity-40 hover:bg-[#00e85c] transition-colors"
+        className="flex items-center gap-2 px-6 py-3 bg-[#16a34a] text-white text-xs font-black uppercase tracking-widest rounded-lg disabled:opacity-40 hover:bg-[#15803d] transition-colors"
         style={{ fontFamily: "var(--font-display)" }}>
         <Plus className="w-4 h-4" />
         {saving ? "Creando…" : saved ? "✓ Creado" : "Crear producto"}
@@ -270,15 +270,15 @@ export function AdminProducts() {
   return (
     <div className="p-6 space-y-6 max-w-5xl">
       <div>
-        <h1 className="text-lg font-black text-white uppercase tracking-widest" style={{ fontFamily: "var(--font-display)" }}>Productos</h1>
-        <p className="text-xs text-[#444] mt-0.5">Gestiona catálogo, stock e importaciones masivas</p>
+        <h1 className="text-lg font-black text-[#111827] uppercase tracking-widest" style={{ fontFamily: "var(--font-display)" }}>Productos</h1>
+        <p className="text-xs text-[#9ca3af] mt-0.5">Gestiona catálogo, stock e importaciones masivas</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-[#1a1a1a]">
+      <div className="flex border-b border-[#e5e7eb]">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors border-b-2 -mb-px ${tab === t.id ? "text-[#00ff66] border-[#00ff66]" : "text-[#444] border-transparent hover:text-[#666]"}`}
+            className={`px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors border-b-2 -mb-px ${tab === t.id ? "text-[#16a34a] border-[#16a34a]" : "text-[#9ca3af] border-transparent hover:text-[#4b5563]"}`}
             style={{ fontFamily: "var(--font-display)" }}>
             {t.label}
           </button>

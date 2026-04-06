@@ -15,10 +15,10 @@ function formatCLP(n: number | string | { toNumber?: () => number }) {
 
 const STATUS_META: Record<OrderStatus, { label: string; color: string }> = {
   PENDING:    { label: "Pendiente",   color: "#ffb800" },
-  CONFIRMED:  { label: "Confirmado",  color: "#00ff66" },
+  CONFIRMED:  { label: "Confirmado",  color: "#16a34a" },
   PROCESSING: { label: "Procesando",  color: "#4488ff" },
   SHIPPED:    { label: "Despachado",  color: "#8855ff" },
-  DELIVERED:  { label: "Entregado",   color: "#00cc52" },
+  DELIVERED:  { label: "Entregado",   color: "#15803d" },
   CANCELLED:  { label: "Cancelado",   color: "#ff3333" },
   REFUNDED:   { label: "Reembolsado", color: "#888888" },
 };
@@ -48,12 +48,12 @@ export function AdminOrders() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1
-            className="text-xl font-black text-white uppercase tracking-widest"
+            className="text-xl font-black text-[#111827] uppercase tracking-widest"
             style={{ fontFamily: "var(--font-display)" }}
           >
             Pedidos
           </h1>
-          <p className="text-xs text-[#555] mt-1">{orders.length} resultado{orders.length !== 1 ? "s" : ""}</p>
+          <p className="text-xs text-[#6b7280] mt-1">{orders.length} resultado{orders.length !== 1 ? "s" : ""}</p>
         </div>
       </div>
 
@@ -63,8 +63,8 @@ export function AdminOrders() {
           onClick={() => setFilterStatus(undefined)}
           className={`px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all ${
             !filterStatus
-              ? "bg-[#00ff66]/10 border border-[#00ff66]/30 text-[#00ff66]"
-              : "border border-[#1a1a1a] text-[#555] hover:text-[#888]"
+              ? "bg-[#16a34a]/10 border border-[#16a34a]/30 text-[#16a34a]"
+              : "border border-[#e5e7eb] text-[#6b7280] hover:text-[#374151]"
           }`}
         >
           Todos
@@ -78,7 +78,7 @@ export function AdminOrders() {
               onClick={() => setFilterStatus(active ? undefined : s)}
               className="px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all border"
               style={{
-                borderColor: active ? meta.color + "60" : "#1a1a1a",
+                borderColor: active ? meta.color + "60" : "#e5e7eb",
                 color: active ? meta.color : "#555",
                 background: active ? meta.color + "18" : "transparent",
               }}
@@ -96,7 +96,7 @@ export function AdminOrders() {
           ))}
         </div>
       ) : orders.length === 0 ? (
-        <div className="text-center py-16 text-xs text-[#555]">No hay pedidos con este filtro</div>
+        <div className="text-center py-16 text-xs text-[#6b7280]">No hay pedidos con este filtro</div>
       ) : (
         <div className="space-y-2">
           {orders.map((order) => {
@@ -107,7 +107,7 @@ export function AdminOrders() {
             return (
               <div
                 key={order.id}
-                className="bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden hover:border-[#222] transition-all"
+                className="bg-[#f3f4f6] border border-[#e5e7eb] rounded-xl overflow-hidden hover:border-[#d1d5db] transition-all"
               >
                 {/* Row */}
                 <button
@@ -116,19 +116,19 @@ export function AdminOrders() {
                 >
                   <div className="flex-1 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
-                      <p className="text-xs text-[#444] uppercase tracking-wider mb-0.5">Orden</p>
-                      <p className="text-xs font-mono text-[#888]">{order.orderNumber}</p>
+                      <p className="text-xs text-[#9ca3af] uppercase tracking-wider mb-0.5">Orden</p>
+                      <p className="text-xs font-mono text-[#374151]">{order.orderNumber}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#444] uppercase tracking-wider mb-0.5">Cliente</p>
-                      <p className="text-xs text-white truncate">{order.guestEmail ?? "—"}</p>
+                      <p className="text-xs text-[#9ca3af] uppercase tracking-wider mb-0.5">Cliente</p>
+                      <p className="text-xs text-[#111827] truncate">{order.guestEmail ?? "—"}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#444] uppercase tracking-wider mb-0.5">Total</p>
-                      <p className="text-sm font-black font-mono text-[#00ff66]">{formatCLP(order.total)}</p>
+                      <p className="text-xs text-[#9ca3af] uppercase tracking-wider mb-0.5">Total</p>
+                      <p className="text-sm font-black font-mono text-[#16a34a]">{formatCLP(order.total)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[#444] uppercase tracking-wider mb-0.5">Estado</p>
+                      <p className="text-xs text-[#9ca3af] uppercase tracking-wider mb-0.5">Estado</p>
                       <span
                         className="inline-block px-2 py-0.5 rounded text-xs font-medium"
                         style={{ color: meta.color, background: `${meta.color}18`, border: `1px solid ${meta.color}33` }}
@@ -138,7 +138,7 @@ export function AdminOrders() {
                     </div>
                   </div>
                   <svg
-                    className={`w-4 h-4 text-[#333] flex-shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                    className={`w-4 h-4 text-[#9ca3af] flex-shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`}
                     fill="none" stroke="currentColor" viewBox="0 0 24 24"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -147,14 +147,14 @@ export function AdminOrders() {
 
                 {/* Expanded detail */}
                 {isExpanded && (
-                  <div className="border-t border-[#1a1a1a] px-5 py-4 bg-[#0d0d0d] space-y-4">
+                  <div className="border-t border-[#e5e7eb] px-5 py-4 bg-[#f9fafb] space-y-4">
                     {/* Products */}
                     <div>
-                      <p className="text-xs text-[#444] uppercase tracking-wider mb-2">Productos</p>
+                      <p className="text-xs text-[#9ca3af] uppercase tracking-wider mb-2">Productos</p>
                       <div className="space-y-1.5">
                         {order.items.map((item) => (
                           <div key={item.id} className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-[#111] border border-[#222] rounded overflow-hidden flex-shrink-0">
+                            <div className="w-8 h-8 bg-[#f3f4f6] border border-[#d1d5db] rounded overflow-hidden flex-shrink-0">
                               {item.product.images[0]?.url ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={item.product.images[0].url} alt="" className="w-full h-full object-contain p-1" />
@@ -162,9 +162,9 @@ export function AdminOrders() {
                                 <div className="w-full h-full flex items-center justify-center text-xs">🖥️</div>
                               )}
                             </div>
-                            <p className="text-xs text-[#888] flex-1 truncate">{item.product.name}</p>
-                            <p className="text-xs text-[#555]">×{item.quantity}</p>
-                            <p className="text-xs font-mono text-white">{formatCLP(item.totalPrice)}</p>
+                            <p className="text-xs text-[#374151] flex-1 truncate">{item.product.name}</p>
+                            <p className="text-xs text-[#6b7280]">×{item.quantity}</p>
+                            <p className="text-xs font-mono text-[#111827]">{formatCLP(item.totalPrice)}</p>
                           </div>
                         ))}
                       </div>
@@ -172,8 +172,8 @@ export function AdminOrders() {
 
                     {/* Shipping address */}
                     <div>
-                      <p className="text-xs text-[#444] uppercase tracking-wider mb-2">Dirección de envío</p>
-                      <p className="text-xs text-[#888]">
+                      <p className="text-xs text-[#9ca3af] uppercase tracking-wider mb-2">Dirección de envío</p>
+                      <p className="text-xs text-[#374151]">
                         {shippingAddr.name} — {shippingAddr.line1}
                         {shippingAddr.line2 ? `, ${shippingAddr.line2}` : ""},{" "}
                         {shippingAddr.city}, {shippingAddr.region}
@@ -182,15 +182,15 @@ export function AdminOrders() {
 
                     {/* Confirm transfer payment */}
                     {order.paymentMethod === "TRANSFER" && order.paymentStatus === PaymentStatus.PENDING && (
-                      <div className="p-3 bg-[#0d1a0d] border border-[#00ff66]/20 rounded-lg flex items-center justify-between">
+                      <div className="p-3 bg-[#f0fdf4] border border-[#16a34a]/20 rounded-lg flex items-center justify-between">
                         <div>
-                          <p className="text-xs font-bold text-[#00ff66]">Transferencia bancaria pendiente</p>
-                          <p className="text-xs text-[#555] mt-0.5">Confirma cuando recibas la transferencia</p>
+                          <p className="text-xs font-bold text-[#16a34a]">Transferencia bancaria pendiente</p>
+                          <p className="text-xs text-[#6b7280] mt-0.5">Confirma cuando recibas la transferencia</p>
                         </div>
                         <button
                           onClick={() => confirmTransfer.mutate({ orderId: order.id })}
                           disabled={confirmTransfer.isPending}
-                          className="px-3 py-1.5 bg-[#00ff66]/10 border border-[#00ff66]/30 rounded text-xs text-[#00ff66] hover:bg-[#00ff66]/20 transition-all disabled:opacity-50"
+                          className="px-3 py-1.5 bg-[#16a34a]/10 border border-[#16a34a]/30 rounded text-xs text-[#16a34a] hover:bg-[#16a34a]/20 transition-all disabled:opacity-50"
                         >
                           {confirmTransfer.isPending ? "…" : "✓ Confirmar pago"}
                         </button>
@@ -199,7 +199,7 @@ export function AdminOrders() {
 
                     {/* Status update */}
                     <div>
-                      <p className="text-xs text-[#444] uppercase tracking-wider mb-2">Cambiar estado</p>
+                      <p className="text-xs text-[#9ca3af] uppercase tracking-wider mb-2">Cambiar estado</p>
                       <div className="flex gap-2 flex-wrap">
                         {STATUS_FLOW.map((s) => {
                           const m = STATUS_META[s];
@@ -211,7 +211,7 @@ export function AdminOrders() {
                               onClick={() => updateStatus.mutate({ orderId: order.id, status: s })}
                               className="px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all border disabled:opacity-40 disabled:cursor-default"
                               style={{
-                                borderColor: isCurrent ? m.color + "60" : "#222",
+                                borderColor: isCurrent ? m.color + "60" : "#d1d5db",
                                 color: isCurrent ? m.color : "#555",
                                 background: isCurrent ? m.color + "18" : "transparent",
                               }}
@@ -223,7 +223,7 @@ export function AdminOrders() {
                         <button
                           disabled={order.status === "CANCELLED" || updateStatus.isPending}
                           onClick={() => updateStatus.mutate({ orderId: order.id, status: "CANCELLED" })}
-                          className="px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all border border-[#222] text-[#555] hover:border-[#ff3333]/40 hover:text-[#ff3333] disabled:opacity-40 disabled:cursor-default"
+                          className="px-3 py-1.5 rounded text-xs uppercase tracking-wider transition-all border border-[#d1d5db] text-[#6b7280] hover:border-[#ff3333]/40 hover:text-[#ff3333] disabled:opacity-40 disabled:cursor-default"
                         >
                           Cancelar
                         </button>

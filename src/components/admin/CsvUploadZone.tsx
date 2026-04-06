@@ -67,12 +67,12 @@ export function CsvUploadZone({ endpoint, templateHeaders, templateExample, temp
       {/* Header + template */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-sm font-bold text-white">{title}</h3>
-          <p className="text-[11px] text-[#444] mt-0.5">{description}</p>
+          <h3 className="text-sm font-bold text-[#111827]">{title}</h3>
+          <p className="text-[11px] text-[#9ca3af] mt-0.5">{description}</p>
         </div>
         <button
           onClick={() => downloadTemplate(templateHeaders, templateExample, templateFilename)}
-          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[10px] text-[#00ff66] border border-[#00ff66]/25 bg-[#00ff66]/5 hover:bg-[#00ff66]/10 rounded transition-all uppercase tracking-wider"
+          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[10px] text-[#16a34a] border border-[#16a34a]/25 bg-[#16a34a]/5 hover:bg-[#16a34a]/10 rounded transition-all uppercase tracking-wider"
         >
           <Download className="w-3 h-3" /> Template CSV
         </button>
@@ -80,17 +80,17 @@ export function CsvUploadZone({ endpoint, templateHeaders, templateExample, temp
 
       {/* Help rows */}
       {helpRows && helpRows.length > 0 && (
-        <div className="rounded-lg border border-[#111] bg-[#080808] overflow-hidden">
-          <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between px-3 py-2 text-[10px] text-[#444] hover:text-[#666] transition-colors">
+        <div className="rounded-lg border border-[#e5e7eb] bg-[#ffffff] overflow-hidden">
+          <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between px-3 py-2 text-[10px] text-[#9ca3af] hover:text-[#4b5563] transition-colors">
             <span className="uppercase tracking-wider">¿Cómo llenar el CSV?</span>
             <span>{expanded ? "−" : "+"}</span>
           </button>
           {expanded && (
-            <div className="px-3 pb-3 space-y-1.5 border-t border-[#111]">
+            <div className="px-3 pb-3 space-y-1.5 border-t border-[#e5e7eb]">
               {helpRows.map(r => (
                 <div key={r.label} className="flex gap-2 pt-1.5">
-                  <code className="text-[9px] font-mono text-[#00ff66] bg-[#00ff66]/5 px-1.5 py-0.5 rounded flex-shrink-0">{r.label}</code>
-                  <p className="text-[10px] text-[#555] leading-snug">{r.desc}</p>
+                  <code className="text-[9px] font-mono text-[#16a34a] bg-[#16a34a]/5 px-1.5 py-0.5 rounded flex-shrink-0">{r.label}</code>
+                  <p className="text-[10px] text-[#6b7280] leading-snug">{r.desc}</p>
                 </div>
               ))}
             </div>
@@ -106,24 +106,24 @@ export function CsvUploadZone({ endpoint, templateHeaders, templateExample, temp
         onClick={() => inputRef.current?.click()}
         className={`relative flex flex-col items-center justify-center gap-3 p-8 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
           dragging
-            ? "border-[#00ff66] bg-[#00ff66]/5"
-            : "border-[#1a1a1a] hover:border-[#252525] hover:bg-[#0d0d0d]"
+            ? "border-[#16a34a] bg-[#16a34a]/5"
+            : "border-[#e5e7eb] hover:border-[#d1d5db] hover:bg-[#f9fafb]"
         }`}
       >
         <input ref={inputRef} type="file" accept=".csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }} />
         {loading ? (
           <div className="flex flex-col items-center gap-2">
-            <div className="w-6 h-6 border-2 border-[#00ff66] border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-[#444]">Procesando…</p>
+            <div className="w-6 h-6 border-2 border-[#16a34a] border-t-transparent rounded-full animate-spin" />
+            <p className="text-xs text-[#9ca3af]">Procesando…</p>
           </div>
         ) : (
           <>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-[#1a1a1a] bg-[#111]">
-              <Upload className="w-5 h-5 text-[#333]" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-[#e5e7eb] bg-[#f3f4f6]">
+              <Upload className="w-5 h-5 text-[#9ca3af]" />
             </div>
             <div className="text-center">
-              <p className="text-xs font-semibold text-[#666]">Arrastra tu CSV aquí</p>
-              <p className="text-[10px] text-[#333] mt-0.5">o haz clic para buscar</p>
+              <p className="text-xs font-semibold text-[#4b5563]">Arrastra tu CSV aquí</p>
+              <p className="text-[10px] text-[#9ca3af] mt-0.5">o haz clic para buscar</p>
             </div>
           </>
         )}
@@ -141,13 +141,13 @@ export function CsvUploadZone({ endpoint, templateHeaders, templateExample, temp
       {result && (
         <div className="space-y-3">
           {/* Summary */}
-          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${hasErrors ? "border-[#ffb800]/20 bg-[#ffb800]/5" : "border-[#00ff66]/20 bg-[#00ff66]/5"}`}>
+          <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${hasErrors ? "border-[#ffb800]/20 bg-[#ffb800]/5" : "border-[#16a34a]/20 bg-[#16a34a]/5"}`}>
             {hasErrors
               ? <AlertCircle className="w-4 h-4 text-[#ffb800] flex-shrink-0" />
-              : <CheckCircle className="w-4 h-4 text-[#00ff66] flex-shrink-0" />}
+              : <CheckCircle className="w-4 h-4 text-[#16a34a] flex-shrink-0" />}
             <div className="text-xs">
-              <span className="font-bold text-white">{result.successRows} de {result.totalRows}</span>
-              <span className="text-[#555]"> filas importadas correctamente</span>
+              <span className="font-bold text-[#111827]">{result.successRows} de {result.totalRows}</span>
+              <span className="text-[#6b7280]"> filas importadas correctamente</span>
               {(result.skipRows ?? 0) > 0 && <span className="text-[#ffb800]"> · {result.skipRows} omitidas</span>}
               {(result.errorRows ?? 0) > 0 && <span className="text-[#ff4545]"> · {result.errorRows} errores</span>}
             </div>
@@ -155,13 +155,13 @@ export function CsvUploadZone({ endpoint, templateHeaders, templateExample, temp
 
           {/* Error/skip rows */}
           {result.results.filter(r => r.status !== "ok").length > 0 && (
-            <div className="rounded-lg border border-[#1a1a1a] overflow-hidden">
-              <p className="px-3 py-2 text-[9px] text-[#333] uppercase tracking-wider border-b border-[#1a1a1a]">Detalle de errores</p>
-              <div className="max-h-48 overflow-y-auto divide-y divide-[#0d0d0d]">
+            <div className="rounded-lg border border-[#e5e7eb] overflow-hidden">
+              <p className="px-3 py-2 text-[9px] text-[#9ca3af] uppercase tracking-wider border-b border-[#e5e7eb]">Detalle de errores</p>
+              <div className="max-h-48 overflow-y-auto divide-y divide-[#f9fafb]">
                 {result.results.filter(r => r.status !== "ok").map((r, i) => (
                   <div key={i} className="flex items-center gap-2 px-3 py-2">
-                    <FileText className="w-3 h-3 text-[#333] flex-shrink-0" />
-                    <code className="text-[10px] font-mono text-[#555] flex-shrink-0">{r.sku}</code>
+                    <FileText className="w-3 h-3 text-[#9ca3af] flex-shrink-0" />
+                    <code className="text-[10px] font-mono text-[#6b7280] flex-shrink-0">{r.sku}</code>
                     <span className={`text-[10px] flex-1 ${r.status === "skip" ? "text-[#ffb800]" : "text-[#ff4545]"}`}>{r.message}</span>
                   </div>
                 ))}
@@ -169,7 +169,7 @@ export function CsvUploadZone({ endpoint, templateHeaders, templateExample, temp
             </div>
           )}
 
-          <button onClick={() => setResult(null)} className="text-[10px] text-[#333] hover:text-[#555] flex items-center gap-1 transition-colors">
+          <button onClick={() => setResult(null)} className="text-[10px] text-[#9ca3af] hover:text-[#6b7280] flex items-center gap-1 transition-colors">
             <X className="w-3 h-3" /> Limpiar resultado
           </button>
         </div>
