@@ -993,22 +993,6 @@ export function BuilderPage() {
     [setActiveStep]
   );
 
-  // Scroll-spy
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const step = entry.target.id.replace("section-", "") as BuildStep;
-            if (BUILD_STEPS.includes(step)) setActiveStep(step);
-          }
-        }
-      },
-      { threshold: 0.25, rootMargin: "-48px 0px 0px 0px" }
-    );
-    Object.values(sectionRefs.current).forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [setActiveStep]);
 
   const handleHoverProduct = useCallback(
     (step: BuildStep) => (p: Product | null) => {
