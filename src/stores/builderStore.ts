@@ -12,14 +12,14 @@ export type BuildStep =
   | "CASE";
 
 export const BUILD_STEPS: BuildStep[] = [
-  "GPU",
+  "CASE",
   "CPU",
   "MOTHERBOARD",
   "RAM",
   "STORAGE",
+  "GPU",
   "CPU_COOLER",
   "PSU",
-  "CASE",
 ];
 
 export const STEP_META: Record<
