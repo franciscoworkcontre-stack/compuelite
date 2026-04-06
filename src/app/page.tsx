@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
 import { HomeSidebar } from "@/components/shop/HomeSidebar";
@@ -6,8 +7,14 @@ import { FeaturedBanners } from "@/components/shop/FeaturedBanners";
 import { BestDeals } from "@/components/shop/BestDeals";
 import { BrandPills } from "@/components/shop/BrandPills";
 import { FeaturedBuilds } from "@/components/shop/FeaturedBuilds";
+import { api } from "@/lib/trpc/server";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [categories, brands] = await Promise.all([
+    api.products.categories(),
+    api.products.brands({}),
+  ]);
+
   return (
     <>
       <Navbar />
@@ -15,8 +22,10 @@ export default function HomePage() {
       <div className="pt-16 min-h-screen bg-[#0a0a0a]">
         <div className="flex">
 
-          {/* Left sidebar — desktop only */}
-          <HomeSidebar />
+          {/* Left sidebar — desktop only, client component for active state */}
+          <Suspense fallback={<div className="w-56 hidden lg:block" />}>
+            <HomeSidebar categories={categories} brands={brands} />
+          </Suspense>
 
           {/* Main content */}
           <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 space-y-8">
@@ -59,10 +68,10 @@ export default function HomePage() {
             <div className="h-px bg-[#111]" />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-8">
               {[
-                { icon: "🚚", title: "Envío a Chile", desc: "Starken · Chilexpress · Blue Express" },
-                { icon: "🔒", title: "Pago seguro", desc: "WebPay · Mercado Pago · Flow" },
-                { icon: "⚡", title: "Stock real", desc: "Disponibilidad en tiempo real" },
-                { icon: "🛠️", title: "Garantía", desc: "Respaldo técnico postventa" },
+                { icon: "🚚", title: "Envío a Chile",  desc: "Starken · Chilexpress · Blue Express" },
+                { icon: "🔒", title: "Pago seguro",    desc: "WebPay · Mercado Pago · Flow" },
+                { icon: "⚡", title: "Stock real",     desc: "Disponibilidad en tiempo real" },
+                { icon: "🛠️", title: "Garantía",       desc: "Respaldo técnico postventa" },
               ].map((item) => (
                 <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#111]">
                   <span className="text-2xl flex-shrink-0">{item.icon}</span>
