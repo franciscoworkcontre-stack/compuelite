@@ -143,30 +143,30 @@ type Platform = {
   id: string;
   name: string;
   category: "marketplace" | "ecommerce";
-  icon: string | null; // SimpleIcons slug — null = usar color + texto
+  icon: string | null;      // SimpleIcons slug
+  localIcon: string | null; // ruta local en /public/logos/
   color: string;
   textColor: string;
-  abbr?: string; // texto corto si no hay ícono en SimpleIcons
 };
 
 const PLATFORMS: Platform[] = [
   // ── Marketplaces Chile ──────────────────────────────────────────────────
-  { id: "mercadolibre", name: "Mercado Libre", category: "marketplace", icon: "mercadolibre", color: "#FFE600", textColor: "#000000" },
-  { id: "falabella",    name: "Falabella",     category: "marketplace", icon: null,           color: "#6E1E7A", textColor: "#ffffff", abbr: "F" },
-  { id: "paris",        name: "Paris",         category: "marketplace", icon: null,           color: "#E31837", textColor: "#ffffff", abbr: "P" },
-  { id: "ripley",       name: "Ripley",        category: "marketplace", icon: null,           color: "#4A2D82", textColor: "#ffffff", abbr: "R" },
-  { id: "dafiti",       name: "Dafiti",        category: "marketplace", icon: null,           color: "#FF6600", textColor: "#ffffff", abbr: "D" },
-  { id: "amazon",       name: "Amazon",        category: "marketplace", icon: "amazon",       color: "#FF9900", textColor: "#000000" },
-  { id: "tiktokshop",   name: "TikTok Shop",   category: "marketplace", icon: "tiktok",       color: "#010101", textColor: "#ffffff" },
-  { id: "walmart",      name: "Walmart",       category: "marketplace", icon: "walmart",      color: "#0071CE", textColor: "#ffffff" },
+  { id: "mercadolibre", name: "Mercado Libre", category: "marketplace", icon: "mercadolibre",  localIcon: null,                   color: "#FFE600", textColor: "#000000" },
+  { id: "falabella",    name: "Falabella",     category: "marketplace", icon: null,             localIcon: "/logos/falabella.png", color: "#6E1E7A", textColor: "#ffffff" },
+  { id: "paris",        name: "Paris",         category: "marketplace", icon: null,             localIcon: "/logos/paris.svg",     color: "#006DFF", textColor: "#ffffff" },
+  { id: "ripley",       name: "Ripley",        category: "marketplace", icon: null,             localIcon: "/logos/ripley.png",    color: "#4A2D82", textColor: "#ffffff" },
+  { id: "dafiti",       name: "Dafiti",        category: "marketplace", icon: null,             localIcon: "/logos/dafiti.svg",    color: "#1a1a1a", textColor: "#ffffff" },
+  { id: "amazon",       name: "Amazon",        category: "marketplace", icon: "amazon",         localIcon: null,                   color: "#FF9900", textColor: "#000000" },
+  { id: "tiktokshop",   name: "TikTok Shop",   category: "marketplace", icon: "tiktok",         localIcon: null,                   color: "#010101", textColor: "#ffffff" },
+  { id: "walmart",      name: "Walmart",       category: "marketplace", icon: "walmart",        localIcon: null,                   color: "#0071CE", textColor: "#ffffff" },
   // ── Plataformas eCommerce ────────────────────────────────────────────────
-  { id: "shopify",      name: "Shopify",       category: "ecommerce",   icon: "shopify",      color: "#96BF48", textColor: "#ffffff" },
-  { id: "woocommerce",  name: "WooCommerce",   category: "ecommerce",   icon: "woocommerce",  color: "#7F54B3", textColor: "#ffffff" },
-  { id: "jumpseller",   name: "Jumpseller",    category: "ecommerce",   icon: null,           color: "#00C4CC", textColor: "#ffffff", abbr: "J" },
-  { id: "prestashop",   name: "PrestaShop",    category: "ecommerce",   icon: "prestashop",   color: "#DF0067", textColor: "#ffffff" },
-  { id: "vtex",         name: "VTEX",          category: "ecommerce",   icon: "vtex",         color: "#F71963", textColor: "#ffffff" },
-  { id: "bigcommerce",  name: "BigCommerce",   category: "ecommerce",   icon: "bigcommerce",  color: "#121118", textColor: "#ffffff" },
-  { id: "mercadoshops", name: "Mercado Shops", category: "ecommerce",   icon: "mercadopago",  color: "#009EE3", textColor: "#ffffff" },
+  { id: "shopify",      name: "Shopify",       category: "ecommerce",   icon: "shopify",        localIcon: null,                   color: "#96BF48", textColor: "#ffffff" },
+  { id: "woocommerce",  name: "WooCommerce",   category: "ecommerce",   icon: "woocommerce",    localIcon: null,                   color: "#7F54B3", textColor: "#ffffff" },
+  { id: "jumpseller",   name: "Jumpseller",    category: "ecommerce",   icon: null,             localIcon: "/logos/jumpseller.png",color: "#00C4CC", textColor: "#ffffff" },
+  { id: "prestashop",   name: "PrestaShop",    category: "ecommerce",   icon: "prestashop",     localIcon: null,                   color: "#DF0067", textColor: "#ffffff" },
+  { id: "vtex",         name: "VTEX",          category: "ecommerce",   icon: "vtex",           localIcon: null,                   color: "#F71963", textColor: "#ffffff" },
+  { id: "bigcommerce",  name: "BigCommerce",   category: "ecommerce",   icon: "bigcommerce",    localIcon: null,                   color: "#121118", textColor: "#ffffff" },
+  { id: "mercadoshops", name: "Mercado Shops", category: "ecommerce",   icon: "mercadopago",    localIcon: null,                   color: "#009EE3", textColor: "#ffffff" },
 ];
 
 function PlatformSelector({ selected, onChange }: { selected: string[]; onChange: (ids: string[]) => void }) {
@@ -211,17 +211,16 @@ function PlatformSelector({ selected, onChange }: { selected: string[]; onChange
                       className="w-3.5 h-3.5 object-contain flex-shrink-0"
                       loading="lazy"
                     />
-                  ) : (
-                    <span
-                      className="w-3.5 h-3.5 rounded-sm flex-shrink-0 flex items-center justify-center text-[7px] font-black"
-                      style={{
-                        backgroundColor: active ? "rgba(255,255,255,0.25)" : p.color + "20",
-                        color: active ? p.textColor : p.color,
-                      }}
-                    >
-                      {p.abbr ?? p.name.slice(0, 1)}
-                    </span>
-                  )}
+                  ) : p.localIcon ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.localIcon}
+                      alt={p.name}
+                      width={14}
+                      height={14}
+                      className="w-3.5 h-3.5 object-contain flex-shrink-0"
+                    />
+                  ) : null}
                   <span className="leading-none">{p.name}</span>
                   {active && <span className="leading-none opacity-60">✓</span>}
                 </button>
