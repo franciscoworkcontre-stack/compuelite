@@ -10,6 +10,7 @@ import { BuildsByType } from "@/components/shop/BuildsByType";
 import { BrandFilter } from "@/components/shop/BrandFilter";
 import { MobileNav } from "@/components/shop/MobileNav";
 import { TrustSignals } from "@/components/shop/TrustSignals";
+import { ContentZone } from "@/components/content/ContentZone";
 
 // Maps a section slug to its React component
 function renderSection(slug: string, config: Record<string, unknown>) {
@@ -28,6 +29,8 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* announcement_bar — zona de contenido editorial, se activa desde Admin › Contenido */}
+      <ContentZone zone="announcement_bar" />
       <Navbar />
 
       <div className="pt-16 min-h-screen bg-[#0a0a0a]">
@@ -46,6 +49,10 @@ export default async function HomePage() {
               <BrandFilter />
             </Suspense>
 
+            {/* homepage_promo / homepage_live — zonas editoriales de alta visibilidad */}
+            <ContentZone zone="homepage_promo" />
+            <ContentZone zone="homepage_live" />
+
             {/* Dynamic sections from DB */}
             {sections.map((section) => {
               const config = (section.config ?? {}) as Record<string, unknown>;
@@ -57,6 +64,13 @@ export default async function HomePage() {
                 </div>
               );
             })}
+
+            {/* Zonas editoriales que siguen a las secciones principales */}
+            <ContentZone zone="homepage_dual" />
+            <ContentZone zone="homepage_editorial" />
+            <ContentZone zone="homepage_ai" />
+            <ContentZone zone="homepage_community" />
+            <ContentZone zone="homepage_quiz" />
 
           </main>
         </div>
