@@ -241,17 +241,9 @@ function WhiteBrandFilter() {
             alt={name}
             width={18}
             height={18}
-            className="w-[18px] h-[18px] object-contain opacity-60 hover:opacity-90 transition-opacity"
+            className="w-[18px] h-[18px] object-contain opacity-60"
             loading="lazy"
-            onError={(e) => {
-              const el = e.currentTarget as HTMLImageElement;
-              el.style.display = "none";
-              if (el.nextElementSibling) {
-                (el.nextElementSibling as HTMLElement).style.display = "block";
-              }
-            }}
           />
-          <span className="hidden text-[8px] text-[#6b7280] font-bold uppercase">{name.slice(0, 3)}</span>
         </Link>
       ))}
     </div>
@@ -549,13 +541,7 @@ function WhiteBrandLogos() {
                 height={28}
                 className="w-7 h-7 object-contain"
                 loading="lazy"
-                onError={(e) => {
-                  const el = e.currentTarget as HTMLImageElement;
-                  el.style.display = "none";
-                  el.nextElementSibling?.classList.remove("hidden");
-                }}
               />
-              <span className="hidden text-[10px] text-[#9ca3af] font-bold uppercase">{brand.name}</span>
               <span className="text-[9px] text-[#d1d5db]">{brand.name}</span>
             </div>
           ))}
