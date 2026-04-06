@@ -8,6 +8,8 @@ import { BestDeals } from "@/components/shop/BestDeals";
 import { BrandLogos } from "@/components/shop/BrandLogos";
 import { FeaturedBuilds } from "@/components/shop/FeaturedBuilds";
 import { BrandFilter } from "@/components/shop/BrandFilter";
+import { MobileNav } from "@/components/shop/MobileNav";
+import { TrustSignals } from "@/components/shop/TrustSignals";
 
 export default async function HomePage() {
   return (
@@ -17,13 +19,13 @@ export default async function HomePage() {
       <div className="pt-16 min-h-screen bg-[#0a0a0a]">
         <div className="flex">
 
-          {/* Left sidebar — static nav, client component for active state */}
+          {/* Left sidebar — desktop only */}
           <Suspense fallback={<div className="w-52 hidden lg:block" />}>
             <HomeSidebar />
           </Suspense>
 
           {/* Main content */}
-          <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 space-y-8">
+          <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 space-y-8 pb-20 lg:pb-6">
 
             {/* Brand filter row */}
             <Suspense fallback={null}>
@@ -66,26 +68,16 @@ export default async function HomePage() {
 
             {/* Trust signals */}
             <div className="h-px bg-[#111]" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-8">
-              {[
-                { icon: "🚚", title: "Envío a Chile",  desc: "Starken · Chilexpress · Blue Express" },
-                { icon: "🔒", title: "Pago seguro",    desc: "WebPay · Mercado Pago · Flow" },
-                { icon: "⚡", title: "Stock real",     desc: "Disponibilidad en tiempo real" },
-                { icon: "🛠️", title: "Garantía",       desc: "Respaldo técnico postventa" },
-              ].map((item) => (
-                <div key={item.title} className="flex items-center gap-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#111]">
-                  <span className="text-2xl flex-shrink-0">{item.icon}</span>
-                  <div>
-                    <p className="text-xs font-semibold text-white">{item.title}</p>
-                    <p className="text-[10px] text-[#444] leading-snug">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <TrustSignals />
 
           </main>
         </div>
       </div>
+
+      {/* Mobile bottom nav */}
+      <Suspense fallback={null}>
+        <MobileNav />
+      </Suspense>
 
       <Footer />
     </>
