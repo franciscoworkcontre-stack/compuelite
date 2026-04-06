@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, type TargetAndTransition } from "framer-motion";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,7 +31,7 @@ const DEFAULT_META = { icon: "📦", anim: "pulse" as const };
 
 // ─── Icon animation variants ──────────────────────────────────────────────────
 
-const iconAnims = {
+const iconAnims: Record<string, { animate: TargetAndTransition; transition: Record<string, unknown> }> = {
   pulse: {
     animate: { scale: [1, 1.18, 1], opacity: [0.85, 1, 0.85] },
     transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
@@ -53,7 +53,7 @@ const iconAnims = {
     transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 },
   },
   glow: {
-    animate: { scale: [1, 1.12, 1], filter: ["brightness(1)", "brightness(1.4)", "brightness(1)"] },
+    animate: { scale: [1, 1.12, 1] },
     transition: { duration: 2.2, repeat: Infinity, ease: "easeInOut" },
   },
   wiggle: {
@@ -126,7 +126,7 @@ function CategoryCard({
 
           {/* Animated icon */}
           <motion.div
-            animate={anim.animate as Record<string, unknown>}
+            animate={anim.animate}
             transition={anim.transition}
             className="relative z-10 flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center text-base border"
             style={{
