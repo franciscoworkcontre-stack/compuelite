@@ -387,31 +387,146 @@ function BannersTab() {
 
   return (
     <div className="space-y-5">
-      {/* Tutorial */}
-      <div className="rounded-xl border border-[#e5e7eb] bg-[#ffffff] p-4 space-y-3">
-        <p className="text-xs font-bold text-[#111827]">¿Qué son los banners?</p>
-        <p className="text-[11px] text-[#6b7280] leading-relaxed">
-          Los banners son las imágenes grandes que aparecen al tope de la página de inicio, antes de cualquier otro contenido.
-          Puedes tener <strong className="text-[#374151]">varios banners que rotan</strong> automáticamente.
-          Si no hay banners activos, la tienda muestra los productos destacados como fallback.
-        </p>
-        {/* Mini visual */}
-        <div className="rounded-lg border border-[#e5e7eb] overflow-hidden">
-          <div className="h-14 bg-gradient-to-r from-[#0088ff]/20 to-[#ffffff] flex items-center px-4 gap-3 relative">
-            <div className="space-y-1">
-              <div className="text-[9px] text-[#0088ff]">NVIDIA GeForce</div>
-              <div className="text-[11px] font-black text-[#111827]">RTX 4090 — La GPU definitiva</div>
+      {/* ── TUTORIAL ── */}
+      <div className="rounded-xl border border-[#e5e7eb] bg-white overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#e5e7eb]">
+          <p className="text-xs font-bold text-[#111827]">Cómo funcionan los banners</p>
+          <p className="text-[11px] text-[#6b7280] mt-0.5">Simulación exacta de lo que verá el cliente en tu tienda</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-px bg-[#e5e7eb]">
+
+          {/* LEFT: page position */}
+          <div className="bg-white p-4 space-y-2">
+            <p className="text-[10px] font-bold text-[#374151] uppercase tracking-wider">① Dónde aparecen en la página</p>
+            {/* Mini browser */}
+            <div className="rounded-lg border border-[#d1d5db] overflow-hidden text-[0px]">
+              {/* Browser chrome */}
+              <div className="bg-[#f3f4f6] border-b border-[#e5e7eb] px-2 py-1.5 flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-[#fca5a5]" />
+                <div className="w-2 h-2 rounded-full bg-[#fde68a]" />
+                <div className="w-2 h-2 rounded-full bg-[#86efac]" />
+                <div className="flex-1 mx-2 bg-white rounded text-[8px] text-[#9ca3af] px-2 py-0.5 font-mono">compuelite.cl</div>
+              </div>
+              {/* Page content */}
+              <div className="bg-[#f9fafb] p-2 space-y-1.5">
+                {/* Navbar */}
+                <div className="h-4 bg-[#111827] rounded flex items-center px-2 gap-1">
+                  <div className="w-2 h-1 bg-[#16a34a] rounded-sm" />
+                  <div className="flex gap-1 ml-auto">
+                    <div className="w-3 h-1 bg-white/20 rounded-sm" />
+                    <div className="w-3 h-1 bg-white/20 rounded-sm" />
+                    <div className="w-3 h-1 bg-white/20 rounded-sm" />
+                  </div>
+                </div>
+                {/* BANNERS — highlighted */}
+                <div className="rounded border-2 border-[#16a34a] overflow-hidden">
+                  <div className="bg-[#16a34a] px-1.5 py-0.5 flex items-center justify-between">
+                    <span className="text-[8px] font-bold text-white uppercase tracking-wider">📍 Los banners van AQUÍ</span>
+                    <span className="text-[7px] text-white/70">2 tarjetas lado a lado</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 p-1 bg-[#111827]">
+                    <div className="h-10 rounded bg-gradient-to-br from-[#16a34a]/30 to-[#111827] border border-[#16a34a]/40 flex items-center justify-between px-1.5 overflow-hidden">
+                      <div className="space-y-0.5">
+                        <div className="w-6 h-0.5 bg-[#16a34a] rounded-full" />
+                        <div className="w-8 h-1 bg-white/70 rounded-full" />
+                        <div className="w-5 h-1 bg-white/40 rounded-full" />
+                      </div>
+                      <div className="w-6 h-6 rounded bg-white/10 flex-shrink-0" />
+                    </div>
+                    <div className="h-10 rounded bg-gradient-to-br from-[#0088ff]/30 to-[#111827] border border-[#0088ff]/40 flex items-center justify-between px-1.5 overflow-hidden">
+                      <div className="space-y-0.5">
+                        <div className="w-6 h-0.5 bg-[#0088ff] rounded-full" />
+                        <div className="w-8 h-1 bg-white/70 rounded-full" />
+                        <div className="w-5 h-1 bg-white/40 rounded-full" />
+                      </div>
+                      <div className="w-6 h-6 rounded bg-white/10 flex-shrink-0" />
+                    </div>
+                  </div>
+                </div>
+                {/* Other sections faded */}
+                <div className="h-5 bg-[#e5e7eb] rounded opacity-40" />
+                <div className="grid grid-cols-3 gap-1 opacity-30">
+                  <div className="h-4 bg-[#d1d5db] rounded" />
+                  <div className="h-4 bg-[#d1d5db] rounded" />
+                  <div className="h-4 bg-[#d1d5db] rounded" />
+                </div>
+              </div>
             </div>
-            <div className="ml-auto w-12 h-10 rounded bg-[#0088ff]/10 border border-[#0088ff]/20 flex items-center justify-center">
-              <ImageIcon className="w-4 h-4 text-[#0088ff]/40" />
+            <p className="text-[10px] text-[#6b7280] leading-relaxed">
+              Los banners son lo <strong className="text-[#111827]">primero que ve el cliente</strong> al entrar a la tienda, justo debajo del menú de navegación.
+            </p>
+          </div>
+
+          {/* RIGHT: card anatomy */}
+          <div className="bg-white p-4 space-y-2">
+            <p className="text-[10px] font-bold text-[#374151] uppercase tracking-wider">② Partes de cada tarjeta banner</p>
+            {/* Actual banner card mockup */}
+            <div className="rounded-xl overflow-hidden border border-[#1a1a1a] bg-gradient-to-br from-[#0d2010] to-[#060d08]">
+              <div className="flex items-center justify-between gap-2 p-3 relative">
+                {/* Glow */}
+                <div className="absolute inset-0 opacity-60" style={{ background: "radial-gradient(ellipse at 80% 50%, #16a34a18, transparent 70%)" }} />
+                {/* Left: text */}
+                <div className="relative z-10 flex-1 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[8px] font-black text-[#16a34a] uppercase tracking-widest">NVIDIA GeForce</span>
+                    <span className="text-[7px] bg-[#16a34a]/20 text-[#16a34a] px-1 rounded">← B subtítulo</span>
+                  </div>
+                  <div className="flex items-start gap-1.5">
+                    <span className="text-[10px] font-black text-white leading-tight">RTX 4090<br/>GPU definitiva</span>
+                    <span className="text-[7px] bg-white/10 text-white/60 px-1 rounded mt-0.5 flex-shrink-0">← A título</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[8px] font-black text-black bg-[#16a34a] px-2 py-0.5 rounded-md">Ver más</span>
+                    <span className="text-[7px] bg-[#16a34a]/20 text-[#16a34a] px-1 rounded">← C color</span>
+                  </div>
+                </div>
+                {/* Right: image */}
+                <div className="relative flex-shrink-0 z-10 text-center">
+                  <div className="w-14 h-14 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                    <ImageIcon className="w-5 h-5 text-white/20" />
+                  </div>
+                  <span className="text-[7px] text-white/40 mt-0.5 block">← D imagen</span>
+                </div>
+              </div>
+              <div className="px-3 pb-2">
+                <span className="text-[7px] text-white/20">← E fondo oscuro automático</span>
+              </div>
             </div>
-            <div className="absolute bottom-2 right-2 flex gap-1">
-              {[1,2,3].map(i => <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 1 ? "bg-white" : "bg-white/20"}`} />)}
+            {/* Legend */}
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+              {[
+                ["A", "Título", "Texto grande. Corto y directo."],
+                ["B", "Subtítulo / Marca", "Aparece en el color de acento."],
+                ["C", "Color de acento", "Afecta botón, subtítulo y brillo."],
+                ["D", "Imagen", "PNG con fondo transparente ideal."],
+                ["E", "Fondo", "Degradado oscuro automático."],
+                ["→", "Link", "Al hacer clic en la tarjeta."],
+              ].map(([letter, name, desc]) => (
+                <div key={letter} className="flex gap-1.5 items-start">
+                  <span className="flex-shrink-0 w-4 h-4 rounded bg-[#f3f4f6] flex items-center justify-center text-[8px] font-black text-[#374151]">{letter}</span>
+                  <div>
+                    <p className="text-[9px] font-semibold text-[#374151]">{name}</p>
+                    <p className="text-[9px] text-[#9ca3af] leading-tight">{desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="px-3 py-1.5 bg-[#f3f4f6] border-t border-[#e5e7eb]">
-            <p className="text-[9px] text-[#d1d5db]">Así se ve un banner en la tienda · Los puntos indican cuántos hay</p>
+        </div>
+
+        {/* Bottom: how many show */}
+        <div className="px-4 py-3 border-t border-[#e5e7eb] bg-[#f9fafb]">
+          <p className="text-[10px] font-bold text-[#374151] mb-2">③ ¿Cuántos banners se muestran a la vez?</p>
+          <div className="flex items-center gap-2">
+            {["Banner 1", "Banner 2", "Banner 3+"].map((label, i) => (
+              <div key={i} className={`flex-1 rounded-lg border px-2 py-1.5 text-center ${i < 2 ? "border-[#16a34a]/30 bg-[#f0fdf4]" : "border-[#e5e7eb] bg-[#f9fafb]"}`}>
+                <p className={`text-[9px] font-bold ${i < 2 ? "text-[#16a34a]" : "text-[#9ca3af]"}`}>{i < 2 ? "✓ Se muestra" : "En espera"}</p>
+                <p className="text-[8px] text-[#9ca3af] mt-0.5">{label}</p>
+              </div>
+            ))}
           </div>
+          <p className="text-[10px] text-[#9ca3af] mt-2">Solo los <strong className="text-[#374151]">2 primeros banners activos</strong> se muestran al mismo tiempo. El resto queda en espera — útil para tener banners listos sin publicarlos todavía.</p>
         </div>
       </div>
 
