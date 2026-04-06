@@ -135,6 +135,112 @@ function ProductTable() {
   );
 }
 
+// ─── PLATFORM SELECTOR ───────────────────────────────────────────────────────
+// Plataformas obtenidas de https://multivende.com/integraciones/
+// Filtradas a las relevantes para Chile (marketplaces + eCommerce activos en CL)
+
+type Platform = {
+  id: string;
+  name: string;
+  category: "marketplace" | "ecommerce";
+  icon: string | null; // SimpleIcons slug — null = usar color + texto
+  color: string;
+  textColor: string;
+  abbr?: string; // texto corto si no hay ícono en SimpleIcons
+};
+
+const PLATFORMS: Platform[] = [
+  // ── Marketplaces Chile ──────────────────────────────────────────────────
+  { id: "mercadolibre", name: "Mercado Libre", category: "marketplace", icon: "mercadolibre", color: "#FFE600", textColor: "#000000" },
+  { id: "falabella",    name: "Falabella",     category: "marketplace", icon: null,           color: "#6E1E7A", textColor: "#ffffff", abbr: "F" },
+  { id: "paris",        name: "Paris",         category: "marketplace", icon: null,           color: "#E31837", textColor: "#ffffff", abbr: "P" },
+  { id: "ripley",       name: "Ripley",        category: "marketplace", icon: null,           color: "#4A2D82", textColor: "#ffffff", abbr: "R" },
+  { id: "dafiti",       name: "Dafiti",        category: "marketplace", icon: null,           color: "#FF6600", textColor: "#ffffff", abbr: "D" },
+  { id: "amazon",       name: "Amazon",        category: "marketplace", icon: "amazon",       color: "#FF9900", textColor: "#000000" },
+  { id: "tiktokshop",   name: "TikTok Shop",   category: "marketplace", icon: "tiktok",       color: "#010101", textColor: "#ffffff" },
+  { id: "walmart",      name: "Walmart",       category: "marketplace", icon: "walmart",      color: "#0071CE", textColor: "#ffffff" },
+  // ── Plataformas eCommerce ────────────────────────────────────────────────
+  { id: "shopify",      name: "Shopify",       category: "ecommerce",   icon: "shopify",      color: "#96BF48", textColor: "#ffffff" },
+  { id: "woocommerce",  name: "WooCommerce",   category: "ecommerce",   icon: "woocommerce",  color: "#7F54B3", textColor: "#ffffff" },
+  { id: "jumpseller",   name: "Jumpseller",    category: "ecommerce",   icon: null,           color: "#00C4CC", textColor: "#ffffff", abbr: "J" },
+  { id: "prestashop",   name: "PrestaShop",    category: "ecommerce",   icon: "prestashop",   color: "#DF0067", textColor: "#ffffff" },
+  { id: "vtex",         name: "VTEX",          category: "ecommerce",   icon: "vtex",         color: "#F71963", textColor: "#ffffff" },
+  { id: "bigcommerce",  name: "BigCommerce",   category: "ecommerce",   icon: "bigcommerce",  color: "#121118", textColor: "#ffffff" },
+  { id: "mercadoshops", name: "Mercado Shops", category: "ecommerce",   icon: "mercadopago",  color: "#009EE3", textColor: "#ffffff" },
+];
+
+function PlatformSelector({ selected, onChange }: { selected: string[]; onChange: (ids: string[]) => void }) {
+  const toggle = (id: string) =>
+    onChange(selected.includes(id) ? selected.filter(s => s !== id) : [...selected, id]);
+
+  return (
+    <div className="space-y-3">
+      <label className="text-[10px] text-[#6b7280] uppercase tracking-wider flex items-center gap-2">
+        Publicar en plataformas
+        <span className="text-[#d1d5db] normal-case tracking-normal font-normal">· fuente: Multivende Chile</span>
+      </label>
+
+      {(["marketplace", "ecommerce"] as const).map(cat => (
+        <div key={cat}>
+          <p className="text-[9px] text-[#9ca3af] uppercase tracking-widest mb-2">
+            {cat === "marketplace" ? "Marketplaces" : "Plataformas eCommerce"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {PLATFORMS.filter(p => p.category === cat).map(p => {
+              const active = selected.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => toggle(p.id)}
+                  title={p.name}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all duration-150 ${
+                    active
+                      ? "shadow-sm scale-105 border-transparent"
+                      : "bg-white border-[#e5e7eb] text-[#6b7280] hover:border-[#d1d5db] hover:bg-[#f9fafb]"
+                  }`}
+                  style={active ? { backgroundColor: p.color, color: p.textColor } : {}}
+                >
+                  {p.icon ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`https://cdn.simpleicons.org/${p.icon}/${active ? p.textColor.replace("#", "") : "9ca3af"}`}
+                      alt={p.name}
+                      width={14}
+                      height={14}
+                      className="w-3.5 h-3.5 object-contain flex-shrink-0"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span
+                      className="w-3.5 h-3.5 rounded-sm flex-shrink-0 flex items-center justify-center text-[7px] font-black"
+                      style={{
+                        backgroundColor: active ? "rgba(255,255,255,0.25)" : p.color + "20",
+                        color: active ? p.textColor : p.color,
+                      }}
+                    >
+                      {p.abbr ?? p.name.slice(0, 1)}
+                    </span>
+                  )}
+                  <span className="leading-none">{p.name}</span>
+                  {active && <span className="leading-none opacity-60">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {selected.length > 0 && (
+        <p className="text-[10px] text-[#16a34a]">
+          ✓ {selected.length} plataforma{selected.length !== 1 ? "s" : ""} seleccionada{selected.length !== 1 ? "s" : ""}:{" "}
+          {selected.map(id => PLATFORMS.find(p => p.id === id)?.name).filter(Boolean).join(", ")}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── CREATE PRODUCT FORM ─────────────────────────────────────────────────────
 
 function CreateProductForm() {
@@ -146,6 +252,7 @@ function CreateProductForm() {
     stock: "0", categoryId: "", productType: "STANDALONE" as ProductType,
     description: "", imageUrl: "", status: "ACTIVE" as ProductStatus,
   });
+  const [platforms, setPlatforms] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -178,6 +285,7 @@ function CreateProductForm() {
       } else {
         setSaved(true);
         setForm({ sku: "", name: "", brand: "", price: "", compareAtPrice: "", stock: "0", categoryId: "", productType: "STANDALONE", description: "", imageUrl: "", status: "ACTIVE" });
+        setPlatforms([]);
         setTimeout(() => setSaved(false), 3000);
         utils.admin.products.invalidate();
       }
@@ -240,6 +348,10 @@ function CreateProductForm() {
         folder="products"
         label="Imagen principal"
       />
+
+      <div className="border-t border-[#f3f4f6] pt-5">
+        <PlatformSelector selected={platforms} onChange={setPlatforms} />
+      </div>
 
       {error && <p className="text-[11px] text-[#ff4545] border border-[#ff4545]/20 bg-[#ff4545]/5 px-3 py-2 rounded-lg">{error}</p>}
 
