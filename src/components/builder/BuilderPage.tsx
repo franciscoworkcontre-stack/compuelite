@@ -114,6 +114,9 @@ const STEP_SVG: Record<BuildStep, React.ReactNode> = {
   CPU_COOLER:  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4zm0 2a4 4 0 100 8 4 4 0 000-8zm0 2a2 2 0 110 4 2 2 0 010-4z"/></svg>,
   PSU:         <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M11 3a1 1 0 10-2 0v1H8a1 1 0 00-.8.4l-2 2.667A1 1 0 005 8v5a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-.2-.6l-2-2.667A1 1 0 0012 4h-1V3zm-1 4a3 3 0 110 6 3 3 0 010-6zm0 2a1 1 0 100 2 1 1 0 000-2z"/></svg>,
   CASE:        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M4 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4zm1 2h10v10H5V5zm2 2v6h2V7H7zm4 0v2h2V7h-2z"/></svg>,
+  MONITOR:     <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M2 4a1 1 0 011-1h14a1 1 0 011 1v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4zm2 1v7h12V5H4zm4 9v1H7a1 1 0 000 2h6a1 1 0 000-2h-1v-1H8z"/></svg>,
+  KEYBOARD:    <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M2 6a1 1 0 011-1h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6zm2 1v6h12V7H4zm2 1h1v1H6V8zm3 0h1v1H9V8zm3 0h1v1h-1V8zm-6 2h1v1H6v-1zm3 0h1v1H9v-1zm3 0h1v1h-1v-1zm-5 2h4v1H7v-1z"/></svg>,
+  MOUSE:       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 2a5 5 0 00-5 5v6a5 5 0 0010 0V7a5 5 0 00-5-5zm-1 2.17A3 3 0 007 7v1h2V4.17zM11 8h2V7a3 3 0 00-2-2.83V8zm-4 2h2v4H7v-4zm4 0h2v4h-2v-4z"/></svg>,
 };
 
 // ─── ANIMATED PRICE ───────────────────────────────────────────────────────────
@@ -147,99 +150,106 @@ function BuilderNav({
     <nav className="py-4 px-3">
       <p className="px-2 mb-4 text-[9px] text-[#2a2a2a] uppercase tracking-widest font-bold">Componentes</p>
       <div className="relative">
-        {/* Vertical connector line */}
-        <div className="absolute left-[22px] top-4 bottom-4 w-px bg-[#1a1a1a]" />
+        {/* Vertical connector line — only through required steps */}
+        <div className="absolute left-[22px] top-4 w-px bg-[#1a1a1a]" style={{ height: `${8 * 44}px` }} />
 
         {BUILD_STEPS.map((step, index) => {
           const meta = STEP_META[step];
           const sel = components[step];
           const isActive = activeStep === step;
           const isDone = !!sel;
-          const stepNumber = index + 1;
+          const isFirstPeripheral = step === "MONITOR";
 
           return (
-            <motion.button
-              key={step}
-              onClick={() => onSelect(step)}
-              className={`relative w-full flex items-center gap-3 px-2 py-2.5 text-left rounded-lg transition-colors mb-0.5 ${
-                isActive ? "bg-[#00ff66]/[0.06]" : "hover:bg-white/[0.025]"
-              }`}
-              whileHover={{ x: 2 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            >
-              {/* Step indicator circle */}
-              <div className="relative z-10 flex-shrink-0">
-                <motion.div
-                  className={`w-[30px] h-[30px] rounded-full border-2 flex items-center justify-center transition-all ${
-                    isDone
-                      ? "border-[#00ff66] bg-[#00ff66]/10"
-                      : isActive
-                      ? "border-[#333] bg-[#111]"
-                      : "border-[#1a1a1a] bg-[#080808]"
-                  }`}
-                  animate={isDone ? { scale: [1, 1.15, 1] } : {}}
-                  transition={{ duration: 0.3 }}
-                >
-                  <AnimatePresence mode="wait">
-                    {isDone ? (
-                      <motion.div
-                        key="check"
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            <div key={step}>
+              {isFirstPeripheral && (
+                <div className="px-2 pt-4 pb-2">
+                  <div className="h-px bg-[#1a1a1a] mb-3" />
+                  <p className="text-[9px] text-[#2a2a2a] uppercase tracking-widest font-bold">Periféricos opcionales</p>
+                </div>
+              )}
+              <motion.button
+                onClick={() => onSelect(step)}
+                className={`relative w-full flex items-center gap-3 px-2 py-2.5 text-left rounded-lg transition-colors mb-0.5 ${
+                  isActive ? "bg-[#00ff66]/[0.06]" : "hover:bg-white/[0.025]"
+                }`}
+                whileHover={{ x: 2 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
+                {/* Step indicator circle */}
+                <div className="relative z-10 flex-shrink-0">
+                  <motion.div
+                    className={`w-[30px] h-[30px] rounded-full border-2 flex items-center justify-center transition-all ${
+                      isDone
+                        ? "border-[#00ff66] bg-[#00ff66]/10"
+                        : isActive
+                        ? "border-[#333] bg-[#111]"
+                        : "border-[#1a1a1a] bg-[#080808]"
+                    }`}
+                    animate={isDone ? { scale: [1, 1.15, 1] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <AnimatePresence mode="wait">
+                      {isDone ? (
+                        <motion.div
+                          key="check"
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                        >
+                          <Check className="w-3 h-3 text-[#00ff66]" />
+                        </motion.div>
+                      ) : (
+                        <motion.span
+                          key="icon"
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          className={`transition-colors ${isActive ? "text-white" : "text-[#2a2a2a]"}`}
+                        >
+                          {STEP_SVG[step]}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </div>
+
+                {/* Step info */}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-xs font-semibold truncate transition-colors ${
+                    isActive ? "text-white" : isDone ? "text-[#888]" : "text-[#444]"
+                  }`}>
+                    {meta.label}
+                  </p>
+                  <AnimatePresence>
+                    {sel ? (
+                      <motion.p
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        className="text-[10px] text-[#00ff66]/70 truncate"
                       >
-                        <Check className="w-3 h-3 text-[#00ff66]" />
-                      </motion.div>
+                        {sel.brand}
+                      </motion.p>
                     ) : (
-                      <motion.span
-                        key="icon"
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        className={`transition-colors ${isActive ? "text-white" : "text-[#2a2a2a]"}`}
-                      >
-                        {STEP_SVG[step]}
-                      </motion.span>
+                      <p className="text-[10px] text-[#252525]">
+                        {meta.optional ? "Opcional" : "Por elegir"}
+                      </p>
                     )}
                   </AnimatePresence>
-                </motion.div>
-              </div>
+                </div>
 
-              {/* Step info */}
-              <div className="flex-1 min-w-0">
-                <p className={`text-xs font-semibold truncate transition-colors ${
-                  isActive ? "text-white" : isDone ? "text-[#888]" : "text-[#444]"
-                }`}>
-                  {meta.label}
-                </p>
-                <AnimatePresence>
-                  {sel ? (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      className="text-[10px] text-[#00ff66]/70 truncate"
-                    >
-                      {sel.brand}
-                    </motion.p>
-                  ) : (
-                    <p className="text-[10px] text-[#252525]">
-                      {meta.optional ? "Opcional" : "Por elegir"}
-                    </p>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Active indicator */}
-              {isActive && (
-                <motion.div
-                  layoutId="nav-active-bar"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-[#00ff66] rounded-full"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-            </motion.button>
+                {/* Active indicator */}
+                {isActive && (
+                  <motion.div
+                    layoutId="nav-active-bar"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-[#00ff66] rounded-full"
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+              </motion.button>
+            </div>
           );
         })}
       </div>

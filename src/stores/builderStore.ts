@@ -9,7 +9,10 @@ export type BuildStep =
   | "STORAGE"
   | "CPU_COOLER"
   | "PSU"
-  | "CASE";
+  | "CASE"
+  | "MONITOR"
+  | "KEYBOARD"
+  | "MOUSE";
 
 export const BUILD_STEPS: BuildStep[] = [
   "CASE",
@@ -20,6 +23,9 @@ export const BUILD_STEPS: BuildStep[] = [
   "GPU",
   "CPU_COOLER",
   "PSU",
+  "MONITOR",
+  "KEYBOARD",
+  "MOUSE",
 ];
 
 export const STEP_META: Record<
@@ -40,6 +46,9 @@ export const STEP_META: Record<
   CPU_COOLER:  { label: "Refrigeración",    componentType: "CPU_COOLER",  optional: true,  description: "Cooler o AIO",                        icon: "F" },
   PSU:         { label: "Fuente de Poder",  componentType: "PSU",         optional: false, description: "Calculada según TDP total",           icon: "A" },
   CASE:        { label: "Gabinete",         componentType: "CASE",        optional: false, description: "Formato y flujo de aire",             icon: "G" },
+  MONITOR:     { label: "Monitor",          componentType: "MONITOR",     optional: true,  description: "Resolución, Hz y panel",              icon: "D" },
+  KEYBOARD:    { label: "Teclado",          componentType: "KEYBOARD",    optional: true,  description: "Mecánico, membrana o inalámbrico",    icon: "K" },
+  MOUSE:       { label: "Mouse",            componentType: "MOUSE",       optional: true,  description: "DPI, ergonomía y conectividad",       icon: "O" },
 };
 
 export interface SelectedComponent {
@@ -128,7 +137,7 @@ const calcTotal = (components: Partial<Record<BuildStep, SelectedComponent>>) =>
 export const useBuilderStore = create<BuilderState>((set, get) => ({
   components: {},
   totalPrice: 0,
-  activeStep: "GPU",
+  activeStep: "CASE",
 
   setActiveStep: (step) => set({ activeStep: step }),
 
@@ -143,5 +152,5 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({ components, totalPrice: calcTotal(components) });
   },
 
-  reset: () => set({ components: {}, totalPrice: 0, activeStep: "GPU" }),
+  reset: () => set({ components: {}, totalPrice: 0, activeStep: "CASE" }),
 }));

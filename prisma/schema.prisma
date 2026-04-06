@@ -35,6 +35,9 @@ enum ComponentType {
   CABLE_MGMT
   RGB_CONTROLLER
   OS
+  MONITOR
+  KEYBOARD
+  MOUSE
 }
 
 enum ProductStatus {
