@@ -356,18 +356,6 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           ))}
         </motion.div>
 
-        {/* Short description */}
-        {product.description && (
-          <motion.div
-            variants={itemVariants}
-            className="p-4 rounded-xl bg-[#111]/60 border border-[#1a1a1a]"
-          >
-            <p className="text-sm text-zinc-400 leading-relaxed line-clamp-4">
-              {product.description}
-            </p>
-          </motion.div>
-        )}
-
         {/* Category link */}
         {product.category && (
           <motion.div variants={itemVariants}>

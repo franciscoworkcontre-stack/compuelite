@@ -145,3 +145,92 @@ body {
   background: rgba(0,255,102,0.12);
   color: var(--text-primary);
 }
+
+/* ── Product description: override Jumpseller light-theme inline styles ── */
+.product-description {
+  color: #aaa;
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+.product-description * {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: #1f1f1f !important;
+}
+.product-description h1,
+.product-description h2,
+.product-description h3,
+.product-description h4 {
+  color: #fff !important;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  text-align: left !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  border-left: 2px solid #00ff66;
+  padding-left: 0.75rem !important;
+}
+.product-description h2 {
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.product-description p {
+  margin-bottom: 0.75rem;
+  color: #888 !important;
+}
+.product-description ul,
+.product-description ol {
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.product-description li {
+  margin-bottom: 0.35rem;
+  color: #777 !important;
+}
+.product-description li::marker {
+  color: #00ff66;
+}
+.product-description table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+}
+.product-description th,
+.product-description td {
+  border: 1px solid #1a1a1a !important;
+  padding: 0.5rem 0.75rem;
+  color: #888 !important;
+  background-color: transparent !important;
+}
+.product-description th {
+  color: #fff !important;
+  font-weight: 600;
+  background-color: #111 !important;
+}
+.product-description tr:nth-child(even) td {
+  background-color: #0d0d0d !important;
+}
+.product-description img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+.product-description a {
+  color: #00ff66 !important;
+  text-decoration: underline;
+}
+.product-description strong,
+.product-description b {
+  color: #ccc !important;
+  font-weight: 600;
+}
+/* Hide redundant SKU title already shown as product name */
+.product-description .pc-content > h2:first-child {
+  display: none;
+}

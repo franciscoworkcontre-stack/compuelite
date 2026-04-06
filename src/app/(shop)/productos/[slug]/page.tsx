@@ -84,6 +84,22 @@ export default async function ProductPage({
         {/* Main product view — animated client component */}
         <ProductDetailView product={serialized} />
 
+        {/* Full description — HTML from Jumpseller rendered with dark-theme overrides */}
+        {product.description && (
+          <div className="mt-12 border-t border-[#111] pt-10">
+            <h2
+              className="text-xl font-black uppercase text-white mb-6"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Descripción
+            </h2>
+            <div
+              className="product-description"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
+          </div>
+        )}
+
         {/* Full specs table */}
         {product.specs && typeof product.specs === "object" && (
           <div className="mt-16 border-t border-[#111] pt-12">

@@ -91,13 +91,6 @@ export function ProductCard({ product }: { product: ProductWithImage }) {
           </div>
         )}
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100">
-          <span className="text-xs text-white/90 uppercase tracking-widest font-medium border border-white/20 px-3 py-1.5 rounded-full backdrop-blur-sm bg-black/30">
-            Ver detalle →
-          </span>
-        </div>
-
         {/* Badges */}
         {disc && (
           <div
@@ -147,6 +140,16 @@ export function ProductCard({ product }: { product: ProductWithImage }) {
             {formatCLP(product.price)}
           </p>
           <p className="text-[10px] text-[#383838] mt-0.5">IVA incluido</p>
+        </div>
+
+        {/* Ver detalle link */}
+        <div className="flex items-center justify-end pt-1">
+          <span className="text-[10px] text-[#2a2a2a] group-hover:text-[#00ff66] transition-colors uppercase tracking-widest flex items-center gap-1">
+            Ver detalle
+            <svg className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </span>
         </div>
       </div>
     </Link>
