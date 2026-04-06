@@ -3,6 +3,17 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, type TargetAndTransition } from "framer-motion";
+import {
+  Wrench,
+  Gamepad2,
+  Zap,
+  Flame,
+  Skull,
+  Monitor,
+  Laptop,
+  Package,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,27 +28,29 @@ type Brand = { brand: string; count: number };
 
 // ─── Category meta ────────────────────────────────────────────────────────────
 
-const CAT_META: Record<string, { icon: string; anim: "pulse" | "float" | "spin" | "bounce" | "shake" | "wiggle" }> = {
-  "componentes":           { icon: "🔧", anim: "spin"   },
-  "pc-gamer":              { icon: "🎮", anim: "bounce" },
-  "pc-gamer-start-series": { icon: "⚡", anim: "pulse"  },
-  "pc-gamer-pro-series":   { icon: "🔥", anim: "float"  },
-  "pc-elite":              { icon: "💀", anim: "shake"  },
-  "monitores":             { icon: "🖥️", anim: "wiggle" },
-  "workstation":           { icon: "💻", anim: "float"  },
+type AnimType = "pulse" | "float" | "spin" | "bounce" | "shake" | "wiggle";
+
+const CAT_META: Record<string, { Icon: LucideIcon; anim: AnimType }> = {
+  "componentes":           { Icon: Wrench,   anim: "spin"   },
+  "pc-gamer":              { Icon: Gamepad2, anim: "bounce" },
+  "pc-gamer-start-series": { Icon: Zap,      anim: "pulse"  },
+  "pc-gamer-pro-series":   { Icon: Flame,    anim: "float"  },
+  "pc-elite":              { Icon: Skull,    anim: "shake"  },
+  "monitores":             { Icon: Monitor,  anim: "wiggle" },
+  "workstation":           { Icon: Laptop,   anim: "float"  },
 };
 
-const DEFAULT_META = { icon: "📦", anim: "pulse" as const };
+const DEFAULT_META: { Icon: LucideIcon; anim: AnimType } = { Icon: Package, anim: "pulse" };
 
 // ─── Icon animation variants ──────────────────────────────────────────────────
 
-const iconAnims: Record<string, { animate: TargetAndTransition; transition: Record<string, unknown> }> = {
+const iconAnims: Record<AnimType, { animate: TargetAndTransition; transition: Record<string, unknown> }> = {
   pulse: {
-    animate: { scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] },
+    animate: { scale: [1, 1.22, 1], opacity: [0.75, 1, 0.75] },
     transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
   },
   float: {
-    animate: { y: [0, -4, 0] },
+    animate: { y: [0, -3, 0] },
     transition: { duration: 2.4, repeat: Infinity, ease: "easeInOut" },
   },
   spin: {
@@ -45,7 +58,7 @@ const iconAnims: Record<string, { animate: TargetAndTransition; transition: Reco
     transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
   },
   bounce: {
-    animate: { y: [0, -5, 0], scale: [1, 1.1, 1] },
+    animate: { y: [0, -5, 0], scale: [1, 1.12, 1] },
     transition: { duration: 1.8, repeat: Infinity, ease: "easeOut" },
   },
   shake: {
@@ -70,7 +83,8 @@ function CategoryCard({
   index: number;
 }) {
   const meta = CAT_META[cat.slug] ?? DEFAULT_META;
-  const anim = iconAnims[meta.anim];
+  const { Icon, anim } = meta;
+  const animDef = iconAnims[anim];
 
   return (
     <motion.div
@@ -79,9 +93,8 @@ function CategoryCard({
       transition={{ delay: index * 0.04, type: "spring", stiffness: 220, damping: 26 }}
     >
       <Link href={`/productos?categoria=${cat.slug}`}>
-        {/* Card rectangle — green border always, brighter when active */}
         <div
-          className="relative flex items-center gap-2.5 px-2.5 py-2 rounded-lg border cursor-pointer transition-all duration-200 hover:bg-[#00ff66]/5 group"
+          className="relative flex items-center gap-2.5 px-2 py-1.5 rounded-lg border cursor-pointer transition-all duration-200 hover:bg-[#00ff66]/5 group"
           style={{
             backgroundColor: active ? "#00ff6608" : "transparent",
             borderColor: active ? "#00ff6650" : "#00ff6618",
@@ -95,14 +108,25 @@ function CategoryCard({
             />
           )}
 
-          {/* Icon — only this element animates */}
-          <motion.span
-            animate={anim.animate}
-            transition={anim.transition}
-            className="relative z-10 flex-shrink-0 text-base leading-none"
+          {/* Icon box — dark green bg + green icon, only icon animates */}
+          <div
+            className="relative z-10 flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center border"
+            style={{
+              backgroundColor: "#071a0e",
+              borderColor: "#00ff6628",
+            }}
           >
-            {meta.icon}
-          </motion.span>
+            <motion.div
+              animate={animDef.animate}
+              transition={animDef.transition}
+              className="flex items-center justify-center"
+            >
+              <Icon
+                className="w-[14px] h-[14px]"
+                style={{ color: "#00ff66", strokeWidth: 2 }}
+              />
+            </motion.div>
+          </div>
 
           {/* Text */}
           <div className="relative z-10 flex-1 min-w-0">
@@ -112,7 +136,7 @@ function CategoryCard({
             >
               {cat.name}
             </p>
-            <p className="text-[9px] text-[#2a2a2a] mt-0.5 tabular-nums group-hover:text-[#444] transition-colors">
+            <p className="text-[9px] text-[#2a2a2a] mt-0.5 tabular-nums group-hover:text-[#3a3a3a] transition-colors">
               {cat._count.products} items
             </p>
           </div>
