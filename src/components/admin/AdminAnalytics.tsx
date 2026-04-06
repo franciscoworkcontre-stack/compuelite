@@ -47,12 +47,12 @@ const REVENUE_DATA = [
 ];
 
 const CATEGORY_DATA = [
-  { name: "GPU",            value: 38, color: "#16a34a" },
+  { name: "GPU",            value: 38, color: "#1e40af" },
   { name: "CPU",            value: 22, color: "#2563eb" },
-  { name: "Motherboard",    value: 14, color: "#d97706" },
-  { name: "RAM",            value: 10, color: "#7c3aed" },
-  { name: "Almacenamiento", value: 8,  color: "#dc2626" },
-  { name: "Periféricos",    value: 8,  color: "#0891b2" },
+  { name: "Motherboard",    value: 14, color: "#3b82f6" },
+  { name: "RAM",            value: 10, color: "#60a5fa" },
+  { name: "Almacenamiento", value: 8,  color: "#93c5fd" },
+  { name: "Periféricos",    value: 8,  color: "#94a3b8" },
 ];
 
 const TOP_PRODUCTS = [
@@ -206,7 +206,7 @@ function KpiCard({
       <p className="text-2xl font-black font-mono" style={{ color }}>{value}</p>
       {sub && <p className="text-[10px] text-[#9ca3af] mt-1">{sub}</p>}
       {trend !== undefined && (
-        <div className={`flex items-center gap-1 mt-2 text-[10px] font-semibold ${trend >= 0 ? "text-[#16a34a]" : "text-[#dc2626]"}`}>
+        <div className={`flex items-center gap-1 mt-2 text-[10px] font-semibold ${trend >= 0 ? "text-[#2563eb]" : "text-[#dc2626]"}`}>
           {trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
           {Math.abs(trend)}% vs año anterior
         </div>
@@ -291,7 +291,7 @@ export function AdminAnalytics() {
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`px-3 py-1.5 text-xs font-bold rounded transition-colors ${period === p ? "bg-[#16a34a]/10 text-[#16a34a] border border-[#16a34a]/20" : "bg-[#f3f4f6] text-[#6b7280] hover:text-[#374151]"}`}
+              className={`px-3 py-1.5 text-xs font-bold rounded transition-colors ${period === p ? "bg-[#2563eb]/10 text-[#2563eb] border border-[#2563eb]/20" : "bg-[#f3f4f6] text-[#6b7280] hover:text-[#374151]"}`}
             >
               {p === "6m" ? "6 meses" : "12 meses"}
             </button>
@@ -301,10 +301,10 @@ export function AdminAnalytics() {
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Ingresos totales"  value={formatM(TOTAL_VENTAS)}              sub={`${TOTAL_ORDENES} órdenes`}       trend={23}  color="#16a34a"  delay={0}    />
-        <KpiCard label="Utilidad bruta"    value={formatM(PNL_DERIVED.utilidadBruta)} sub={`Margen ${margenBruto}%`}         trend={8}   color="#2563eb"  delay={0.06} />
-        <KpiCard label="Utilidad neta"     value={formatM(UTILIDAD_NETA)}             sub={`Margen neto ${margenNeto}%`}     trend={11}  color="#7c3aed"  delay={0.12} />
-        <KpiCard label="AOV promedio"      value={formatM(Math.round(TOTAL_VENTAS / TOTAL_ORDENES))} sub="por orden"         trend={5}   color="#d97706"  delay={0.18} />
+        <KpiCard label="Ingresos totales"  value={formatM(TOTAL_VENTAS)}              sub={`${TOTAL_ORDENES} órdenes`}       trend={23}  color="#2563eb"  delay={0}    />
+        <KpiCard label="Utilidad bruta"    value={formatM(PNL_DERIVED.utilidadBruta)} sub={`Margen ${margenBruto}%`}         trend={8}   color="#1d4ed8"  delay={0.06} />
+        <KpiCard label="Utilidad neta"     value={formatM(UTILIDAD_NETA)}             sub={`Margen neto ${margenNeto}%`}     trend={11}  color="#1e40af"  delay={0.12} />
+        <KpiCard label="AOV promedio"      value={formatM(Math.round(TOTAL_VENTAS / TOTAL_ORDENES))} sub="por orden"         trend={5}   color="#64748b"  delay={0.18} />
       </div>
 
       {/* Revenue area chart */}
@@ -321,20 +321,20 @@ export function AdminAnalytics() {
             <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradVentas" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#16a34a" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="#16a34a" stopOpacity={0} />
+                  <stop offset="5%"  stopColor="#2563eb" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradCosto" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#dc2626" stopOpacity={0.10} />
-                  <stop offset="95%" stopColor="#dc2626" stopOpacity={0} />
+                  <stop offset="5%"  stopColor="#94a3b8" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#94a3b8" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
               <XAxis dataKey="mes" tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={(v: number) => formatM(v)} tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} width={64} />
               <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="ventas" name="Ventas"       stroke="#16a34a" strokeWidth={2} fill="url(#gradVentas)" dot={false} animationDuration={1200} />
-              <Area type="monotone" dataKey="costo"  name="Costo ventas" stroke="#dc2626" strokeWidth={2} fill="url(#gradCosto)"  dot={false} animationDuration={1400} />
+              <Area type="monotone" dataKey="ventas" name="Ventas"       stroke="#2563eb" strokeWidth={2} fill="url(#gradVentas)" dot={false} animationDuration={1200} />
+              <Area type="monotone" dataKey="costo"  name="Costo ventas" stroke="#94a3b8" strokeWidth={2} fill="url(#gradCosto)"  dot={false} animationDuration={1400} />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
@@ -422,7 +422,7 @@ export function AdminAnalytics() {
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
                         transition={{ delay: 0.5 + i * 0.04, duration: 0.6, ease: "easeOut" }}
-                        className="h-full rounded-full bg-[#16a34a]"
+                        className="h-full rounded-full bg-[#2563eb]"
                       />
                     </div>
                   </div>

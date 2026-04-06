@@ -127,7 +127,7 @@ const OBLIGACIONES = [
     frecuencia: "Anual",
     vencimiento: "Abril — fecha exacta en www.sii.cl cada año",
     formulario: "F22",
-    color: "#16a34a",
+    color: "#1d4ed8",
     ley: `Art. 20 LIR · Régimen ${esPyme ? "14D Pro PyME (25%)" : "14A General (27%)"}`,
     monto: IMPUESTO_PRIMERA_CATEGORIA,
     urgente: true,
@@ -138,7 +138,7 @@ const OBLIGACIONES = [
     frecuencia: "Mensual",
     vencimiento: "Día 10 del mes siguiente",
     formulario: "F50",
-    color: "#d97706",
+    color: "#3b82f6",
     ley: "Art. 74 N°1 LIR — Retención trabajadores dependientes",
     monto: null,
     urgente: false,
@@ -149,7 +149,7 @@ const OBLIGACIONES = [
     frecuencia: "Semestral",
     vencimiento: "Cuota 1: Enero · Cuota 2: Julio",
     formulario: "Municipalidad correspondiente",
-    color: "#7c3aed",
+    color: "#64748b",
     ley: "Ley 3.063 Rentas Municipales · art. 23 y ss.",
     monto: Math.round(UTILIDAD_NETA * 0.005),
     urgente: false,
@@ -208,12 +208,6 @@ export function AdminFinanzas() {
   const margenBruto = ((PNL_DERIVED.utilidadBruta / PNL.ingresos) * 100).toFixed(1);
   const margenNeto  = ((UTILIDAD_NETA / PNL.ingresos) * 100).toFixed(1);
 
-  const stackedData = [{
-    costo:    PNL.costoVentas,
-    gastos:   PNL.gastosOperacionales + PNL.gastosMarketing + PNL.depreciacion + PNL.gastosFinancieros,
-    impuesto: IMPUESTO_PRIMERA_CATEGORIA,
-    neta:     UTILIDAD_NETA,
-  }];
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-10">
@@ -230,10 +224,10 @@ export function AdminFinanzas() {
       {/* KPIs rápidos */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Ingresos anuales",  value: formatM(PNL.ingresos),                sub: "Año 2024 (sim.)",       color: "#16a34a" },
-          { label: "Utilidad bruta",    value: formatM(PNL_DERIVED.utilidadBruta),   sub: `Margen ${margenBruto}%`, color: "#2563eb" },
-          { label: "Utilidad neta",     value: formatM(UTILIDAD_NETA),               sub: `Margen ${margenNeto}%`,  color: "#7c3aed" },
-          { label: "Carga tributaria",  value: `${(((IVA_NETO_ANUAL + IMPUESTO_PRIMERA_CATEGORIA) / PNL.ingresos) * 100).toFixed(1)}%`, sub: "IVA + 1ª Categoría", color: "#d97706" },
+          { label: "Ingresos anuales",  value: formatM(PNL.ingresos),                sub: "Año 2024 (sim.)",       color: "#2563eb" },
+          { label: "Utilidad bruta",    value: formatM(PNL_DERIVED.utilidadBruta),   sub: `Margen ${margenBruto}%`, color: "#1d4ed8" },
+          { label: "Utilidad neta",     value: formatM(UTILIDAD_NETA),               sub: `Margen ${margenNeto}%`,  color: "#1e40af" },
+          { label: "Carga tributaria",  value: `${(((IVA_NETO_ANUAL + IMPUESTO_PRIMERA_CATEGORIA) / PNL.ingresos) * 100).toFixed(1)}%`, sub: "IVA + 1ª Categoría", color: "#64748b" },
         ].map((k, i) => (
           <motion.div
             key={k.label}
@@ -258,8 +252,8 @@ export function AdminFinanzas() {
         className="bg-white border border-[#e5e7eb] rounded-xl overflow-hidden"
       >
         <div className="flex items-center gap-3 px-6 py-4 border-b border-[#f3f4f6]">
-          <div className="w-8 h-8 rounded-lg bg-[#f0fdf4] flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-[#16a34a]" />
+          <div className="w-8 h-8 rounded-lg bg-[#eff6ff] flex items-center justify-center">
+            <TrendingUp className="w-4 h-4 text-[#2563eb]" />
           </div>
           <div>
             <h2 className="text-sm font-black text-[#111827] uppercase tracking-wide">Estado de Resultados (P&amp;L)</h2>
@@ -289,30 +283,42 @@ export function AdminFinanzas() {
             <div className="space-y-6">
               <div>
                 <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-wider mb-3">Composición del ingreso</p>
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={stackedData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                    <XAxis hide />
-                    <YAxis tickFormatter={(v: number) => formatM(v)} tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} width={64} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="costo"    name="Costo ventas"  stackId="a" fill="#fca5a5" animationDuration={800} />
-                    <Bar dataKey="gastos"   name="Gastos"        stackId="a" fill="#fde68a" animationDuration={900} />
-                    <Bar dataKey="impuesto" name="Impuesto"      stackId="a" fill="#c4b5fd" animationDuration={1000} />
-                    <Bar dataKey="neta"     name="Utilidad neta" stackId="a" fill="#16a34a" radius={[3, 3, 0, 0]} animationDuration={1100} />
-                  </BarChart>
-                </ResponsiveContainer>
-                <div className="flex flex-wrap gap-3 mt-2">
-                  {[
-                    { color: "#fca5a5", label: `Costo ${((PNL.costoVentas / PNL.ingresos) * 100).toFixed(0)}%` },
-                    { color: "#fde68a", label: `Gastos ${(((PNL.gastosOperacionales + PNL.gastosMarketing + PNL.depreciacion + PNL.gastosFinancieros) / PNL.ingresos) * 100).toFixed(0)}%` },
-                    { color: "#c4b5fd", label: `Impuesto ${((IMPUESTO_PRIMERA_CATEGORIA / PNL.ingresos) * 100).toFixed(1)}%` },
-                    { color: "#16a34a", label: `Neta ${margenNeto}%` },
-                  ].map((l) => (
-                    <div key={l.label} className="flex items-center gap-1.5 text-[10px]">
-                      <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: l.color }} />
-                      <span className="text-[#6b7280]">{l.label}</span>
+                {(() => {
+                  const total = PNL.ingresos;
+                  const gastosTotales = PNL.gastosOperacionales + PNL.gastosMarketing + PNL.depreciacion + PNL.gastosFinancieros;
+                  const segments = [
+                    { label: "Costo ventas",  value: PNL.costoVentas,            color: "#93c5fd" },
+                    { label: "Gastos",        value: gastosTotales,              color: "#3b82f6" },
+                    { label: "Impuesto",      value: IMPUESTO_PRIMERA_CATEGORIA, color: "#1d4ed8" },
+                    { label: "Utilidad neta", value: UTILIDAD_NETA,              color: "#1e40af" },
+                  ];
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex h-9 rounded-xl overflow-hidden gap-px">
+                        {segments.map((s) => (
+                          <motion.div
+                            key={s.label}
+                            initial={{ flex: 0 }}
+                            animate={{ flex: s.value / total }}
+                            transition={{ duration: 0.9, ease: "easeOut" }}
+                            className="h-full"
+                            style={{ backgroundColor: s.color }}
+                          />
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        {segments.map((s) => (
+                          <div key={s.label} className="flex items-center gap-2.5">
+                            <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: s.color }} />
+                            <span className="text-[11px] text-[#6b7280] flex-1">{s.label}</span>
+                            <span className="text-[11px] font-mono font-bold text-[#374151]">{formatM(s.value)}</span>
+                            <span className="text-[11px] text-[#9ca3af] w-10 text-right">{((s.value / total) * 100).toFixed(0)}%</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
               </div>
 
               {/* Margen mensual */}
@@ -323,7 +329,7 @@ export function AdminFinanzas() {
                     <XAxis dataKey="mes" tick={{ fontSize: 9, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
                     <YAxis tickFormatter={(v: number) => formatM(v)} tick={{ fontSize: 9, fill: "#9ca3af" }} axisLine={false} tickLine={false} width={52} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="utilidad" name="Utilidad bruta" fill="#16a34a" radius={[2, 2, 0, 0]} animationDuration={900} />
+                    <Bar dataKey="utilidad" name="Utilidad bruta" fill="#2563eb" radius={[2, 2, 0, 0]} animationDuration={900} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -341,8 +347,8 @@ export function AdminFinanzas() {
         className="bg-white border border-[#e5e7eb] rounded-xl overflow-hidden"
       >
         <div className="flex items-center gap-3 px-6 py-4 border-b border-[#f3f4f6]">
-          <div className="w-8 h-8 rounded-lg bg-[#fefce8] flex items-center justify-center">
-            <FileText className="w-4 h-4 text-[#d97706]" />
+          <div className="w-8 h-8 rounded-lg bg-[#f1f5f9] flex items-center justify-center">
+            <FileText className="w-4 h-4 text-[#475569]" />
           </div>
           <div>
             <h2 className="text-sm font-black text-[#111827] uppercase tracking-wide">Obligaciones Tributarias — Chile</h2>
@@ -359,9 +365,9 @@ export function AdminFinanzas() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { label: "IVA neto anual",      value: formatCLP(IVA_NETO_ANUAL),                sub: "19% débito − crédito",            color: "#2563eb", note: "DL 825 art. 14" },
-              { label: "PPM anual estimado",  value: formatCLP(PPM_ANUAL),                     sub: "~2,5% ingresos · abona F22",      color: "#d97706", note: "LIR art. 84"    },
-              { label: "Primera Categoría",   value: formatCLP(IMPUESTO_PRIMERA_CATEGORIA),    sub: `${(TASA_PRIMERA_CATEGORIA * 100).toFixed(0)}% utilidad · F22 abril`, color: "#7c3aed", note: "LIR art. 20" },
-              { label: "IVA promedio mensual",value: formatCLP(Math.round(IVA_NETO_ANUAL / 12)), sub: "a pagar en F29 mensual",         color: "#0891b2", note: "F29 día 20"     },
+              { label: "PPM anual estimado",  value: formatCLP(PPM_ANUAL),                     sub: "~2,5% ingresos · abona F22",      color: "#1d4ed8", note: "LIR art. 84"    },
+              { label: "Primera Categoría",   value: formatCLP(IMPUESTO_PRIMERA_CATEGORIA),    sub: `${(TASA_PRIMERA_CATEGORIA * 100).toFixed(0)}% utilidad · F22 abril`, color: "#1e40af", note: "LIR art. 20" },
+              { label: "IVA promedio mensual",value: formatCLP(Math.round(IVA_NETO_ANUAL / 12)), sub: "a pagar en F29 mensual",         color: "#64748b", note: "F29 día 20"     },
             ].map((k, i) => (
               <motion.div
                 key={k.label}
@@ -381,9 +387,9 @@ export function AdminFinanzas() {
           </div>
 
           {/* Aviso régimen */}
-          <div className="bg-[#fffbeb] border border-[#fde68a] rounded-xl p-4 flex gap-3">
-            <Info className="w-4 h-4 text-[#d97706] flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-[#92400e] space-y-1.5">
+          <div className="bg-[#eff6ff] border border-[#bfdbfe] rounded-xl p-4 flex gap-3">
+            <Info className="w-4 h-4 text-[#2563eb] flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-[#1e3a8a] space-y-1.5">
               <p className="font-bold">
                 {esPyme ? "Régimen Pro PyME — art. 14D LIR" : "Régimen General — art. 14A LIR"}
               </p>
@@ -393,7 +399,7 @@ export function AdminFinanzas() {
                   : `Ingresos ${formatCLP(PNL.ingresos)} — sobre UF ${UF_LIMITE_PYME.toLocaleString("es-CL")} (≈ ${formatCLP(LIMITE_PYME_CLP)}). Tasa general 27%.`}
                 {" "}El PPM ({formatCLP(PPM_ANUAL)} estimado anual) se abona a cuenta del impuesto del F22 de abril.
               </p>
-              <p className="text-[10px] text-[#a16207]">
+              <p className="text-[10px] text-[#1d4ed8]">
                 Fuente: art. 14 letra {esPyme ? "D" : "A"} DL 824 LIR · Ley 21.210 (2020) ·
                 UF usada: ${UF_HOY.toLocaleString("es-CL")} — actualizar en{" "}
                 <strong>www.sii.cl/valores/uf/</strong>
