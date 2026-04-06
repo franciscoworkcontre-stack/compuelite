@@ -10,8 +10,9 @@ function formatCLP(n: number) {
   }).format(n);
 }
 
-export async function BestDeals() {
-  const deals = await api.products.bestDeals({ limit: 10 });
+export async function BestDeals({ config = {} }: { config?: Record<string, unknown> }) {
+  const limit = typeof config.maxItems === "number" ? config.maxItems : 10;
+  const deals = await api.products.bestDeals({ limit });
   if (deals.length === 0) return null;
 
   return (
@@ -28,7 +29,7 @@ export async function BestDeals() {
               className="text-sm font-black text-white uppercase tracking-widest"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Today&apos;s Best Deals
+              {typeof config.title === "string" ? config.title : "Today's Best Deals"}
             </h2>
           </div>
           <span className="text-[10px] text-[#333] border border-[#1a1a1a] rounded-full px-2 py-0.5">

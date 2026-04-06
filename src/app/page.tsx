@@ -1,17 +1,31 @@
-import Link from "next/link";
 import { Suspense } from "react";
+import { api } from "@/lib/trpc/server";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
 import { HomeSidebar } from "@/components/shop/HomeSidebar";
 import { FeaturedBanners } from "@/components/shop/FeaturedBanners";
 import { BestDeals } from "@/components/shop/BestDeals";
 import { BrandLogos } from "@/components/shop/BrandLogos";
-import { FeaturedBuilds } from "@/components/shop/FeaturedBuilds";
+import { BuildsByType } from "@/components/shop/BuildsByType";
 import { BrandFilter } from "@/components/shop/BrandFilter";
 import { MobileNav } from "@/components/shop/MobileNav";
 import { TrustSignals } from "@/components/shop/TrustSignals";
 
+// Maps a section slug to its React component
+function renderSection(slug: string, config: Record<string, unknown>) {
+  switch (slug) {
+    case "featured_banners": return <FeaturedBanners />;
+    case "best_deals":       return <BestDeals config={config} />;
+    case "builds_by_type":   return <BuildsByType config={config} />;
+    case "brand_logos":      return <BrandLogos />;
+    case "trust_signals":    return <><div className="h-px bg-[#111]" /><TrustSignals /></>;
+    default:                 return null;
+  }
+}
+
 export default async function HomePage() {
+  const sections = await api.content.homepageSections();
+
   return (
     <>
       <Navbar />
@@ -27,48 +41,22 @@ export default async function HomePage() {
           {/* Main content */}
           <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 space-y-8 pb-20 lg:pb-6">
 
-            {/* Brand filter row */}
+            {/* Brand filter row — always shown */}
             <Suspense fallback={null}>
               <BrandFilter />
             </Suspense>
 
-            {/* Featured banners */}
-            <FeaturedBanners />
-
-            {/* Today's Best Deals */}
-            <BestDeals />
-
-            {/* Separator */}
-            <div className="h-px bg-[#111]" />
-
-            {/* Builds section */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2
-                  className="text-sm font-black text-white uppercase tracking-widest"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  Builds Populares
-                </h2>
-                <Link
-                  href="/builds"
-                  className="text-[10px] text-[#444] hover:text-[#00ff66] transition-colors uppercase tracking-widest flex items-center gap-1"
-                >
-                  Ver todas
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
-              <FeaturedBuilds compact />
-            </section>
-
-            {/* Brand logos */}
-            <BrandLogos />
-
-            {/* Trust signals */}
-            <div className="h-px bg-[#111]" />
-            <TrustSignals />
+            {/* Dynamic sections from DB */}
+            {sections.map((section) => {
+              const config = (section.config ?? {}) as Record<string, unknown>;
+              const rendered = renderSection(section.slug, config);
+              if (!rendered) return null;
+              return (
+                <div key={section.id}>
+                  {rendered}
+                </div>
+              );
+            })}
 
           </main>
         </div>

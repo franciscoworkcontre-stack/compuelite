@@ -294,16 +294,16 @@ function ProductCard({
       transition={{ delay: index * 0.04, type: "spring", stiffness: 120, damping: 18 }}
       whileHover={isIncompat ? {} : { y: -1, scale: 1.005 }}
       whileTap={isIncompat ? {} : { scale: 0.998 }}
-      className={`w-full flex items-center gap-4 p-4 text-left rounded-xl border transition-all group ${
+      className={`w-full flex items-center gap-4 p-4 text-left transition-all group rounded-xl ${
         selected
-          ? "border-[#00ff66]/40 bg-[#00ff66]/[0.04] shadow-lg shadow-[#00ff66]/5"
+          ? "border-l-4 border-l-[#00ff66] border-t border-r border-b border-[#00ff66]/30 bg-[#00ff66]/[0.04] shadow-lg shadow-[#00ff66]/5"
           : isIncompat
-          ? "border-[#1a1a1a] opacity-30 cursor-not-allowed"
-          : "border-[#161616] hover:border-[#2a2a2a] hover:bg-white/[0.02]"
+          ? "border border-[#1a1a1a] opacity-30 cursor-not-allowed"
+          : "border border-[#161616] hover:border-[#2a2a2a] hover:bg-white/[0.02]"
       }`}
     >
       {/* Image */}
-      <div className={`flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border transition-all ${
+      <div className={`flex-shrink-0 w-16 h-16 md:w-14 md:h-14 overflow-hidden border transition-all ${
         selected ? "border-[#00ff66]/20 bg-[#001a09]" : "border-[#1a1a1a] bg-[#0d0d0d]"
       }`}>
         {product.images[0]?.url ? (
@@ -438,15 +438,15 @@ function BuilderSection({
   return (
     <section ref={sectionRef} id={`section-${step}`} className="border-b border-[#0f0f0f]">
       {/* Header */}
-      <div className="px-5 py-4 flex items-center justify-between sticky top-0 bg-[#080808]/98 backdrop-blur-sm z-10 border-b border-[#111]">
+      <div className="px-4 md:px-5 py-4 flex items-center justify-between sticky top-0 bg-[#080808]/98 backdrop-blur-sm z-10 border-b border-[#111]">
         <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-colors ${
+          <div className={`w-10 h-10 md:w-8 md:h-8 flex items-center justify-center border transition-colors ${
             selected ? "border-[#00ff66]/30 bg-[#00ff66]/10 text-[#00ff66]" : "border-[#1a1a1a] bg-[#111] text-[#333]"
           }`}>
             {STEP_SVG[step]}
           </div>
           <div>
-            <h2 className="text-xs font-black text-white uppercase tracking-widest" style={{ fontFamily: "var(--font-display)" }}>
+            <h2 className="text-sm md:text-xs font-black text-white uppercase tracking-widest" style={{ fontFamily: "var(--font-display)" }}>
               {meta.label}
             </h2>
             <p className="text-[10px] text-[#333]">{meta.description}</p>
@@ -813,7 +813,7 @@ function MobileStepBar({
   }, [activeStep]);
 
   return (
-    <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+    <div className="flex gap-1.5 overflow-x-auto px-3 py-2.5 scrollbar-none" style={{ scrollbarWidth: "none" }}>
       {BUILD_STEPS.map((step) => {
         const meta = STEP_META[step];
         const done = !!components[step];
@@ -823,16 +823,16 @@ function MobileStepBar({
             key={step}
             ref={isActive ? activeRef : null}
             onClick={() => onSelect(step)}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium transition-all border ${
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all border ${
               isActive
-                ? "bg-white text-black border-white"
+                ? "bg-[#00ff66] text-black border-[#00ff66]"
                 : done
-                ? "bg-[#00ff66]/10 text-[#00ff66] border-[#00ff66]/30"
-                : "bg-transparent text-[#444] border-[#1a1a1a] hover:border-[#252525] hover:text-[#666]"
+                ? "bg-[#00ff66]/8 text-[#00ff66] border-[#00ff66]/25"
+                : "bg-[#0d0d0d] text-[#333] border-[#1a1a1a]"
             }`}
-            style={{ fontFamily: isActive ? "var(--font-display)" : undefined }}
+            style={{ fontFamily: "var(--font-display)" }}
           >
-            {done && !isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66]" />}
+            {done && !isActive && <div className="w-1 h-1 rounded-full bg-[#00ff66]" />}
             {meta.label}
           </button>
         );
@@ -843,31 +843,49 @@ function MobileStepBar({
 
 // ─── MOBILE BOTTOM BAR ───────────────────────────────────────────────────────
 
-function MobileBottomBar({ onOpenSummary }: { onOpenSummary: () => void }) {
+function MobileBottomBar({ onOpenSummary, onAddToCart }: { onOpenSummary: () => void; onAddToCart: () => void }) {
   const { components, totalPrice } = useBuilderStore();
   const selectedCount = Object.keys(components).length;
   const issues = checkCompatibility(components);
   const hasErrors = issues.some((i) => i.type === "error");
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0a] border-t border-[#141414] px-4 py-3 flex items-center gap-3">
-      <div className="flex-1">
-        <p className="text-[10px] text-[#444] uppercase tracking-widest">Total</p>
-        <p className="text-lg font-black font-mono text-white">
-          {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(totalPrice)}
-        </p>
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#080808]/95 backdrop-blur-xl border-t border-[#1a1a1a]">
+      {/* Price row */}
+      <div className="px-4 pt-3 pb-2 flex items-center gap-3">
+        <div className="flex-1">
+          <p className="text-[9px] text-[#333] uppercase tracking-widest">Total estimado</p>
+          <p className="text-xl font-black font-mono text-white leading-tight">
+            {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(totalPrice)}
+          </p>
+          {selectedCount > 0 && (
+            <p className="text-[9px] text-[#444] mt-0.5">{selectedCount} componente{selectedCount !== 1 ? "s" : ""}</p>
+          )}
+        </div>
+        {hasErrors && <AlertTriangle className="w-4 h-4 text-[#ff4545] flex-shrink-0" />}
       </div>
-      {hasErrors && <div className="w-2 h-2 rounded-full bg-[#ff4545] flex-shrink-0" />}
-      <button
-        onClick={onOpenSummary}
-        className="flex items-center gap-2 px-4 py-2.5 bg-[#00ff66] text-black text-xs font-black uppercase tracking-wider rounded-lg"
-        style={{ fontFamily: "var(--font-display)" }}
-      >
-        Resumen
-        {selectedCount > 0 && (
-          <span className="bg-black/20 px-1.5 py-0.5 rounded-full text-[10px]">{selectedCount}</span>
-        )}
-      </button>
+      {/* CTA row */}
+      <div className="px-4 pb-4 flex gap-2">
+        <button
+          onClick={onOpenSummary}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-[#00ff66]/25 text-[#00ff66] text-[11px] font-bold uppercase tracking-widest bg-[#00ff66]/5"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Resumen
+          {selectedCount > 0 && (
+            <span className="bg-[#00ff66]/10 border border-[#00ff66]/20 px-1.5 py-0.5 text-[9px]">{selectedCount}</span>
+          )}
+        </button>
+        <button
+          onClick={onAddToCart}
+          disabled={selectedCount === 0 || hasErrors}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-[#00ff66] text-black text-[11px] font-black uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          <ShoppingCart className="w-3.5 h-3.5" />
+          Armar PC
+        </button>
+      </div>
     </div>
   );
 }
@@ -943,11 +961,20 @@ function PeripheralCard({ product }: { product: { id: string; name: string; bran
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 export function BuilderPage() {
-  const { activeStep, setActiveStep } = useBuilderStore();
+  const { activeStep, setActiveStep, components } = useBuilderStore();
   const sectionRefs = useRef<Partial<Record<BuildStep, HTMLElement>>>({});
   const [hoveredProduct, setHoveredProduct] = useState<Product | null>(null);
   const [hoveredStep, setHoveredStep] = useState<BuildStep | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { addItem } = useCartStore();
+  const router = useRouter();
+  const handleMobileAddToCart = useCallback(() => {
+    Object.values(components).forEach((c) => {
+      if (!c) return;
+      addItem({ productId: c.productId, name: c.name, brand: c.brand, price: c.price, sku: c.sku, imageUrl: c.imageUrl });
+    });
+    setTimeout(() => router.push("/carrito"), 400);
+  }, [components, addItem, router]);
 
   const { data: peripherals } = trpc.builder.peripheralRecommendations.useQuery({ limit: 8 });
 
@@ -1059,7 +1086,7 @@ export function BuilderPage() {
 
       {/* Mobile bottom bar + summary sheet */}
       <div className="md:hidden">
-        <MobileBottomBar onOpenSummary={() => setSheetOpen(true)} />
+        <MobileBottomBar onOpenSummary={() => setSheetOpen(true)} onAddToCart={handleMobileAddToCart} />
         <MobileSummarySheet
           open={sheetOpen}
           onClose={() => setSheetOpen(false)}
