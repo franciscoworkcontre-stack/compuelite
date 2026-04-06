@@ -5,7 +5,7 @@ import { Footer } from "@/components/ui/Footer";
 import { HomeSidebar } from "@/components/shop/HomeSidebar";
 import { FeaturedBanners } from "@/components/shop/FeaturedBanners";
 import { BestDeals } from "@/components/shop/BestDeals";
-import { BrandPills } from "@/components/shop/BrandPills";
+import { BrandLogos } from "@/components/shop/BrandLogos";
 import { FeaturedBuilds } from "@/components/shop/FeaturedBuilds";
 import { api } from "@/lib/trpc/server";
 
@@ -29,9 +29,6 @@ export default async function HomePage() {
 
           {/* Main content */}
           <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 space-y-8">
-
-            {/* Brand pills */}
-            <BrandPills />
 
             {/* Featured banners */}
             <FeaturedBanners />
@@ -63,6 +60,9 @@ export default async function HomePage() {
               </div>
               <FeaturedBuilds compact />
             </section>
+
+            {/* Brand logos */}
+            <BrandLogos />
 
             {/* Trust signals */}
             <div className="h-px bg-[#111]" />

@@ -234,3 +234,16 @@ body {
 .product-description .pc-content > h2:first-child {
   display: none;
 }
+
+/* ── Brand marquee ── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.brand-marquee {
+  animation: marquee 28s linear infinite;
+  width: max-content;
+}
+.brand-marquee:hover {
+  animation-play-state: paused;
+}
