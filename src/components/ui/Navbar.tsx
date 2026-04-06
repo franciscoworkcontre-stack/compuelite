@@ -10,7 +10,6 @@ const navLinks = [
   { href: "/productos", label: "Productos" },
   { href: "/builder", label: "Arma tu PC" },
   { href: "/builds", label: "Builds" },
-  { href: "/marcas", label: "Marcas" },
 ];
 
 export function Navbar() {

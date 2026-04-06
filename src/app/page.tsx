@@ -7,13 +7,11 @@ import { FeaturedBanners } from "@/components/shop/FeaturedBanners";
 import { BestDeals } from "@/components/shop/BestDeals";
 import { BrandLogos } from "@/components/shop/BrandLogos";
 import { FeaturedBuilds } from "@/components/shop/FeaturedBuilds";
+import { BrandFilter } from "@/components/shop/BrandFilter";
 import { api } from "@/lib/trpc/server";
 
 export default async function HomePage() {
-  const [categories, brands] = await Promise.all([
-    api.products.categories(),
-    api.products.brands({}),
-  ]);
+  const categories = await api.products.categories();
 
   return (
     <>
@@ -24,11 +22,16 @@ export default async function HomePage() {
 
           {/* Left sidebar — desktop only, client component for active state */}
           <Suspense fallback={<div className="w-56 hidden lg:block" />}>
-            <HomeSidebar categories={categories} brands={brands} />
+            <HomeSidebar categories={categories} />
           </Suspense>
 
           {/* Main content */}
           <main className="flex-1 min-w-0 px-4 sm:px-6 py-6 space-y-8">
+
+            {/* Brand filter row */}
+            <Suspense fallback={null}>
+              <BrandFilter />
+            </Suspense>
 
             {/* Featured banners */}
             <FeaturedBanners />
