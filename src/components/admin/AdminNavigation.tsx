@@ -10,6 +10,9 @@ import {
   Cpu, Zap, Shield, Star, Tag, Gamepad2, Laptop,
   HardDrive, MemoryStick, CircuitBoard, Fan, Plug,
   Printer, Camera, Tv, Wifi, Bluetooth,
+  Mic, Tablet, Router, Volume2, Box, Thermometer,
+  Power, Joystick, Usb, ScanLine, Cable,
+  ShoppingBag, Percent, Trophy, BookOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -18,6 +21,7 @@ import type { LucideIcon } from "lucide-react";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ICON_MAP: Record<string, LucideIcon> = {
+  // Accesorios
   "layout-grid": LayoutGrid,
   "keyboard":    Keyboard,
   "armchair":    Armchair,
@@ -28,23 +32,43 @@ const ICON_MAP: Record<string, LucideIcon> = {
   "monitor":     Monitor,
   "app-window":  AppWindow,
   "wrench":      Wrench,
+  "mic":         Mic,
+  "camera":      Camera,
+  "gamepad":     Gamepad2,
+  "joystick":    Joystick,
+  "volume":      Volume2,
+  // Componentes PC
   "cpu":         Cpu,
   "zap":         Zap,
+  "circuit":     CircuitBoard,
+  "memory":      MemoryStick,
+  "hard-drive":  HardDrive,
+  "plug":        Plug,
+  "power":       Power,
+  "box":         Box,
+  "fan":         Thermometer,
+  "usb":         Usb,
+  "cable":       Cable,
+  // Portátiles
+  "laptop":      Laptop,
+  "tablet":      Tablet,
+  // Conectividad
+  "wifi":        Wifi,
+  "bluetooth":   Bluetooth,
+  "router":      Router,
+  "printer":     Printer,
+  "scan":        ScanLine,
+  // Hogar / Entretenimiento
+  "tv":          Tv,
+  // Más
   "shield":      Shield,
   "star":        Star,
   "tag":         Tag,
-  "gamepad":     Gamepad2,
-  "laptop":      Laptop,
-  "hard-drive":  HardDrive,
-  "memory":      MemoryStick,
-  "circuit":     CircuitBoard,
-  "fan":         Fan,
-  "plug":        Plug,
-  "printer":     Printer,
-  "camera":      Camera,
-  "tv":          Tv,
-  "wifi":        Wifi,
-  "bluetooth":   Bluetooth,
+  "percent":     Percent,
+  "bag":         ShoppingBag,
+  "trophy":      Trophy,
+  "book":        BookOpen,
+  "fan-spin":    Fan,
 };
 
 const ANIM_OPTIONS = ["pulse", "float", "spin", "bounce", "shake", "wiggle"] as const;
