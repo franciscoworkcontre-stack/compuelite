@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Cpu, Zap, Rocket, Flame } from "lucide-react";
+import { Home, Gamepad2, Zap, Skull, Laptop } from "lucide-react";
 import { api } from "@/lib/trpc/server";
 
 export const metadata: Metadata = {
@@ -17,108 +17,111 @@ function formatCLP(n: number | string | { toNumber?: () => number }) {
   }).format(val);
 }
 
-const BUILD_TIERS = [
+const BUILD_CATEGORIES = [
   {
-    key: "starter",
-    label: "Starter",
+    slug: "pc-gamer-start-series",
+    label: "PC Gamer Start Series",
     tagline: "Tu primer PC gamer",
-    description: "Rendimiento sólido para juegos competitivos y títulos populares en 1080p. Ideal para quien entra al mundo PC gaming sin romper el presupuesto.",
-    useCase: "FPS competitivos y juegos de alto rendimiento a 144fps+",
+    description: "Entra al mundo del gaming PC sin romper el presupuesto. Rendimiento sólido para juegos competitivos y títulos populares en 1080p a alta tasa de fotogramas.",
+    useCase: "FPS competitivos a 144fps+: Valorant, CS2, Fortnite, LoL",
     games: ["Valorant", "CS2", "Fortnite", "League of Legends"],
     specs: { cpu: "Ryzen 5 5600 / i3-12100F", gpu: "RX 6600 / RTX 3050", ram: "16GB DDR4", storage: "500GB NVMe" },
-    priceRange: "$400.000 – $700.000",
-    priceMax: 700000,
     color: "#4488ff",
-    Icon: Cpu,
-    gradient: "from-blue-500/15 to-blue-600/5",
-    glow: "rgba(68,136,255,0.15)",
-  },
-  {
-    key: "mid",
-    label: "Mid Range",
-    tagline: "1080p / 1440p sin compromiso",
-    description: "El punto dulce del gaming PC. Alta tasa de fotogramas en todos los títulos modernos. Preparado para 1440p con configuración alta.",
-    useCase: "AAA modernos en alta resolución con ray tracing básico",
-    games: ["Cyberpunk 2077", "Elden Ring", "Warzone", "Apex Legends"],
-    specs: { cpu: "Ryzen 5 7600 / i5-13400F", gpu: "RTX 4060 Ti / RX 7600 XT", ram: "16GB DDR5", storage: "1TB NVMe Gen4" },
-    priceRange: "$700.000 – $1.200.000",
-    priceMax: 1200000,
-    color: "#00ff66",
     Icon: Zap,
+    gradient: "from-blue-500/15 to-blue-600/5",
+    glow: "rgba(68,136,255,0.12)",
+  },
+  {
+    slug: "pc-gamer-pro-series",
+    label: "PC Gamer Pro Series",
+    tagline: "1080p / 1440p sin compromiso",
+    description: "El punto dulce del gaming PC. Alta tasa de fotogramas en todos los títulos modernos. Listo para 1440p con configuración alta y ray tracing básico.",
+    useCase: "AAA modernos en alta resolución con efectos visuales avanzados",
+    games: ["Cyberpunk 2077", "Elden Ring", "Warzone", "Apex Legends"],
+    specs: { cpu: "Ryzen 5 7600 / i5-13400F", gpu: "RTX 4060 Ti / RX 7700 XT", ram: "16-32GB DDR5", storage: "1TB NVMe Gen4" },
+    color: "#00ff66",
+    Icon: Gamepad2,
     gradient: "from-green-500/15 to-emerald-600/5",
-    glow: "rgba(0,255,102,0.15)",
+    glow: "rgba(0,255,102,0.12)",
   },
   {
-    key: "high",
-    label: "High End",
-    tagline: "4K gaming con ray tracing",
-    description: "Experiencia premium en cualquier título. Máxima calidad gráfica, 4K fluido y preparado para los próximos 3-4 años sin degradar rendimiento.",
-    useCase: "4K a máxima calidad, streaming y creación de contenido",
-    games: ["Alan Wake 2", "Starfield", "Hogwarts Legacy", "Spider-Man 2"],
-    specs: { cpu: "Ryzen 7 7800X3D / i7-13700K", gpu: "RTX 4070 Ti / RX 7900 XT", ram: "32GB DDR5", storage: "2TB NVMe Gen4" },
-    priceRange: "$1.200.000 – $2.500.000",
-    priceMax: 2500000,
+    slug: "pc-elite",
+    label: "PC Elite®",
+    tagline: "4K gaming. Sin límites.",
+    description: "La cúspide del gaming PC. Componentes de primera línea, 4K fluido y ray tracing a máxima calidad. Para quienes no aceptan compromisos.",
+    useCase: "4K con ray tracing, streaming y creación de contenido simultáneo",
+    games: ["Alan Wake 2", "Spider-Man 2", "Flight Simulator", "Red Dead 2"],
+    specs: { cpu: "Ryzen 7 7800X3D / i9-14900K", gpu: "RTX 4080 / RTX 4090", ram: "32-64GB DDR5", storage: "2TB NVMe Gen4" },
     color: "#ffb800",
-    Icon: Rocket,
+    Icon: Skull,
     gradient: "from-yellow-500/15 to-orange-600/5",
-    glow: "rgba(255,184,0,0.15)",
+    glow: "rgba(255,184,0,0.12)",
   },
   {
-    key: "ultra",
-    label: "Ultra",
-    tagline: "Sin límites",
-    description: "La cúspide del hardware gaming. Sin concesiones. Cada componente es lo mejor disponible. Para quienes exigen lo máximo sin importar el precio.",
-    useCase: "4K/8K extremo, edición de video 4K, renderizado y gaming sin límites",
-    games: ["Flight Simulator", "Red Dead 2", "Cualquier juego maxeado", "4K/144fps"],
-    specs: { cpu: "Core i9-14900K / Ryzen 9 7950X3D", gpu: "RTX 4090", ram: "64GB DDR5", storage: "4TB NVMe Gen4" },
-    priceRange: "$2.500.000+",
-    priceMax: 99999999,
-    color: "#ff3333",
-    Icon: Flame,
-    gradient: "from-red-500/15 to-orange-600/5",
-    glow: "rgba(255,51,51,0.15)",
+    slug: "workstation",
+    label: "PC Workstation",
+    tagline: "Rendimiento profesional",
+    description: "Diseñada para trabajo intensivo: edición de video 4K, modelado 3D, renderizado, arquitectura y desarrollo. Estabilidad y potencia continua las 24h.",
+    useCase: "Edición de video, render 3D, CAD, desarrollo y multitarea pesada",
+    games: ["Adobe Premiere", "Blender", "AutoCAD", "DaVinci Resolve"],
+    specs: { cpu: "Ryzen 9 7950X / Threadripper", gpu: "RTX 4090 / RTX A-series", ram: "64-128GB DDR5", storage: "4TB NVMe Gen4" },
+    color: "#00ddff",
+    Icon: Laptop,
+    gradient: "from-cyan-500/15 to-blue-600/5",
+    glow: "rgba(0,221,255,0.12)",
+  },
+  {
+    slug: "componentes",
+    label: "PC Hogar y Oficina",
+    tagline: "Productividad y entretenimiento",
+    description: "PCs versátiles para uso cotidiano: navegación, oficina, streaming, videollamadas y juegos casuales. Silenciosas, eficientes y confiables.",
+    useCase: "Trabajo remoto, Office, streaming y gaming casual sin exigencias",
+    games: ["Office 365", "Streaming 4K", "Zoom/Teams", "Juegos casuales"],
+    specs: { cpu: "Ryzen 5 5600G / i5-12400", gpu: "Integrada / RX 6400", ram: "16GB DDR4", storage: "512GB SSD" },
+    color: "#888888",
+    Icon: Home,
+    gradient: "from-gray-500/15 to-gray-600/5",
+    glow: "rgba(136,136,136,0.12)",
   },
 ];
 
 export default async function BuildsPage() {
-  const { items: products } = await api.products.list({
-    inStock: true,
-    sort: "price_asc",
-    limit: 100,
-  });
+  const allCategories = await api.products.categories();
 
-  // Group by price tier
-  const tiers = BUILD_TIERS.map((tier, i) => {
-    const priceMin = i === 0 ? 0 : BUILD_TIERS[i - 1].priceMax;
-    const tierProducts = products.filter((p) => {
-      const price = Number(p.price);
-      return price >= priceMin && price < tier.priceMax;
-    });
-    return { ...tier, products: tierProducts };
-  });
+  // Fetch products per category slug
+  const categoryProducts = await Promise.all(
+    BUILD_CATEGORIES.map(async (cat) => {
+      const { items } = await api.products.list({
+        inStock: true,
+        categorySlug: cat.slug,
+        sort: "price_asc",
+        limit: 8,
+      });
+      const dbCat = allCategories.find((c) => c.slug === cat.slug);
+      return { ...cat, products: items, total: dbCat?._count.products ?? items.length };
+    })
+  );
 
   return (
     <main className="min-h-screen pt-16 bg-[#0a0a0a]">
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden border-b border-[#111]">
-        {/* Grid background */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.025]"
           style={{
             backgroundImage: "linear-gradient(rgba(0,255,102,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,1) 1px, transparent 1px)",
             backgroundSize: "48px 48px",
           }}
         />
-        {/* Center radial glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(0,255,102,0.08),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(0,255,102,0.07),transparent_60%)]" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <span
             className="inline-block text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded border mb-6"
             style={{ color: "#00ff66", borderColor: "#00ff6630", background: "#00ff6608" }}
           >
-            Gaming Builds 2025
+            Configuraciones 2025
           </span>
 
           <h1
@@ -131,13 +134,13 @@ export default async function BuildsPage() {
           </h1>
 
           <p className="text-[#555] max-w-2xl mx-auto text-sm leading-relaxed mb-8">
-            Un build es una PC ensamblada y optimizada para un propósito específico. Cada tier combina componentes
-            calibrados para entregar un objetivo de rendimiento concreto dentro de un rango de presupuesto.
-            Elige según tu resolución objetivo, juegos y ambiciones.
+            Un build es una PC ensamblada y optimizada para un propósito específico. Cada línea combina
+            componentes calibrados para entregar un objetivo de rendimiento concreto. Elige la línea
+            que se ajuste a tu uso, presupuesto y ambiciones.
           </p>
 
           <div className="flex flex-wrap justify-center gap-6 mb-10">
-            {["Specs curados", "Stock disponible", "Garantía incluida"].map((label) => (
+            {["Garantía incluida", "Stock real", "Soporte postventa"].map((label) => (
               <div key={label} className="flex items-center gap-2 text-xs text-[#444] uppercase tracking-wider font-bold">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#00ff66] animate-pulse" />
                 {label}
@@ -163,108 +166,94 @@ export default async function BuildsPage() {
         </div>
       </div>
 
-      {/* ── Tier cards ───────────────────────────────────────────── */}
+      {/* ── Category tier cards ───────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {tiers.map((tier, idx) => {
-            const { Icon } = tier;
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {categoryProducts.map((cat, idx) => {
+            const { Icon } = cat;
             return (
               <div
-                key={tier.key}
-                className={`relative flex flex-col bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl overflow-hidden group hover:border-opacity-60 transition-all duration-300`}
-                style={{ ["--hover-border" as string]: tier.color }}
+                key={cat.slug}
+                className="relative flex flex-col bg-[#0d0d0d] border border-[#1a1a1a] rounded-xl overflow-hidden group hover:border-opacity-50 transition-all duration-300"
               >
-                {/* Hover gradient fill */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${tier.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}
+                  className={`absolute inset-0 bg-gradient-to-br ${cat.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`}
                 />
-                {/* Corner glow */}
                 <div
-                  className="absolute top-0 right-0 w-24 h-24 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                  style={{ background: tier.glow }}
+                  className="absolute top-0 right-0 w-20 h-20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{ background: cat.glow }}
                 />
 
-                <div className="relative p-5 flex-1 flex flex-col gap-4">
-                  {/* Top row */}
+                <div className="relative p-4 flex-1 flex flex-col gap-3">
+                  {/* Icon + index */}
                   <div className="flex items-start justify-between">
                     <div
-                      className="w-11 h-11 rounded-lg flex items-center justify-center border transition-colors"
-                      style={{ background: `${tier.color}12`, borderColor: `${tier.color}30` }}
+                      className="w-10 h-10 rounded-lg flex items-center justify-center border"
+                      style={{ background: `${cat.color}12`, borderColor: `${cat.color}30` }}
                     >
-                      <Icon className="w-5 h-5" style={{ color: tier.color }} />
+                      <Icon className="w-5 h-5" style={{ color: cat.color }} />
                     </div>
                     <span
                       className="text-[9px] font-mono border rounded px-1.5 py-0.5"
-                      style={{ color: tier.color, borderColor: `${tier.color}35`, background: `${tier.color}0a` }}
+                      style={{ color: cat.color, borderColor: `${cat.color}35`, background: `${cat.color}0a` }}
                     >
-                      #{idx + 1}
+                      {cat.total} modelos
                     </span>
                   </div>
 
-                  {/* Name + price */}
+                  {/* Name */}
                   <div>
                     <h2
-                      className="text-xl font-black uppercase tracking-wider text-white mb-1"
+                      className="text-sm font-black uppercase tracking-wide text-white mb-0.5 leading-tight"
                       style={{ fontFamily: "var(--font-display)" }}
                     >
-                      {tier.label}
+                      {cat.label}
                     </h2>
-                    <div
-                      className="text-lg font-bold font-mono mb-2"
-                      style={{ color: tier.color }}
-                    >
-                      {tier.priceRange}
-                    </div>
-                    <p className="text-xs text-[#555] leading-relaxed">{tier.description}</p>
+                    <p className="text-[10px]" style={{ color: cat.color }}>{cat.tagline}</p>
                   </div>
+
+                  {/* Description */}
+                  <p className="text-[11px] text-[#555] leading-relaxed">{cat.description}</p>
 
                   {/* Use case */}
                   <div>
-                    <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: tier.color }}>
+                    <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: cat.color }}>
                       Uso ideal
                     </p>
-                    <p className="text-xs text-[#666] leading-snug">{tier.useCase}</p>
+                    <p className="text-[10px] text-[#555] leading-snug">{cat.useCase}</p>
                   </div>
 
-                  {/* Games */}
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-widest mb-2" style={{ color: tier.color }}>
-                      Juegos de referencia
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {tier.games.map((g) => (
-                        <span
-                          key={g}
-                          className="text-[10px] px-2 py-0.5 rounded border text-[#555]"
-                          style={{ borderColor: "#1a1a1a", background: "#0a0a0a" }}
-                        >
-                          {g}
-                        </span>
-                      ))}
-                    </div>
+                  {/* Reference apps/games */}
+                  <div className="flex flex-wrap gap-1">
+                    {cat.games.map((g) => (
+                      <span
+                        key={g}
+                        className="text-[9px] px-1.5 py-0.5 rounded border text-[#444]"
+                        style={{ borderColor: "#1a1a1a", background: "#0a0a0a" }}
+                      >
+                        {g}
+                      </span>
+                    ))}
                   </div>
 
                   {/* Specs */}
-                  <div className="border-t border-[#111] pt-3 space-y-1.5">
-                    <p className="text-[9px] font-bold uppercase tracking-widest mb-2" style={{ color: tier.color }}>
-                      Specs típicos
-                    </p>
-                    {Object.entries(tier.specs).map(([k, v]) => (
-                      <div key={k} className="flex justify-between gap-2 text-[10px]">
-                        <span className="text-[#333] uppercase font-bold">{k}:</span>
-                        <span className="text-[#666] text-right">{v}</span>
+                  <div className="border-t border-[#111] pt-3 space-y-1">
+                    {Object.entries(cat.specs).map(([k, v]) => (
+                      <div key={k} className="flex justify-between gap-2 text-[9px]">
+                        <span className="text-[#2a2a2a] uppercase font-bold">{k}:</span>
+                        <span className="text-[#555] text-right">{v}</span>
                       </div>
                     ))}
                   </div>
 
                   {/* CTA */}
                   <Link
-                    href={`/productos?precioMax=${tier.priceMax}`}
-                    className="mt-auto flex items-center justify-between w-full pt-3 border-t border-[#111] text-xs font-bold uppercase tracking-wider transition-colors group/link"
-                    style={{ color: "#333" }}
+                    href={`/productos?categoria=${cat.slug}`}
+                    className="mt-auto flex items-center justify-between w-full pt-3 border-t border-[#111] text-[10px] font-bold uppercase tracking-wider transition-colors group/link"
+                    style={{ color: "#2a2a2a" }}
                   >
                     <span className="group-hover/link:text-white transition-colors">
-                      Ver modelos disponibles
+                      Ver todos los modelos
                     </span>
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -277,49 +266,48 @@ export default async function BuildsPage() {
         </div>
       </div>
 
-      {/* ── Products by tier ─────────────────────────────────────── */}
+      {/* ── Products per category ─────────────────────────────────── */}
       <div className="border-t border-[#0f0f0f]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-14">
-          {tiers.map((tier) => {
-            if (tier.products.length === 0) return null;
-            const { Icon } = tier;
+          {categoryProducts.map((cat) => {
+            if (cat.products.length === 0) return null;
+            const { Icon } = cat;
             return (
-              <section key={tier.key}>
-                <div className="flex items-center gap-3 mb-6">
-                  <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center border"
-                    style={{ background: `${tier.color}12`, borderColor: `${tier.color}30` }}
-                  >
-                    <Icon className="w-4 h-4" style={{ color: tier.color }} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
+              <section key={cat.slug}>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center border"
+                      style={{ background: `${cat.color}12`, borderColor: `${cat.color}30` }}
+                    >
+                      <Icon className="w-4 h-4" style={{ color: cat.color }} />
+                    </div>
+                    <div>
                       <h2
                         className="text-sm font-black uppercase tracking-widest"
-                        style={{ color: tier.color, fontFamily: "var(--font-display)" }}
+                        style={{ color: cat.color, fontFamily: "var(--font-display)" }}
                       >
-                        {tier.label}
+                        {cat.label}
                       </h2>
-                      <span
-                        className="text-[9px] px-2 py-0.5 rounded border"
-                        style={{ color: tier.color, borderColor: `${tier.color}35`, background: `${tier.color}0a` }}
-                      >
-                        {tier.products.length} disponibles
-                      </span>
+                      <p className="text-[10px] text-[#444]">{cat.tagline}</p>
                     </div>
-                    <p className="text-[10px] text-[#444]">{tier.tagline}</p>
                   </div>
+                  <Link
+                    href={`/productos?categoria=${cat.slug}`}
+                    className="text-[10px] text-[#333] hover:text-[#888] transition-colors uppercase tracking-wider"
+                  >
+                    Ver todos →
+                  </Link>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {tier.products.slice(0, 4).map((product) => {
+                  {cat.products.slice(0, 4).map((product) => {
                     const img = product.images[0]?.url;
                     return (
                       <Link
                         key={product.id}
                         href={`/productos/${product.slug}`}
-                        className="group flex flex-col bg-[#0d0d0d] border border-[#161616] rounded-xl overflow-hidden transition-all duration-300"
-                        style={{ ["--hover-color" as string]: tier.color }}
+                        className="group flex flex-col bg-[#0d0d0d] border border-[#161616] rounded-xl overflow-hidden transition-all duration-300 hover:border-opacity-40"
                       >
                         <div className="aspect-[4/3] bg-[#0a0a0a] flex items-center justify-center overflow-hidden">
                           {img ? (
@@ -335,11 +323,14 @@ export default async function BuildsPage() {
                         </div>
                         <div className="p-4 flex-1 flex flex-col">
                           <p className="text-[10px] text-[#333] mb-1">{product.brand}</p>
-                          <p className="text-xs font-semibold text-[#888] leading-snug line-clamp-2 flex-1 group-hover:text-white transition-colors">
+                          <p className="text-xs font-semibold text-[#777] leading-snug line-clamp-2 flex-1 group-hover:text-white transition-colors">
                             {product.name}
                           </p>
                           <div className="mt-3 flex items-end justify-between">
-                            <p className="text-base font-black font-mono" style={{ color: tier.color }}>
+                            <p
+                              className="text-base font-black font-mono"
+                              style={{ color: cat.color }}
+                            >
                               {formatCLP(Number(product.price))}
                             </p>
                             {product.stock <= 3 && (
@@ -352,13 +343,13 @@ export default async function BuildsPage() {
                   })}
                 </div>
 
-                {tier.products.length > 4 && (
+                {cat.products.length > 4 && (
                   <div className="mt-4 text-center">
                     <Link
-                      href={`/productos?precioMax=${tier.priceMax}`}
+                      href={`/productos?categoria=${cat.slug}`}
                       className="text-xs text-[#333] hover:text-[#888] transition-colors"
                     >
-                      +{tier.products.length - 4} equipos más en este rango →
+                      +{cat.products.length - 4} modelos más en esta línea →
                     </Link>
                   </div>
                 )}
