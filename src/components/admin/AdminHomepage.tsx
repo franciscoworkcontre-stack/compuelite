@@ -6,6 +6,7 @@ import {
   Eye, EyeOff, Settings, Save, X, GripVertical,
   Plus, Trash2, Pencil, Image as ImageIcon, ExternalLink,
 } from "lucide-react";
+import { ImageUploader } from "./ImageUploader";
 
 // ─── SECTION CONFIG META ─────────────────────────────────────────────────────
 
@@ -111,8 +112,6 @@ function BannerModal({ banner, onSave, onClose }: {
   const [imageUrl, setImg]  = useState(banner?.imageUrl ?? "");
   const [href, setHref]     = useState(banner?.href ?? "");
   const [accent, setAccent] = useState(banner?.accentColor ?? "#00ff66");
-  const [imgErr, setImgErr] = useState(false);
-
   const valid = title.trim() && imageUrl.trim() && href.trim();
 
   return (
@@ -127,10 +126,10 @@ function BannerModal({ banner, onSave, onClose }: {
 
         <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
           {/* Preview */}
-          {imageUrl && !imgErr && (
+          {imageUrl && (
             <div className="relative h-28 rounded-lg overflow-hidden border border-[#1a1a1a] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${accent}15, #0a0a0a)` }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageUrl} alt="preview" className="h-full max-h-24 object-contain" onError={() => setImgErr(true)} onLoad={() => setImgErr(false)} />
+              <img src={imageUrl} alt="preview" className="h-full max-h-24 object-contain" />
               <div className="absolute bottom-2 left-3">
                 <p className="text-[10px] font-bold" style={{ color: accent }}>{subtitle || "Subtítulo"}</p>
                 <p className="text-sm font-black text-white">{title || "Título"}</p>
@@ -148,14 +147,7 @@ function BannerModal({ banner, onSave, onClose }: {
             <input value={subtitle} onChange={e => setSub(e.target.value)} placeholder="NVIDIA / AMD / Intel" className="w-full px-3 py-2 text-sm bg-[#111] border border-[#222] text-white rounded-lg focus:outline-none focus:border-[#00ff66]/50 placeholder-[#333]" />
           </div>
 
-          <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1">URL de imagen *</label>
-            <div className="relative">
-              <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#333]" />
-              <input value={imageUrl} onChange={e => { setImg(e.target.value); setImgErr(false); }} placeholder="https://cdn.example.com/product.png" className="w-full pl-9 pr-4 py-2 text-sm bg-[#111] border border-[#222] text-white rounded-lg focus:outline-none focus:border-[#00ff66]/50 placeholder-[#333]" />
-            </div>
-            {imgErr && <p className="text-[10px] text-[#ff4545] mt-1">No se pudo cargar la imagen</p>}
-          </div>
+          <ImageUploader value={imageUrl} onChange={url => setImg(url)} folder="banners" label="Imagen del banner *" />
 
           <div>
             <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1">Link destino *</label>

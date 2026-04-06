@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { PromotionType, PromotionConditionType } from "@prisma/client";
+import { CsvUploadZone } from "./CsvUploadZone";
 
 const TYPE_LABELS: Record<PromotionType, string> = {
   PERCENTAGE: "% Descuento",
@@ -42,6 +43,7 @@ const EMPTY_FORM = {
 export function AdminPromotions() {
   const utils = trpc.useUtils();
   const { data: rules, isLoading } = trpc.promotions.list.useQuery();
+  const [tab, setTab] = useState<"reglas" | "sku_csv">("reglas");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -94,18 +96,47 @@ export function AdminPromotions() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-black text-white uppercase tracking-wide">Promociones automáticas</h1>
-          <p className="text-xs text-[#555] mt-1">Reglas de descuento que se aplican automáticamente al checkout</p>
+          <h1 className="text-xl font-black text-white uppercase tracking-wide">Promociones</h1>
+          <p className="text-xs text-[#555] mt-1">Reglas automáticas de descuento y precios por SKU</p>
         </div>
-        <button
+        {tab === "reglas" && <button
           onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_FORM); }}
           className="px-4 py-2 bg-[#00ff66] text-black text-xs font-black uppercase tracking-wider rounded-lg hover:bg-[#00cc52] transition-colors"
         >
           + Nueva regla
-        </button>
+        </button>}
       </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-[#1a1a1a] mb-6">
+        {([["reglas", "Reglas automáticas"], ["sku_csv", "Ofertas por SKU (CSV)"]] as const).map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)}
+            className={`px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors border-b-2 -mb-px ${tab === id ? "text-[#00ff66] border-[#00ff66]" : "text-[#444] border-transparent hover:text-[#666]"}`}
+            style={{ fontFamily: "var(--font-display)" }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "sku_csv" && (
+        <CsvUploadZone
+          endpoint="/api/admin/csv/promotions"
+          title="Ofertas por SKU en lote"
+          description="Sube precios de oferta por SKU. El sistema actualiza precio y precio original — los productos aparecen automáticamente en la sección de Ofertas del Homepage."
+          templateFilename="template-ofertas.csv"
+          templateHeaders={["sku", "precio_oferta", "precio_original"]}
+          templateExample={["GPU-RTX4090-24G", "2499990", "2899990"]}
+          helpRows={[
+            { label: "sku",            desc: "SKU exacto del producto." },
+            { label: "precio_oferta",  desc: "Nuevo precio de venta (rebajado). Debe ser menor que precio_original." },
+            { label: "precio_original",desc: "Precio antes del descuento — se muestra tachado. Debe ser mayor que precio_oferta." },
+          ]}
+        />
+      )}
+
+      {tab === "reglas" && <>
 
       {/* Form */}
       {showForm && (
@@ -225,6 +256,7 @@ export function AdminPromotions() {
           ))}
         </div>
       )}
+      </>}
     </div>
   );
 }
