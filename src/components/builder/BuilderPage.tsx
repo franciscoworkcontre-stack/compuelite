@@ -193,13 +193,13 @@ function BuilderNav({
                       </motion.div>
                     ) : (
                       <motion.span
-                        key="num"
+                        key="icon"
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
-                        className={`text-[9px] font-bold ${isActive ? "text-white" : "text-[#2a2a2a]"}`}
+                        className={`transition-colors ${isActive ? "text-white" : "text-[#2a2a2a]"}`}
                       >
-                        {stepNumber}
+                        {STEP_SVG[step]}
                       </motion.span>
                     )}
                   </AnimatePresence>
