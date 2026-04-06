@@ -301,12 +301,20 @@ function ProductCard({
             src={product.images[0].url}
             alt={product.name}
             className="w-full h-full object-contain p-1.5 group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              const img = e.currentTarget;
+              img.style.display = "none";
+              const fallback = img.nextElementSibling as HTMLElement | null;
+              if (fallback) fallback.style.display = "flex";
+            }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-5 h-5 text-[#1a1a1a]" />
-          </div>
-        )}
+        ) : null}
+        <div
+          className="w-full h-full items-center justify-center"
+          style={{ display: product.images[0]?.url ? "none" : "flex" }}
+        >
+          <Package className="w-5 h-5 text-[#1a1a1a]" />
+        </div>
       </div>
 
       {/* Info */}
@@ -595,14 +603,25 @@ function BuilderSummary({
         animate={{ opacity: 1 }}
         className="flex flex-col h-full"
       >
-        <div className="aspect-square bg-[#060606] overflow-hidden flex-shrink-0 border-b border-[#111]">
+        <div className="aspect-square bg-[#060606] overflow-hidden flex-shrink-0 border-b border-[#111] relative flex items-center justify-center">
           {img ? (
-            <img src={img} alt={hoveredProduct.name} className="w-full h-full object-contain p-8" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Package className="w-12 h-12 text-[#1a1a1a]" />
-            </div>
-          )}
+            <img
+              src={img}
+              alt={hoveredProduct.name}
+              className="w-full h-full object-contain p-8"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                const fb = e.currentTarget.nextElementSibling as HTMLElement | null;
+                if (fb) fb.style.display = "flex";
+              }}
+            />
+          ) : null}
+          <div
+            className="w-full h-full items-center justify-center"
+            style={{ display: img ? "none" : "flex" }}
+          >
+            <Package className="w-12 h-12 text-[#1a1a1a]" />
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
           <p className="text-[10px] text-[#00ff66]/60 uppercase tracking-widest">{hoveredProduct.brand}</p>
@@ -883,14 +902,25 @@ function MobileSummarySheet({
 function PeripheralCard({ product }: { product: { id: string; name: string; brand: string; price: unknown; slug: string; images: { url: string }[] } }) {
   return (
     <Link href={`/productos/${product.slug}`} className="group flex-shrink-0 w-44 flex flex-col bg-[#0d0d0d] border border-[#161616] rounded-xl overflow-hidden hover:border-[#252525] transition-all">
-      <div className="aspect-square bg-[#080808] overflow-hidden">
+      <div className="aspect-square bg-[#080808] overflow-hidden flex items-center justify-center">
         {product.images[0]?.url ? (
-          <img src={product.images[0].url} alt={product.name} className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="w-6 h-6 text-[#1a1a1a]" />
-          </div>
-        )}
+          <img
+            src={product.images[0].url}
+            alt={product.name}
+            className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+              const fb = e.currentTarget.nextElementSibling as HTMLElement | null;
+              if (fb) fb.style.display = "flex";
+            }}
+          />
+        ) : null}
+        <div
+          className="w-full h-full items-center justify-center"
+          style={{ display: product.images[0]?.url ? "none" : "flex" }}
+        >
+          <Package className="w-6 h-6 text-[#1a1a1a]" />
+        </div>
       </div>
       <div className="p-3">
         <p className="text-[9px] text-[#333] uppercase tracking-wider">{product.brand}</p>

@@ -21,6 +21,8 @@ import type { LucideIcon } from "lucide-react";
 
 type AnimType = "pulse" | "float" | "spin" | "bounce" | "shake" | "wiggle";
 
+// DB categories that exist → use ?categoria=slug
+// Others → use ?q=keyword (full-text search fallback)
 type NavItem =
   | { type: "link"; label: string; href: string; Icon: LucideIcon; anim: AnimType }
   | { type: "divider" }
@@ -39,42 +41,42 @@ const NAV_ITEMS: NavItem[] = [
   {
     type: "link",
     label: "Teclados",
-    href: "/productos?categoria=teclados",
+    href: "/productos?q=teclado",
     Icon: Keyboard,
     anim: "wiggle",
   },
   {
     type: "link",
     label: "Sillas Gamer",
-    href: "/productos?categoria=sillas-gamer",
+    href: "/productos?q=silla+gamer",
     Icon: Armchair,
     anim: "float",
   },
   {
     type: "link",
     label: "Audífonos",
-    href: "/productos?categoria=audifonos",
+    href: "/productos?q=audifonos",
     Icon: Headphones,
     anim: "bounce",
   },
   {
     type: "link",
     label: "Mouse",
-    href: "/productos?categoria=mouse",
+    href: "/productos?q=mouse",
     Icon: Mouse,
     anim: "shake",
   },
   {
     type: "link",
     label: "Kits",
-    href: "/productos?categoria=kits",
+    href: "/productos?q=kit",
     Icon: Package,
     anim: "pulse",
   },
   {
     type: "link",
     label: "Mousepads",
-    href: "/productos?categoria=mousepads",
+    href: "/productos?q=mousepad",
     Icon: Square,
     anim: "float",
   },
@@ -90,14 +92,14 @@ const NAV_ITEMS: NavItem[] = [
   {
     type: "link",
     label: "Software",
-    href: "/productos?categoria=software",
+    href: "/productos?q=software",
     Icon: AppWindow,
     anim: "pulse",
   },
   {
     type: "link",
     label: "Servicios",
-    href: "/productos?categoria=servicios",
+    href: "/productos?q=servicio",
     Icon: Wrench,
     anim: "spin",
   },
@@ -213,12 +215,16 @@ export function HomeSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeCategoria = searchParams.get("categoria") ?? "";
+  const activeQ = searchParams.get("q") ?? "";
 
   function isActive(item: Extract<NavItem, { type: "link" }>) {
     if (item.href === "/builds") return pathname === "/builds";
     const url = new URL(item.href, "http://x");
     const cat = url.searchParams.get("categoria");
-    return cat ? cat === activeCategoria : false;
+    const q = url.searchParams.get("q");
+    if (cat) return cat === activeCategoria;
+    if (q) return q === activeQ;
+    return false;
   }
 
   return (
