@@ -297,6 +297,93 @@ export const adminRouter = createTRPCRouter({
     `;
   }),
 
+  // Stock control — paginated list with filters + inline adjustment
+  stockControl: adminProcedure
+    .input(z.object({
+      search: z.string().optional(),
+      filter: z.enum(["all", "low", "out", "ok"]).default("all"),
+      productType: z.enum(["all", "STANDALONE", "COMPONENT", "PREBUILT", "PERIPHERAL", "ACCESSORY"]).default("all"),
+      limit: z.number().default(50),
+      cursor: z.string().optional(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const where: Record<string, unknown> = {
+        status: { not: "ARCHIVED" },
+        ...(input.search && {
+          OR: [
+            { name: { contains: input.search, mode: "insensitive" } },
+            { sku: { contains: input.search, mode: "insensitive" } },
+            { brand: { contains: input.search, mode: "insensitive" } },
+          ],
+        }),
+        ...(input.productType !== "all" && { productType: input.productType }),
+        ...(input.filter === "out" && { stock: 0 }),
+        ...(input.filter === "low" && { stock: { gt: 0 } }), // refined below
+        ...(input.filter === "ok" && { stock: { gt: 0 } }),
+      };
+
+      const items = await ctx.db.product.findMany({
+        take: input.limit + 1,
+        cursor: input.cursor ? { id: input.cursor } : undefined,
+        where,
+        orderBy: [{ stock: "asc" }, { name: "asc" }],
+        select: {
+          id: true, name: true, sku: true, brand: true, stock: true,
+          lowStockThreshold: true, productType: true, status: true,
+          category: { select: { name: true } },
+          images: { take: 1, select: { url: true } },
+        },
+      });
+
+      // Apply low/ok filtering in memory (needs per-product threshold)
+      const filtered = input.filter === "low"
+        ? items.filter(p => p.stock > 0 && p.stock <= p.lowStockThreshold)
+        : input.filter === "ok"
+        ? items.filter(p => p.stock > p.lowStockThreshold)
+        : items;
+
+      let nextCursor: string | undefined;
+      const result = filtered.slice(0, input.limit);
+      if (filtered.length > input.limit) nextCursor = filtered[input.limit]?.id;
+
+      // Summary counts (no pagination, fast)
+      const [total, outCount, lowCount] = await Promise.all([
+        ctx.db.product.count({ where: { status: { not: "ARCHIVED" } } }),
+        ctx.db.product.count({ where: { status: { not: "ARCHIVED" }, stock: 0 } }),
+        ctx.db.$queryRaw<[{ count: bigint }]>`
+          SELECT COUNT(*)::bigint FROM "Product"
+          WHERE status != 'ARCHIVED' AND stock > 0 AND stock <= "lowStockThreshold"
+        `,
+      ]);
+
+      return {
+        items: result,
+        nextCursor,
+        summary: {
+          total,
+          out: outCount,
+          low: Number(lowCount[0]?.count ?? 0),
+          ok: total - outCount - Number(lowCount[0]?.count ?? 0),
+        },
+      };
+    }),
+
+  // Stock movement history for a product
+  stockHistory: adminProcedure
+    .input(z.object({ productId: z.string(), limit: z.number().default(20) }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.stockMovement.findMany({
+        where: { productId: input.productId },
+        orderBy: { createdAt: "desc" },
+        take: input.limit,
+        select: {
+          id: true, type: true, quantity: true,
+          previousStock: true, newStock: true,
+          reference: true, createdAt: true,
+        },
+      });
+    }),
+
   // Search products by componentType for PC Builder
   searchComponents: adminProcedure
     .input(z.object({
