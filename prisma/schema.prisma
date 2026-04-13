@@ -241,6 +241,7 @@ model Product {
 
   bomItems         BomItem[]     @relation("ParentProduct")
   usedInBom        BomItem[]     @relation("ComponentProduct")
+  usedAsSubstitute BomSubstitute[] @relation("SubstituteProduct")
   orderItems       OrderItem[]
   cartItems        CartItem[]
   reviews          Review[]
@@ -286,17 +287,31 @@ model ProductVariant {
 // ============================
 
 model BomItem {
-  id              String  @id @default(cuid())
+  id              String         @id @default(cuid())
   parentProductId String
-  parentProduct   Product @relation("ParentProduct", fields: [parentProductId], references: [id])
+  parentProduct   Product        @relation("ParentProduct", fields: [parentProductId], references: [id])
   componentId     String
-  component       Product @relation("ComponentProduct", fields: [componentId], references: [id])
-  quantity        Int     @default(1)
-  isOptional      Boolean @default(false)
+  component       Product        @relation("ComponentProduct", fields: [componentId], references: [id])
+  quantity        Int            @default(1)
+  isOptional      Boolean        @default(false)
   slotName        String?
-  sortOrder       Int     @default(0)
+  sortOrder       Int            @default(0)
+  substitutes     BomSubstitute[]
 
   @@unique([parentProductId, componentId, slotName])
+}
+
+model BomSubstitute {
+  id        String   @id @default(cuid())
+  bomItemId String
+  bomItem   BomItem  @relation(fields: [bomItemId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation("SubstituteProduct", fields: [productId], references: [id])
+  priority  Int      @default(0)  // lower = más preferido
+  notes     String?
+
+  @@unique([bomItemId, productId])
+  @@index([bomItemId, priority])
 }
 
 // ============================
@@ -492,17 +507,20 @@ model Order {
 }
 
 model OrderItem {
-  id            String         @id @default(cuid())
-  orderId       String
-  order         Order          @relation(fields: [orderId], references: [id])
-  productId     String
-  product       Product        @relation(fields: [productId], references: [id])
-  quantity      Int
-  unitPrice     Decimal        @db.Decimal(10, 2)
-  totalPrice    Decimal        @db.Decimal(10, 2)
-  buildId       String?
-  isPartOfBuild Boolean        @default(false)
-  componentType ComponentType?
+  id                 String         @id @default(cuid())
+  orderId            String
+  order              Order          @relation(fields: [orderId], references: [id])
+  productId          String
+  product            Product        @relation(fields: [productId], references: [id])
+  quantity           Int
+  unitPrice          Decimal        @db.Decimal(10, 2)
+  totalPrice         Decimal        @db.Decimal(10, 2)
+  buildId            String?
+  isPartOfBuild      Boolean        @default(false)
+  componentType      ComponentType?
+  // For PREBUILT: resolved BOM — the exact components used (including substitutes)
+  // [ { slotName, bomItemId, componentId, componentName, sku, isSubstitute, substituteNote } ]
+  resolvedComponents Json?
 
   @@index([orderId])
 }

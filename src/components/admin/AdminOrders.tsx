@@ -11,11 +11,22 @@ type OrderStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVER
 type PaymentMethod = "TRANSFER" | "WEBPAY" | "FLOW" | "MERCADOPAGO";
 type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
 
+interface ResolvedComponent {
+  bomItemId: string;
+  slotName: string | null;
+  componentId: string;
+  componentName: string;
+  sku: string;
+  isSubstitute: boolean;
+  substituteNote: string | null;
+}
+
 interface OrderItem {
   id: string;
   quantity: number;
   totalPrice: number;
-  product: { name: string; images: { url: string }[] };
+  product: { name: string; images: { url: string }[]; productType?: string };
+  resolvedComponents?: ResolvedComponent[] | null;
 }
 
 interface Order {
@@ -460,15 +471,54 @@ export function AdminOrders() {
                         {/* Products */}
                         <div>
                           <p className="text-[10px] font-bold text-[#9ca3af] uppercase tracking-wider mb-2">Productos</p>
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             {order.items.map((item) => (
-                              <div key={item.id} className="flex items-center gap-3 bg-white border border-[#f3f4f6] rounded-lg px-3 py-2">
-                                <div className="w-7 h-7 bg-[#f3f4f6] rounded flex items-center justify-center text-sm flex-shrink-0">
-                                  🖥️
+                              <div key={item.id}>
+                                <div className="flex items-center gap-3 bg-white border border-[#f3f4f6] rounded-lg px-3 py-2">
+                                  <div className="w-7 h-7 bg-[#f3f4f6] rounded flex items-center justify-center text-sm flex-shrink-0">
+                                    🖥️
+                                  </div>
+                                  <p className="text-xs text-[#374151] flex-1 truncate">{item.product.name}</p>
+                                  <span className="text-[10px] text-[#9ca3af]">×{item.quantity}</span>
+                                  <p className="text-xs font-mono font-bold text-[#111827]">{formatCLP(item.totalPrice)}</p>
                                 </div>
-                                <p className="text-xs text-[#374151] flex-1 truncate">{item.product.name}</p>
-                                <span className="text-[10px] text-[#9ca3af]">×{item.quantity}</span>
-                                <p className="text-xs font-mono font-bold text-[#111827]">{formatCLP(item.totalPrice)}</p>
+
+                                {/* Technician BOM — shown for PREBUILT items */}
+                                {item.resolvedComponents && item.resolvedComponents.length > 0 && (
+                                  <div className="mt-1.5 ml-3 border-l-2 border-[#e5e7eb] pl-3 space-y-1">
+                                    <p className="text-[9px] font-bold text-[#9ca3af] uppercase tracking-widest mb-1.5">
+                                      Orden de ensamble — piezas a utilizar
+                                    </p>
+                                    {item.resolvedComponents.map((c, i) => (
+                                      <div key={c.bomItemId}
+                                        className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[11px] ${
+                                          c.isSubstitute
+                                            ? "bg-[#fffbeb] border border-[#fde68a]"
+                                            : "bg-[#f9fafb] border border-[#f3f4f6]"
+                                        }`}
+                                      >
+                                        <span className="text-[10px] font-black text-[#d1d5db] w-4 text-center flex-shrink-0">{i + 1}</span>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-bold text-[#111827] truncate">{c.componentName}</p>
+                                          <p className="text-[10px] text-[#9ca3af]">
+                                            SKU: {c.sku}
+                                            {c.slotName && <span className="ml-2 text-[#d1d5db]">/ {c.slotName.replace(/_\d+$/, "").replace(/_/g, " ")}</span>}
+                                          </p>
+                                        </div>
+                                        {c.isSubstitute && (
+                                          <div className="flex items-center gap-1 flex-shrink-0">
+                                            <span className="text-[9px] font-black uppercase tracking-wide text-[#d97706] bg-[#fef3c7] px-2 py-0.5 rounded-full">
+                                              SUSTITUTO
+                                            </span>
+                                            {c.substituteNote && (
+                                              <span className="text-[10px] text-[#92400e] italic">{c.substituteNote}</span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>

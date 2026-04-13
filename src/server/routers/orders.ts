@@ -8,11 +8,13 @@ import { sendOrderConfirmation, sendLowStockAlert } from "@/lib/email";
 import { evaluatePromotions } from "./promotions";
 import { Prisma } from "@prisma/client";
 import type { PrismaClient } from "@prisma/client";
-import { syncPrebuiltStock } from "@/lib/syncPrebuiltStock";
+import { syncPrebuiltStock, resolveBom } from "@/lib/syncPrebuiltStock";
 
 // Resolves the effective stock for a product:
-// - PREBUILT → min stock across all non-optional BomItem components
+// - PREBUILT → product.stock field (kept in sync by syncPrebuiltStock, which considers substitutes)
 // - anything else → product.stock
+// We use ownStock directly since syncPrebuiltStock already accounts for substitutes.
+// For the bottleneck message we do a quick slot check.
 async function effectiveStock(
   db: PrismaClient | Prisma.TransactionClient,
   productId: string,
@@ -20,33 +22,29 @@ async function effectiveStock(
   ownStock: number,
 ): Promise<{ stock: number; bottleneck?: string }> {
   if (productType !== ProductType.PREBUILT) return { stock: ownStock };
+  if (ownStock > 0) return { stock: ownStock };
 
-  const bom = await db.bomItem.findMany({
-    where: { parentProductId: productId },
+  // stock is 0 — find which slot is the bottleneck (for error message)
+  const slots = await db.bomItem.findMany({
+    where: { parentProductId: productId, isOptional: false },
     select: {
-      isOptional: true,
       slotName: true,
-      component: { select: { id: true, name: true, stock: true } },
+      component: { select: { name: true, stock: true } },
+      substitutes: { select: { product: { select: { stock: true } } } },
     },
   });
 
-  // If no BOM defined yet, treat as unavailable
-  if (bom.length === 0) return { stock: 0, bottleneck: "Sin fórmula de componentes" };
-
-  // Only required components gate availability
-  const required = bom.filter(b => !b.isOptional);
-  if (required.length === 0) return { stock: 0, bottleneck: "Sin componentes obligatorios" };
-
-  let min = Infinity;
-  let bottleneck = "";
-  for (const b of required) {
-    if (b.component.stock < min) {
-      min = b.component.stock;
-      bottleneck = b.component.name;
+  for (const s of slots) {
+    const slotMax = Math.max(
+      s.component.stock,
+      ...s.substitutes.map(sub => sub.product.stock)
+    );
+    if (slotMax === 0) {
+      return { stock: 0, bottleneck: s.component.name };
     }
   }
 
-  return { stock: min === Infinity ? 0 : min, bottleneck: min === 0 ? bottleneck : undefined };
+  return { stock: 0, bottleneck: "componente sin stock" };
 }
 
 export const ordersRouter = createTRPCRouter({
@@ -211,25 +209,35 @@ export const ordersRouter = createTRPCRouter({
         });
 
         // Decrement stock atomically
-        // PREBUILT → decrement each required BomItem component, not the virtual product itself
+        // PREBUILT → resolve BOM (primary or substitute) then decrement resolved components
         // everything else → decrement the product directly
         const decrementedComponentIds: string[] = [];
         for (const item of enrichedItems) {
           const meta = products.find(p => p.id === item.productId);
           if (meta?.productType === ProductType.PREBUILT) {
-            const bom = await tx.bomItem.findMany({
-              where: { parentProductId: item.productId, isOptional: false },
-              select: { componentId: true },
-            });
+            // Resolve which exact components (primary or substitute) to use
+            const resolved = await resolveBom(
+              tx as unknown as Prisma.TransactionClient,
+              item.productId,
+              item.quantity,
+            );
+
+            // Decrement each resolved component
             await Promise.all(
-              bom.map(b =>
+              resolved.map(r =>
                 tx.product.update({
-                  where: { id: b.componentId },
+                  where: { id: r.componentId },
                   data: { stock: { decrement: item.quantity } },
                 })
               )
             );
-            decrementedComponentIds.push(...bom.map(b => b.componentId));
+            decrementedComponentIds.push(...resolved.map(r => r.componentId));
+
+            // Persist resolved BOM on the order item for technicians
+            await tx.orderItem.updateMany({
+              where: { orderId: newOrder.id, productId: item.productId },
+              data: { resolvedComponents: resolved },
+            });
           } else {
             await tx.product.update({
               where: { id: item.productId },

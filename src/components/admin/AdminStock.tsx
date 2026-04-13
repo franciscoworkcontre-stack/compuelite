@@ -5,8 +5,9 @@ import { trpc } from "@/lib/trpc/client";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Search, AlertTriangle, XCircle, CheckCircle2, Package,
-  ChevronDown, ChevronUp, History, Pencil, Check, X,
+  ChevronDown, ChevronUp, History, Pencil, Check, X, ArrowLeftRight,
 } from "lucide-react";
+import { AdminBomSubstitutes } from "./AdminBomSubstitutes";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -147,6 +148,7 @@ function StockHistoryPanel({ productId, onClose }: { productId: string; onClose:
 function ProductRow({ product, refetch }: { product: StockProduct; refetch: () => void }) {
   const [editing, setEditing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showSubstitutes, setShowSubstitutes] = useState(false);
   const st = stockStatus(product.stock, product.lowStockThreshold);
   const cfg = STATUS_CONFIG[st];
 
@@ -206,9 +208,20 @@ function ProductRow({ product, refetch }: { product: StockProduct; refetch: () =
           )}
         </div>
 
+        {/* Substitutes toggle — only for PREBUILT */}
+        {product.productType === "PREBUILT" && (
+          <button
+            onClick={() => { setShowSubstitutes(v => !v); setShowHistory(false); }}
+            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${showSubstitutes ? "text-[#7c3aed] bg-[#f5f3ff]" : "text-[#9ca3af] hover:text-[#374151] hover:bg-[#f3f4f6]"}`}
+            title="Gestionar sustitutos"
+          >
+            <ArrowLeftRight className="w-3.5 h-3.5" />
+          </button>
+        )}
+
         {/* History toggle */}
         <button
-          onClick={() => setShowHistory(v => !v)}
+          onClick={() => { setShowHistory(v => !v); setShowSubstitutes(false); }}
           className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${showHistory ? "text-[#2563eb] bg-[#eff6ff]" : "text-[#9ca3af] hover:text-[#374151] hover:bg-[#f3f4f6]"}`}
           title="Ver historial"
         >
@@ -219,6 +232,18 @@ function ProductRow({ product, refetch }: { product: StockProduct; refetch: () =
       <AnimatePresence>
         {showHistory && (
           <StockHistoryPanel productId={product.id} onClose={() => setShowHistory(false)} />
+        )}
+        {showSubstitutes && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-[#f3f4f6] bg-[#fafafa] px-4 py-4">
+              <AdminBomSubstitutes productId={product.id} productName={product.name} />
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

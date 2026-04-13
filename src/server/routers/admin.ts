@@ -384,6 +384,81 @@ export const adminRouter = createTRPCRouter({
       });
     }),
 
+  // BOM substitutes management
+  bomSubstitutes: adminProcedure
+    .input(z.object({ parentProductId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.bomItem.findMany({
+        where: { parentProductId: input.parentProductId, isOptional: false },
+        orderBy: { sortOrder: "asc" },
+        select: {
+          id: true, slotName: true, componentId: true,
+          component: { select: { id: true, name: true, sku: true, brand: true, stock: true, images: { take: 1, select: { url: true } } } },
+          substitutes: {
+            orderBy: { priority: "asc" },
+            select: {
+              id: true, priority: true, notes: true,
+              product: { select: { id: true, name: true, sku: true, brand: true, stock: true, images: { take: 1, select: { url: true } } } },
+            },
+          },
+        },
+      });
+    }),
+
+  addSubstitute: adminProcedure
+    .input(z.object({
+      bomItemId: z.string(),
+      productId: z.string(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const maxPriority = await ctx.db.bomSubstitute.aggregate({
+        where: { bomItemId: input.bomItemId },
+        _max: { priority: true },
+      });
+      const sub = await ctx.db.bomSubstitute.create({
+        data: {
+          bomItemId: input.bomItemId,
+          productId: input.productId,
+          notes: input.notes,
+          priority: (maxPriority._max.priority ?? -1) + 1,
+        },
+        select: { id: true },
+      });
+      // Re-sync affected PREBUILTs
+      const bomItem = await ctx.db.bomItem.findUnique({
+        where: { id: input.bomItemId }, select: { parentProductId: true },
+      });
+      if (bomItem) await syncPrebuiltStock(ctx.db, [input.productId]);
+      return sub;
+    }),
+
+  removeSubstitute: adminProcedure
+    .input(z.object({ substituteId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const sub = await ctx.db.bomSubstitute.findUnique({
+        where: { id: input.substituteId },
+        select: { productId: true, bomItem: { select: { parentProductId: true } } },
+      });
+      await ctx.db.bomSubstitute.delete({ where: { id: input.substituteId } });
+      if (sub) await syncPrebuiltStock(ctx.db, [sub.productId]);
+      return { ok: true };
+    }),
+
+  reorderSubstitutes: adminProcedure
+    .input(z.object({
+      bomItemId: z.string(),
+      orderedIds: z.array(z.string()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await Promise.all(
+        input.orderedIds.map((id, i) =>
+          ctx.db.bomSubstitute.update({ where: { id }, data: { priority: i } })
+        )
+      );
+      return { ok: true };
+    }),
+
   // Search products by componentType for PC Builder
   searchComponents: adminProcedure
     .input(z.object({
