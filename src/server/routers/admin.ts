@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, adminProcedure } from "../trpc";
 import { OrderStatus, ProductStatus, PaymentStatus, ComponentType, ProductType } from "@prisma/client";
+import { syncPrebuiltStock } from "@/lib/syncPrebuiltStock";
 import { sendLowStockAlert, sendPaymentConfirmed, sendOrderShipped, sendOrderDelivered } from "@/lib/email";
 import { Prisma } from "@prisma/client";
 
@@ -193,6 +194,8 @@ export const adminRouter = createTRPCRouter({
         data: { stock: input.stock },
         select: { name: true, sku: true, stock: true, lowStockThreshold: true },
       });
+      // If this product is used as a component in any PREBUILT, sync their virtual stock
+      await syncPrebuiltStock(ctx.db, [input.productId]);
       if (updated.stock <= (updated.lowStockThreshold ?? 5)) {
         sendLowStockAlert({
           productName: updated.name,
@@ -365,6 +368,9 @@ export const adminRouter = createTRPCRouter({
           })),
           skipDuplicates: true,
         });
+
+        // Set the PREBUILT's own stock = min(required component stocks)
+        await syncPrebuiltStock(ctx.db, components.map(c => c.productId));
       }
 
       return product;

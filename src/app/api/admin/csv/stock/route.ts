@@ -3,6 +3,7 @@ import { db } from "@/server/db/client";
 import { parseCSV, requireAdmin, unauthorizedResponse } from "@/lib/csvAdmin";
 import { MovementType } from "@prisma/client";
 import { randomUUID } from "crypto";
+import { syncPrebuiltStock } from "@/lib/syncPrebuiltStock";
 
 type StockRow = { sku: string; stock: string; notas?: string };
 
@@ -44,6 +45,16 @@ export async function POST(req: NextRequest) {
     ]);
 
     results.push({ sku, status: "ok", old: product.stock, new: stock });
+  }
+
+  // Sync any PREBUILT products whose components were updated
+  const updatedIds = results.filter(r => r.status === "ok").map(r => {
+    const p = rows.find(row => row.sku?.trim() === r.sku);
+    return p ? r.sku : null;
+  }).filter(Boolean) as string[];
+  if (updatedIds.length > 0) {
+    const products = await db.product.findMany({ where: { sku: { in: updatedIds } }, select: { id: true } });
+    await syncPrebuiltStock(db, products.map(p => p.id));
   }
 
   const successRows = results.filter(r => r.status === "ok").length;

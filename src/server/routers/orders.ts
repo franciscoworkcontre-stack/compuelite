@@ -1,11 +1,53 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { OrderStatus, PaymentMethod } from "@prisma/client";
+import { OrderStatus, PaymentMethod, ProductType } from "@prisma/client";
 import { getShippingOptions, type Carrier } from "@/lib/shipping";
 import { CouponType } from "@prisma/client";
 import { sendOrderConfirmation, sendLowStockAlert } from "@/lib/email";
 import { evaluatePromotions } from "./promotions";
+import { Prisma } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
+import { syncPrebuiltStock } from "@/lib/syncPrebuiltStock";
+
+// Resolves the effective stock for a product:
+// - PREBUILT → min stock across all non-optional BomItem components
+// - anything else → product.stock
+async function effectiveStock(
+  db: PrismaClient | Prisma.TransactionClient,
+  productId: string,
+  productType: ProductType,
+  ownStock: number,
+): Promise<{ stock: number; bottleneck?: string }> {
+  if (productType !== ProductType.PREBUILT) return { stock: ownStock };
+
+  const bom = await db.bomItem.findMany({
+    where: { parentProductId: productId },
+    select: {
+      isOptional: true,
+      slotName: true,
+      component: { select: { id: true, name: true, stock: true } },
+    },
+  });
+
+  // If no BOM defined yet, treat as unavailable
+  if (bom.length === 0) return { stock: 0, bottleneck: "Sin fórmula de componentes" };
+
+  // Only required components gate availability
+  const required = bom.filter(b => !b.isOptional);
+  if (required.length === 0) return { stock: 0, bottleneck: "Sin componentes obligatorios" };
+
+  let min = Infinity;
+  let bottleneck = "";
+  for (const b of required) {
+    if (b.component.stock < min) {
+      min = b.component.stock;
+      bottleneck = b.component.name;
+    }
+  }
+
+  return { stock: min === Infinity ? 0 : min, bottleneck: min === 0 ? bottleneck : undefined };
+}
 
 export const ordersRouter = createTRPCRouter({
   create: protectedProcedure
@@ -35,14 +77,18 @@ export const ordersRouter = createTRPCRouter({
       // Fetch canonical prices and stock from DB — never trust client-provided prices
       const products = await ctx.db.product.findMany({
         where: { id: { in: input.items.map((i) => i.productId) } },
-        select: { id: true, name: true, price: true, stock: true, status: true },
+        select: { id: true, name: true, price: true, stock: true, status: true, productType: true },
       });
 
       for (const item of input.items) {
         const p = products.find((p) => p.id === item.productId);
         if (!p) throw new TRPCError({ code: "BAD_REQUEST", message: `Producto no encontrado` });
         if (p.status !== "ACTIVE") throw new TRPCError({ code: "BAD_REQUEST", message: `${p.name} ya no está disponible` });
-        if (p.stock < item.quantity) throw new TRPCError({ code: "BAD_REQUEST", message: `Stock insuficiente para ${p.name} (disponible: ${p.stock})` });
+        const { stock, bottleneck } = await effectiveStock(ctx.db, p.id, p.productType, p.stock);
+        if (stock < item.quantity) {
+          const detail = bottleneck ? ` (sin stock: ${bottleneck})` : ` (disponible: ${stock})`;
+          throw new TRPCError({ code: "BAD_REQUEST", message: `Stock insuficiente para ${p.name}${detail}` });
+        }
       }
 
       const enrichedItems = input.items.map((item) => {
@@ -110,13 +156,15 @@ export const ordersRouter = createTRPCRouter({
         for (const item of enrichedItems) {
           const current = await tx.product.findUnique({
             where: { id: item.productId },
-            select: { stock: true, name: true },
+            select: { stock: true, name: true, productType: true },
           });
-          if (!current || current.stock < item.quantity) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: `Stock insuficiente para ${current?.name ?? item.productId}`,
-            });
+          if (!current) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Producto no encontrado` });
+          }
+          const { stock, bottleneck } = await effectiveStock(tx as unknown as Prisma.TransactionClient, item.productId, current.productType, current.stock);
+          if (stock < item.quantity) {
+            const detail = bottleneck ? ` (sin stock: ${bottleneck})` : ` (disponible: ${stock})`;
+            throw new TRPCError({ code: "BAD_REQUEST", message: `Stock insuficiente para ${current.name}${detail}` });
           }
         }
 
@@ -163,14 +211,37 @@ export const ordersRouter = createTRPCRouter({
         });
 
         // Decrement stock atomically
-        await Promise.all(
-          enrichedItems.map((item) =>
-            tx.product.update({
+        // PREBUILT → decrement each required BomItem component, not the virtual product itself
+        // everything else → decrement the product directly
+        const decrementedComponentIds: string[] = [];
+        for (const item of enrichedItems) {
+          const meta = products.find(p => p.id === item.productId);
+          if (meta?.productType === ProductType.PREBUILT) {
+            const bom = await tx.bomItem.findMany({
+              where: { parentProductId: item.productId, isOptional: false },
+              select: { componentId: true },
+            });
+            await Promise.all(
+              bom.map(b =>
+                tx.product.update({
+                  where: { id: b.componentId },
+                  data: { stock: { decrement: item.quantity } },
+                })
+              )
+            );
+            decrementedComponentIds.push(...bom.map(b => b.componentId));
+          } else {
+            await tx.product.update({
               where: { id: item.productId },
               data: { stock: { decrement: item.quantity } },
-            })
-          )
-        );
+            });
+          }
+        }
+
+        // Sync PREBUILT virtual stock after component decrements
+        if (decrementedComponentIds.length > 0) {
+          await syncPrebuiltStock(tx as unknown as Prisma.TransactionClient, decrementedComponentIds);
+        }
 
         // Increment coupon usage count
         if (appliedCoupon) {
@@ -201,8 +272,22 @@ export const ordersRouter = createTRPCRouter({
       });
 
       // Post-transaction: check for low stock and fire alerts
+      // For PREBUILTs we alert on their components; for others, on themselves
+      const affectedProductIds = new Set<string>();
+      for (const item of enrichedItems) {
+        const meta = products.find(p => p.id === item.productId);
+        if (meta?.productType === ProductType.PREBUILT) {
+          const bom = await ctx.db.bomItem.findMany({
+            where: { parentProductId: item.productId, isOptional: false },
+            select: { componentId: true },
+          });
+          bom.forEach(b => affectedProductIds.add(b.componentId));
+        } else {
+          affectedProductIds.add(item.productId);
+        }
+      }
       const updatedProducts = await ctx.db.product.findMany({
-        where: { id: { in: enrichedItems.map((i) => i.productId) } },
+        where: { id: { in: [...affectedProductIds] } },
         select: { name: true, sku: true, stock: true, lowStockThreshold: true },
       });
       for (const p of updatedProducts) {
