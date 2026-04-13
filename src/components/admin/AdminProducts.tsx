@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc/client";
-import { ProductStatus, ProductType } from "@prisma/client";
+import { ComponentType, ProductStatus, ProductType } from "@prisma/client";
 import { CsvUploadZone } from "./CsvUploadZone";
 import { ImageUploader } from "./ImageUploader";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Search, X, CheckCircle2, Cpu, HardDrive, Server, Zap, Wind, Thermometer, CircuitBoard, Package, ChevronDown } from "lucide-react";
 
 function formatCLP(n: number | string | { toNumber?: () => number }) {
   const val = typeof n === "object" && n.toNumber ? n.toNumber() : Number(n);
@@ -135,6 +135,241 @@ function ProductTable() {
   );
 }
 
+// ─── PC FORMULA BUILDER ──────────────────────────────────────────────────────
+
+type SlotDef = {
+  key: ComponentType;
+  label: string;
+  required: boolean;
+  slotIndex?: number; // for multi-slot (fans)
+  icon: React.ReactNode;
+  placeholder: string;
+};
+
+const PC_SLOTS: SlotDef[] = [
+  { key: ComponentType.CASE,        label: "Gabinete",           required: true,  icon: <Package className="w-3.5 h-3.5" />,      placeholder: "Lian Li, NZXT, Fractal…" },
+  { key: ComponentType.MOTHERBOARD, label: "Placa Madre",        required: true,  icon: <CircuitBoard className="w-3.5 h-3.5" />, placeholder: "ASUS, MSI, Gigabyte…" },
+  { key: ComponentType.CPU,         label: "Procesador",         required: true,  icon: <Cpu className="w-3.5 h-3.5" />,          placeholder: "AMD Ryzen, Intel Core…" },
+  { key: ComponentType.GPU,         label: "Tarjeta de Video",   required: true,  icon: <Server className="w-3.5 h-3.5" />,       placeholder: "RTX, RX, Arc…" },
+  { key: ComponentType.RAM,         label: "Memoria RAM",        required: true,  icon: <HardDrive className="w-3.5 h-3.5" />,    placeholder: "Corsair, G.Skill, Kingston…" },
+  { key: ComponentType.STORAGE_SSD, label: "Almacenamiento",     required: true,  icon: <HardDrive className="w-3.5 h-3.5" />,    placeholder: "Samsung 990 Pro, WD Black…" },
+  { key: ComponentType.PSU,         label: "Fuente de Poder",    required: true,  icon: <Zap className="w-3.5 h-3.5" />,          placeholder: "Corsair, EVGA, Seasonic…" },
+  { key: ComponentType.CPU_COOLER,  label: "Ventilación CPU",    required: true,  icon: <Wind className="w-3.5 h-3.5" />,          placeholder: "Noctua, be quiet!, DeepCool…" },
+  { key: ComponentType.CASE_FAN,    label: "Ventilación 1",      required: false, slotIndex: 0, icon: <Wind className="w-3.5 h-3.5" />, placeholder: "120mm, 140mm…" },
+  { key: ComponentType.CASE_FAN,    label: "Ventilación 2",      required: false, slotIndex: 1, icon: <Wind className="w-3.5 h-3.5" />, placeholder: "120mm, 140mm…" },
+  { key: ComponentType.AIO_COOLER,  label: "Ventilación Líquida",required: false, icon: <Thermometer className="w-3.5 h-3.5" />, placeholder: "240mm, 280mm, 360mm…" },
+];
+
+type SelectedProduct = {
+  id: string;
+  name: string;
+  brand: string;
+  sku: string;
+  price: { toNumber?: () => number } | number;
+  stock: number;
+  images: { url: string }[];
+};
+
+type FormulaSlot = {
+  componentType: ComponentType;
+  slotIndex: number;
+  product: SelectedProduct | null;
+};
+
+function SlotPicker({
+  slot,
+  selected,
+  onSelect,
+  onClear,
+}: {
+  slot: SlotDef;
+  selected: SelectedProduct | null;
+  onSelect: (p: SelectedProduct) => void;
+  onClear: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const { data: results = [], isFetching } = trpc.admin.searchComponents.useQuery(
+    { componentType: slot.key, query },
+    { enabled: open, staleTime: 10_000 }
+  );
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  if (selected) {
+    const price = typeof selected.price === "object" && selected.price.toNumber
+      ? selected.price.toNumber() : Number(selected.price);
+    return (
+      <div className="flex items-center gap-3 bg-[#f0fdf4] border border-[#86efac] rounded-lg px-3 py-2.5">
+        {selected.images[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={selected.images[0].url} alt="" className="w-8 h-8 object-contain rounded flex-shrink-0" />
+        ) : (
+          <div className="w-8 h-8 bg-[#dcfce7] rounded flex-shrink-0 flex items-center justify-center text-[#16a34a]">
+            {slot.icon}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-bold text-[#111827] truncate">{selected.name}</p>
+          <p className="text-[10px] text-[#6b7280]">{selected.brand} · {formatCLP(price)} · Stock: {selected.stock}</p>
+        </div>
+        <button type="button" onClick={onClear} className="text-[#9ca3af] hover:text-[#ef4444] transition-colors flex-shrink-0">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-2 px-3 py-2 bg-[#f3f4f6] border border-[#e5e7eb] rounded-lg text-[11px] text-[#9ca3af] hover:border-[#d1d5db] transition-colors"
+      >
+        <span className="text-[#9ca3af]">{slot.icon}</span>
+        <span className="flex-1 text-left">{slot.placeholder}</span>
+        <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-[#e5e7eb] rounded-xl shadow-xl">
+          <div className="p-2 border-b border-[#f3f4f6]">
+            <div className="flex items-center gap-2 px-2 py-1.5 bg-[#f3f4f6] rounded-lg">
+              <Search className="w-3.5 h-3.5 text-[#9ca3af]" />
+              <input
+                autoFocus
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder={`Buscar ${slot.label.toLowerCase()}…`}
+                className="flex-1 bg-transparent text-[11px] text-[#111827] placeholder-[#9ca3af] focus:outline-none"
+              />
+              {isFetching && <div className="w-3 h-3 border border-[#9ca3af] border-t-transparent rounded-full animate-spin" />}
+            </div>
+          </div>
+
+          <div className="max-h-56 overflow-y-auto py-1">
+            {results.length === 0 ? (
+              <p className="text-[11px] text-[#9ca3af] text-center py-4">
+                {isFetching ? "Buscando…" : "Sin resultados"}
+              </p>
+            ) : results.map(p => {
+              const price = typeof p.price === "object" && (p.price as { toNumber?: () => number }).toNumber
+                ? (p.price as { toNumber: () => number }).toNumber() : Number(p.price);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { onSelect(p as SelectedProduct); setOpen(false); setQuery(""); }}
+                  className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#f9fafb] transition-colors text-left"
+                >
+                  {p.images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.images[0].url} alt="" className="w-8 h-8 object-contain rounded flex-shrink-0" />
+                  ) : (
+                    <div className="w-8 h-8 bg-[#f3f4f6] rounded flex-shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-bold text-[#111827] truncate">{p.name}</p>
+                    <p className="text-[10px] text-[#6b7280]">{p.brand} · {p.sku}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-[11px] font-bold text-[#111827]">{formatCLP(price)}</p>
+                    <p className={`text-[10px] ${p.stock > 0 ? "text-[#16a34a]" : "text-[#ef4444]"}`}>
+                      {p.stock > 0 ? `Stock: ${p.stock}` : "Sin stock"}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+type PCFormulaBuilderProps = {
+  slots: FormulaSlot[];
+  onChange: (slots: FormulaSlot[]) => void;
+};
+
+function PCFormulaBuilder({ slots, onChange }: PCFormulaBuilderProps) {
+  function setSlot(key: ComponentType, slotIndex: number, product: SelectedProduct | null) {
+    onChange(
+      slots.map(s =>
+        s.componentType === key && s.slotIndex === slotIndex ? { ...s, product } : s
+      )
+    );
+  }
+
+  const totalPrice = slots.reduce((sum, s) => {
+    if (!s.product) return sum;
+    const price = typeof s.product.price === "object" && s.product.price.toNumber
+      ? s.product.price.toNumber() : Number(s.product.price);
+    return sum + price;
+  }, 0);
+
+  const requiredFilled = PC_SLOTS.filter(s => s.required).every(s => {
+    const si = s.slotIndex ?? 0;
+    return slots.find(sl => sl.componentType === s.key && sl.slotIndex === si)?.product !== null;
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] text-[#6b7280] uppercase tracking-wider">
+          Fórmula PC — Componentes
+        </label>
+        {totalPrice > 0 && (
+          <div className="flex items-center gap-1.5">
+            {requiredFilled && <CheckCircle2 className="w-3.5 h-3.5 text-[#16a34a]" />}
+            <span className="text-[11px] font-black text-[#111827]">Total componentes: {formatCLP(totalPrice)}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {PC_SLOTS.map(slotDef => {
+          const si = slotDef.slotIndex ?? 0;
+          const current = slots.find(s => s.componentType === slotDef.key && s.slotIndex === si);
+          return (
+            <div key={`${slotDef.key}_${si}`} className="grid grid-cols-[130px_1fr] gap-3 items-start">
+              <div className="flex items-center gap-1.5 pt-2.5">
+                <span className={`${slotDef.required ? "text-[#6b7280]" : "text-[#9ca3af]"}`}>{slotDef.icon}</span>
+                <span className={`text-[10px] font-bold uppercase tracking-wide ${slotDef.required ? "text-[#374151]" : "text-[#9ca3af]"}`}>
+                  {slotDef.label}
+                  {!slotDef.required && <span className="ml-1 text-[#d1d5db] normal-case font-normal">opt.</span>}
+                </span>
+              </div>
+              <SlotPicker
+                slot={slotDef}
+                selected={current?.product ?? null}
+                onSelect={p => setSlot(slotDef.key, si, p)}
+                onClear={() => setSlot(slotDef.key, si, null)}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {!requiredFilled && (
+        <p className="text-[10px] text-[#f59e0b] bg-[#fffbeb] border border-[#fde68a] rounded-lg px-3 py-2">
+          Faltan componentes obligatorios: Gabinete, Placa Madre, Procesador, Tarjeta de Video, RAM, Almacenamiento, Fuente y Ventilación CPU.
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── PLATFORM SELECTOR ───────────────────────────────────────────────────────
 // Plataformas obtenidas de https://multivende.com/integraciones/
 // Filtradas a las relevantes para Chile (marketplaces + eCommerce activos en CL)
@@ -256,18 +491,66 @@ function CreateProductForm() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // PC Formula state — one slot per PC_SLOTS entry
+  const [formulaSlots, setFormulaSlots] = useState<FormulaSlot[]>(() =>
+    PC_SLOTS.map(s => ({ componentType: s.key, slotIndex: s.slotIndex ?? 0, product: null }))
+  );
+
+  const createPrebuilt = trpc.admin.createPrebuilt.useMutation();
+
+  const isPrebuilt = form.productType === "PREBUILT";
+
   const set = (k: keyof typeof form) => (v: string) => setForm(f => ({ ...f, [k]: v }));
 
   async function handleSubmit() {
     if (!form.sku || !form.name || !form.brand || !form.price || !form.categoryId) {
       setError("SKU, nombre, marca, precio y categoría son obligatorios"); return;
     }
+
+    if (isPrebuilt) {
+      // Validate required formula slots
+      const missingRequired = PC_SLOTS.filter(s => s.required).filter(s => {
+        const si = s.slotIndex ?? 0;
+        return !formulaSlots.find(fl => fl.componentType === s.key && fl.slotIndex === si)?.product;
+      });
+      if (missingRequired.length > 0) {
+        setError(`Faltan componentes obligatorios: ${missingRequired.map(s => s.label).join(", ")}`);
+        return;
+      }
+
+      setSaving(true); setError(null);
+      try {
+        await createPrebuilt.mutateAsync({
+          sku: form.sku,
+          name: form.name,
+          brand: form.brand,
+          price: parseFloat(form.price),
+          compareAtPrice: form.compareAtPrice ? parseFloat(form.compareAtPrice) : undefined,
+          stock: parseInt(form.stock, 10),
+          categoryId: form.categoryId,
+          description: form.description,
+          imageUrl: form.imageUrl,
+          components: formulaSlots
+            .filter(s => s.product !== null)
+            .map(s => ({ productId: s.product!.id, componentType: s.componentType, slotIndex: s.slotIndex })),
+        });
+        setSaved(true);
+        setForm({ sku: "", name: "", brand: "", price: "", compareAtPrice: "", stock: "0", categoryId: "", productType: "STANDALONE", description: "", imageUrl: "", status: "ACTIVE" });
+        setFormulaSlots(PC_SLOTS.map(s => ({ componentType: s.key, slotIndex: s.slotIndex ?? 0, product: null })));
+        setPlatforms([]);
+        setTimeout(() => setSaved(false), 3000);
+        utils.admin.products.invalidate();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Error al crear PC armado");
+      } finally { setSaving(false); }
+      return;
+    }
+
     setSaving(true); setError(null);
     try {
       const res = await fetch("/api/admin/csv/products", {
         method: "POST",
         body: (() => {
-          // Reuse the CSV API with a single-row CSV
           const headers = "sku,name,brand,price,compare_price,stock,category_slug,product_type,description,image_url";
           const catSlug = categories.find(c => c.id === form.categoryId)?.slug ?? "";
           const row = [form.sku, `"${form.name}"`, `"${form.brand}"`, form.price, form.compareAtPrice,
@@ -331,9 +614,23 @@ function CreateProductForm() {
         <label className="text-[10px] text-[#6b7280] uppercase tracking-wider block mb-1">Tipo de producto</label>
         <select value={form.productType} onChange={e => set("productType")(e.target.value as ProductType)}
           className="w-full px-3 py-2 text-sm bg-[#f3f4f6] border border-[#e5e7eb] text-[#111827] rounded-lg focus:outline-none focus:border-[#16a34a]/40">
-          {Object.values(ProductType).map(t => <option key={t} value={t}>{t}</option>)}
+          {Object.values(ProductType).map(t => (
+            <option key={t} value={t}>
+              {t === "STANDALONE" ? "Standalone — producto individual" :
+               t === "COMPONENT" ? "Componente — parte de un PC" :
+               t === "PREBUILT" ? "PC Armado — fórmula con componentes" :
+               t === "PERIPHERAL" ? "Periférico" :
+               t === "ACCESSORY" ? "Accesorio" : t}
+            </option>
+          ))}
         </select>
       </div>
+
+      {isPrebuilt && (
+        <div className="border border-[#e5e7eb] rounded-xl p-4 bg-[#fafafa]">
+          <PCFormulaBuilder slots={formulaSlots} onChange={setFormulaSlots} />
+        </div>
+      )}
 
       <div>
         <label className="text-[10px] text-[#6b7280] uppercase tracking-wider block mb-1">Descripción</label>

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, adminProcedure } from "../trpc";
-import { OrderStatus, ProductStatus, PaymentStatus } from "@prisma/client";
+import { OrderStatus, ProductStatus, PaymentStatus, ComponentType, ProductType } from "@prisma/client";
 import { sendLowStockAlert, sendPaymentConfirmed, sendOrderShipped, sendOrderDelivered } from "@/lib/email";
 import { Prisma } from "@prisma/client";
 
@@ -293,4 +293,80 @@ export const adminRouter = createTRPCRouter({
       LIMIT 20
     `;
   }),
+
+  // Search products by componentType for PC Builder
+  searchComponents: adminProcedure
+    .input(z.object({
+      componentType: z.nativeEnum(ComponentType),
+      query: z.string().default(""),
+    }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.product.findMany({
+        where: {
+          componentType: input.componentType,
+          status: ProductStatus.ACTIVE,
+          ...(input.query.trim() && {
+            OR: [
+              { name: { contains: input.query, mode: "insensitive" } },
+              { brand: { contains: input.query, mode: "insensitive" } },
+              { sku: { contains: input.query, mode: "insensitive" } },
+            ],
+          }),
+        },
+        select: { id: true, name: true, brand: true, sku: true, price: true, stock: true,
+          images: { take: 1, select: { url: true } } },
+        orderBy: { name: "asc" },
+        take: 10,
+      });
+    }),
+
+  // Create a PREBUILT product with PC formula components
+  createPrebuilt: adminProcedure
+    .input(z.object({
+      sku: z.string().min(1),
+      name: z.string().min(1),
+      brand: z.string().min(1),
+      price: z.number().positive(),
+      compareAtPrice: z.number().optional(),
+      stock: z.number().int().min(0).default(1),
+      categoryId: z.string().min(1),
+      description: z.string().default(""),
+      imageUrl: z.string().default(""),
+      components: z.array(z.object({
+        productId: z.string(),
+        componentType: z.nativeEnum(ComponentType),
+        slotIndex: z.number().int().min(0).default(0),
+      })),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { components, price, compareAtPrice, ...rest } = input;
+
+      // Create the product
+      const product = await ctx.db.product.create({
+        data: {
+          ...rest,
+          price,
+          compareAtPrice: compareAtPrice ?? null,
+          productType: ProductType.PREBUILT,
+          status: ProductStatus.ACTIVE,
+          slug: rest.sku.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        },
+      });
+
+      // Create BomItems (formula) for each component
+      if (components.length > 0) {
+        await ctx.db.bomItem.createMany({
+          data: components.map((c, i) => ({
+            parentProductId: product.id,
+            componentId: c.productId,
+            slotName: `${c.componentType}_${c.slotIndex}`,
+            isOptional: c.slotIndex > 0, // ventilacion 2, etc. = optional
+            sortOrder: i,
+          })),
+          skipDuplicates: true,
+        });
+      }
+
+      return product;
+    }),
 });
