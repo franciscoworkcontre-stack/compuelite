@@ -11,6 +11,7 @@ interface Props {
     price: { toNumber?: () => number } | number | string;
     sku: string;
     stock: number;
+    productType?: string;
     images?: { url: string }[];
   };
   compact?: boolean;
@@ -32,6 +33,7 @@ export function AddToCartButton({ product, compact }: Props) {
       price,
       sku: product.sku,
       imageUrl: product.images?.[0]?.url,
+      productType: product.productType,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);

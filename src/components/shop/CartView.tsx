@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCartStore } from "@/stores/cartStore";
+import { PrebuiltSubstituteWarning } from "@/components/shop/PrebuiltSubstituteWarning";
 
 function formatCLP(n: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -76,10 +77,15 @@ export function CartView() {
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 space-y-1">
                   <p className="text-xs text-[#555] uppercase tracking-wider">{item.brand}</p>
                   <p className="text-sm font-semibold text-white leading-snug truncate">{item.name}</p>
                   <p className="text-xs font-mono text-[#555] mt-0.5">{item.sku}</p>
+                  {item.productType === "PREBUILT" && (
+                    <div className="pt-1">
+                      <PrebuiltSubstituteWarning productId={item.productId} variant="compact" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Qty + price + remove */}

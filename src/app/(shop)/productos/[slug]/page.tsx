@@ -51,6 +51,7 @@ export default async function ProductPage({
     compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
     discount: disc,
     stock: product.stock,
+    productType: product.productType ?? undefined,
     images: product.images.map((img) => ({ id: img.id, url: img.url })),
     specs: product.specs as Record<string, string> | null,
     description: product.description ?? null,

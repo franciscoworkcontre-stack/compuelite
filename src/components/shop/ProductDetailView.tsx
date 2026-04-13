@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
 import { WishlistButton } from "@/components/shop/WishlistButton";
+import { PrebuiltSubstituteWarning } from "@/components/shop/PrebuiltSubstituteWarning";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,7 @@ export interface ProductDetailViewProps {
     compareAtPrice: number | null;
     discount: number | null;
     stock: number;
+    productType?: string;
     images: Array<{ id: string; url: string }>;
     specs: Record<string, string> | null;
     description: string | null;
@@ -320,6 +322,13 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                 <SpecChip key={k} label={k} value={String(v)} index={i} />
               ))}
             </div>
+          </motion.div>
+        )}
+
+        {/* Substitute warning — only for PREBUILT */}
+        {product.productType === "PREBUILT" && (
+          <motion.div variants={itemVariants}>
+            <PrebuiltSubstituteWarning productId={product.id} variant="full" />
           </motion.div>
         )}
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-import { ComponentType, ProductStatus } from "@prisma/client";
+import { ComponentType, ProductStatus, ProductType } from "@prisma/client";
 
 export const productsRouter = createTRPCRouter({
   list: publicProcedure
@@ -190,5 +190,48 @@ export const productsRouter = createTRPCRouter({
         min: Number(agg._min.price ?? 0),
         max: Number(agg._max.price ?? 10000000),
       };
+    }),
+
+  // Preview BOM substitutions for a PREBUILT product — read-only, no stock committed
+  // Returns only the slots where a substitute would be used (primary is out of stock)
+  previewBom: publicProcedure
+    .input(z.object({ productId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const product = await ctx.db.product.findUnique({
+        where: { id: input.productId },
+        select: { productType: true },
+      });
+      if (!product || product.productType !== ProductType.PREBUILT) return [];
+
+      const slots = await ctx.db.bomItem.findMany({
+        where: { parentProductId: input.productId, isOptional: false },
+        orderBy: { sortOrder: "asc" },
+        select: {
+          id: true,
+          slotName: true,
+          component: { select: { id: true, name: true, sku: true, brand: true, stock: true } },
+          substitutes: {
+            orderBy: { priority: "asc" },
+            select: {
+              notes: true,
+              product: { select: { id: true, name: true, sku: true, brand: true, stock: true } },
+            },
+          },
+        },
+      });
+
+      // Only return slots where the primary is out of stock
+      return slots
+        .filter(slot => slot.component.stock === 0)
+        .map(slot => {
+          const activeSub = slot.substitutes.find(s => s.product.stock > 0) ?? null;
+          return {
+            slotName: slot.slotName,
+            original: { name: slot.component.name, sku: slot.component.sku, brand: slot.component.brand },
+            substitute: activeSub
+              ? { name: activeSub.product.name, sku: activeSub.product.sku, brand: activeSub.product.brand, notes: activeSub.notes }
+              : null,
+          };
+        });
     }),
 });

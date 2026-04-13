@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCartStore } from "@/stores/cartStore";
 import { trpc } from "@/lib/trpc/client";
 import { getShippingOptions, type Carrier, type ShippingOption } from "@/lib/shipping";
+import { PrebuiltSubstituteWarning } from "@/components/shop/PrebuiltSubstituteWarning";
 
 function formatCLP(n: number) {
   return new Intl.NumberFormat("es-CL", {
@@ -388,6 +389,19 @@ export function CheckoutView() {
                     </div>
                   ))}
                 </div>
+
+                {/* Substitute warnings per PREBUILT item */}
+                {items.some(i => i.productType === "PREBUILT") && (
+                  <div className="space-y-2 mb-4">
+                    {items.filter(i => i.productType === "PREBUILT").map(item => (
+                      <PrebuiltSubstituteWarning
+                        key={item.productId}
+                        productId={item.productId}
+                        variant="compact"
+                      />
+                    ))}
+                  </div>
+                )}
 
                 {/* Price breakdown */}
                 <div className="border-t border-[#1a1a1a] pt-4 space-y-2 mb-5">
